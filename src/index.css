@@ -1,0 +1,66 @@
+﻿/* Formal Government Citizen-Services Portal Font Stack */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+:root {
+  color-scheme: light;
+  --font-gov-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans', Helvetica, Arial, sans-serif;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-gov-sans);
+  background-color: #f8fafc;
+  color: #0f172a;
+  user-select: text;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Enforce primary sans font stack everywhere */
+body, button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, span, div {
+  font-family: var(--font-gov-sans);
+}
+
+button,
+a {
+  cursor: pointer;
+}
+
+.font-sans {
+  font-family: var(--font-gov-sans) !important;
+}
+
+@theme {
+  --color-darkDelegation: #1e293b;
+  --color-govNavy: #1e3a8a;
+  --color-govBlue: #1d4ed8;
+}
+
+/* Base styles for Markdown content */
+.markdown-content p {
+  @apply mb-3 last:mb-0;
+}
+.markdown-content ul,
+.markdown-content ol {
+  @apply mb-3 ml-4 last:mb-0;
+}
+.markdown-content ul {
+  @apply list-disc;
+}
+.markdown-content ol {
+  @apply list-decimal;
+}
+.markdown-content li {
+  @apply mb-1;
+}
+.markdown-content strong {
+  @apply font-bold text-slate-800;
+}
+.markdown-content em {
+  @apply italic;
+}

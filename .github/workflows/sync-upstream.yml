@@ -1,0 +1,37 @@
+name: Sync Upstream and Auto-Deploy
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync-upstream:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Git
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Fetch and Merge Upstream
+        run: |
+          git remote add upstream https://github.com/ayuushhxx/NEXIS.git || true
+          git fetch upstream main
+          LOCAL=$(git rev-parse HEAD)
+          UPSTREAM=$(git rev-parse upstream/main)
+          if [ "$LOCAL" = "$UPSTREAM" ]; then
+            echo 'Already up to date with upstream.'
+            exit 0
+          fi
+          echo 'New upstream changes found. Merging...'
+          git merge upstream/main -m 'chore: auto-sync latest changes from upstream' --no-edit
+          git push origin main
