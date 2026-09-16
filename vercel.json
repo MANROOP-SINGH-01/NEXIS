@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "https://nexis-api-pdhx.onrender.com/api/$1"
+    },
+    {
       "source": "/((?!assets/|vendor/|api/|.*\\.[a-zA-Z0-9]+$).*)",
       "destination": "/index.html"
     }
