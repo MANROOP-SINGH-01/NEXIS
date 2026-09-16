@@ -17,7 +17,8 @@
 
 import cookieParser from 'cookie-parser'
 import express from 'express'
-import { PORT } from './config.js'
+import cors from 'cors'
+import { PORT, FRONTEND_URL } from './config.js'
 
 // Route modules
 import authRoutes from './routes/auth.js'
@@ -47,6 +48,7 @@ import { seedAdminUser } from './lib/seedAdminUser.js'
 const app = express()
 
 // ── Middleware ─────────────────────────────────────────────────────────────────
+app.use(cors({ origin: [FRONTEND_URL, 'http://localhost:3000'], credentials: true }))
 app.use(express.json({ limit: '1mb' }))
 app.use(cookieParser())
 
@@ -79,7 +81,16 @@ app.get('/provider-view/:token', (req, res) => {
 })
 
 // ── Start ─────────────────────────────────────────────────────────────────────
-app.listen(PORT, async () => {
+const startServer = async () => {
   await seedAdminUser()
-  console.log(`[forge-api] listening on http://localhost:${PORT}`)
-})
+  app.listen(PORT, () => {
+    console.log(`[forge-api] listening on http://localhost:${PORT}`)
+  })
+}
+
+// Only start the server if this file is run directly (not imported)
+if (process.env.NODE_ENV !== 'test' && import.meta.url === `file://${process.argv[1]}`) {
+  startServer()
+}
+
+export default app
