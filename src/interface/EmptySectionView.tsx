@@ -63,7 +63,13 @@ const SECTION_CONFIG: Record<
     title: 'LinkedIn Profile Integration',
     description: 'Sync your LinkedIn profile to automatically extract verified skills and quantifiable resume achievements.',
     icon: Linkedin,
-    badge: 'Identity Proof',
+    badge: 'API Integration',
+  },
+  'career-health': {
+    title: 'Career Health Dashboard',
+    description: 'A holistic view of your career trajectory, skill debt, and earning potential over time.',
+    icon: LayoutDashboard,
+    badge: 'Career Metrics',
   },
 };
 

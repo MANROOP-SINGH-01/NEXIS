@@ -713,6 +713,16 @@ export const AnalyticsDashboard: React.FC = () => {
               <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
               <span>Refresh</span>
             </button>
+            <a
+              href="/api/admin/audit-export"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-md text-xs font-bold transition-colors cursor-pointer"
+              title="Export Audit Log CSV"
+            >
+              <ExternalLink size={13} />
+              <span>Export CSV</span>
+            </a>
             <button
               onClick={() => setAnalyticsDashboardOpen(false)}
               className="p-2 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-md transition-colors cursor-pointer"

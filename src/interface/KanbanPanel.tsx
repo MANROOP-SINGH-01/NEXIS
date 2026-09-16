@@ -1,6 +1,7 @@
 import { AlertTriangle, CheckCircle2, Send, ShieldCheck, Sparkles, Target } from 'lucide-react'
 import React from 'react'
 import { useCoreStore } from '../integration/store/coreStore'
+import { getAuthHeaders } from '../integration/store/authStore'
 
 interface ForgeCard {
   id: string
@@ -154,16 +155,11 @@ export function KanbanPanel({ height = 320 }: KanbanPanelProps) {
     try {
       const res = await fetch('/api/resume/render-pdf', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({
           structuredResume: structuredResume || undefined,
           resume: currentResume.content,
           jd: currentResume.targetJD,
-          keys: {
-            sarvam: 'sk_nh5o7dm2_ulhPSYrePKreWNDf9jWG5wgy',
-            gemini: 'AIzaSyB4HpGrIfcWEY6_GmTP52MvcLHlML7FZwQ',
-            structurer: 'VSFqSoeFoKCdVUiXxxpUcXuTAQMHqpKtBpwhMZPvrgazufCKugpdIzMGCMKvslhe',
-          },
         }),
       })
 

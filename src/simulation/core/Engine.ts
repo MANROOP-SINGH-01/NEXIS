@@ -4,6 +4,8 @@ import * as THREE from 'three/webgpu';
 export class Engine {
   public renderer: THREE.WebGPURenderer;
   public timer: THREE.Timer;
+  private lowFpsCallback: (() => void) | null = null;
+  private lowFpsTimer: number = 0;
 
   constructor(container: HTMLElement) {
     this.renderer = new THREE.WebGPURenderer({ antialias: true });
@@ -34,7 +36,23 @@ export class Engine {
     this.renderer.setSize(width, height, false);
   }
 
+  public onLowFps(callback: () => void) {
+    this.lowFpsCallback = callback;
+  }
+
   public render(scene: THREE.Scene, camera: THREE.PerspectiveCamera) {
+    const delta = this.timer.getDelta();
+    // Use smoothed delta to check if we're consistently under 30FPS (delta > 0.033)
+    if (delta > 0.0333) {
+      this.lowFpsTimer += delta;
+      if (this.lowFpsTimer >= 3.0) {
+        if (this.lowFpsCallback) this.lowFpsCallback();
+        this.lowFpsTimer = 0;
+      }
+    } else {
+      this.lowFpsTimer = Math.max(0, this.lowFpsTimer - delta * 2); // Recover faster
+    }
+    
     this.renderer.render(scene, camera);
   }
 

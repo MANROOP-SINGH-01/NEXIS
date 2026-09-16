@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FileText, Download, Loader2, CheckCircle, AlertTriangle, Sparkles, RefreshCw } from 'lucide-react';
 import { useUiStore } from '../integration/store/uiStore';
 import { useCoreStore } from '../integration/store/coreStore';
+import { getAuthHeaders } from '../integration/store/authStore';
 import { USER_COLOR, USER_COLOR_LIGHT } from '../theme/brand';
 import { StructuredResume } from '../types';
 
@@ -79,7 +80,7 @@ export const NewCVView: React.FC = () => {
     try {
       const res = await fetch('/api/resume/render-pdf', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({
           structuredResume: effectiveStructuredResume,
           resume: currentResume.content || effectiveStructuredResume.summary,
@@ -123,7 +124,7 @@ export const NewCVView: React.FC = () => {
 
       const res = await fetch('/api/resume/tailor', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({
           resume: resumeToUse,
           jd: jdToUse,

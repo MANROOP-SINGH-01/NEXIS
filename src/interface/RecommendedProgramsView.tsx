@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { GraduationCap, ExternalLink, Loader2, BookOpen, ChevronRight, Landmark, ShieldCheck, Award } from 'lucide-react';
+import { GraduationCap, ExternalLink, Loader2, BookOpen, ChevronRight, Landmark } from 'lucide-react';
 import { useUiStore } from '../integration/store/uiStore';
 import { useCoreStore } from '../integration/store/coreStore';
 import { USER_COLOR, USER_COLOR_LIGHT } from '../theme/brand';
@@ -7,76 +7,20 @@ import { CandidateSkill, RecommendedProgram } from '../types';
 
 const CURATED_PROGRAMS_FALLBACK: Record<string, RecommendedProgram[]> = {
   'AWS / Cloud Architecture': [
-    {
-      title: 'Cloud Computing & Distributed Systems',
-      provider: 'NPTEL (Ministry of Education, Govt. of India)',
-      url: 'https://onlinecourses.nptel.ac.in/explorer?q=cloud+computing',
-      isFree: true,
-      isGovt: true,
-      badge: 'NPTEL / IIT',
-    },
-    {
-      title: 'AWS Certified Solutions Architect (Associate)',
-      provider: 'AWS Training & Coursera',
-      url: 'https://www.coursera.org/learn/aws-cloud-technical-essentials',
-      isFree: true,
-      isGovt: false,
-      badge: 'Industry Audit',
-    },
+    { title: 'Cloud Computing & Distributed Systems', provider: 'NPTEL (Ministry of Education, Govt. of India)', url: 'https://onlinecourses.nptel.ac.in/explorer?q=cloud+computing', isFree: true, isGovt: true, badge: 'NPTEL / IIT' },
+    { title: 'AWS Certified Solutions Architect', provider: 'AWS Training & Coursera', url: 'https://www.coursera.org/learn/aws-cloud-technical-essentials', isFree: true, isGovt: false, badge: 'Industry Audit' },
   ],
   'Docker & Containers': [
-    {
-      title: 'Linux and Open Source Container Technologies',
-      provider: 'SWAYAM (Govt. of India / IIT Bombay)',
-      url: 'https://swayam.gov.in/explorer?searchText=linux',
-      isFree: true,
-      isGovt: true,
-      badge: 'Govt. of India',
-    },
-    {
-      title: 'Introduction to Kubernetes & Containers',
-      provider: 'edX & Linux Foundation',
-      url: 'https://www.edx.org/course/introduction-to-kubernetes',
-      isFree: true,
-      isGovt: false,
-      badge: 'Free Course',
-    },
+    { title: 'Linux and Open Source Container Technologies', provider: 'SWAYAM (Govt. of India / IIT Bombay)', url: 'https://swayam.gov.in/explorer?searchText=linux', isFree: true, isGovt: true, badge: 'Govt. of India' },
+    { title: 'Introduction to Kubernetes & Containers', provider: 'edX & Linux Foundation', url: 'https://www.edx.org/course/introduction-to-kubernetes', isFree: true, isGovt: false, badge: 'Free Course' },
   ],
   'PostgreSQL Optimization': [
-    {
-      title: 'Database Management Systems & SQL Query Architecture',
-      provider: 'NPTEL & IIT Kharagpur (Govt. of India)',
-      url: 'https://onlinecourses.nptel.ac.in/explorer?q=database',
-      isFree: true,
-      isGovt: true,
-      badge: 'NPTEL / IIT',
-    },
-    {
-      title: 'Database Design & Relational Modeling',
-      provider: 'Skill India Digital Hub (MSDE)',
-      url: 'https://www.skillindiadigital.gov.in/courses?search=database',
-      isFree: true,
-      isGovt: true,
-      badge: 'Skill India',
-    },
+    { title: 'Database Management Systems & SQL Query Architecture', provider: 'NPTEL & IIT Kharagpur', url: 'https://onlinecourses.nptel.ac.in/explorer?q=database', isFree: true, isGovt: true, badge: 'NPTEL / IIT' },
+    { title: 'Database Design & Relational Modeling', provider: 'Skill India Digital Hub', url: 'https://www.skillindiadigital.gov.in/courses?search=database', isFree: true, isGovt: true, badge: 'Skill India' },
   ],
   'CI/CD Pipelines': [
-    {
-      title: 'DevOps & Software Automation Practices',
-      provider: 'SWAYAM & NPTEL (Govt. of India)',
-      url: 'https://swayam.gov.in/explorer?searchText=devops',
-      isFree: true,
-      isGovt: true,
-      badge: 'Govt. of India',
-    },
-    {
-      title: 'Automated CI/CD with GitHub Actions',
-      provider: 'GitHub Skills Lab',
-      url: 'https://skills.github.com',
-      isFree: true,
-      isGovt: false,
-      badge: 'Free Lab',
-    },
+    { title: 'DevOps & Software Automation Practices', provider: 'SWAYAM & NPTEL', url: 'https://swayam.gov.in/explorer?searchText=devops', isFree: true, isGovt: true, badge: 'Govt. of India' },
+    { title: 'Automated CI/CD with GitHub Actions', provider: 'GitHub Skills Lab', url: 'https://skills.github.com', isFree: true, isGovt: false, badge: 'Free Lab' },
   ],
 };
 
@@ -119,7 +63,6 @@ export const RecommendedProgramsView: React.FC = () => {
       } catch (err) {
         console.warn('[RecommendedProgramsView] API fallback activated:', err);
         setRecommendedPrograms(CURATED_PROGRAMS_FALLBACK);
-        setError(null);
       } finally {
         setLoading(false);
       }
@@ -128,23 +71,20 @@ export const RecommendedProgramsView: React.FC = () => {
     fetchPrograms();
   }, [skillProfile, Object.keys(recommendedPrograms).length, runtimeKeys, setRecommendedPrograms]);
 
-  // Populate baseline recommendations if empty
   if (Object.keys(recommendedPrograms).length === 0) {
     setRecommendedPrograms(CURATED_PROGRAMS_FALLBACK);
   }
 
   const renderCourseList = (skill: string) => {
     const courses = recommendedPrograms[skill];
-    if (!courses) {
-      return null;
-    }
+    if (!courses) return null;
+    
     if (courses.length === 0) {
-      return (
-        <p className="text-xs text-zinc-500 italic mt-2 ml-1">No programs found for this skill yet.</p>
-      );
+      return <p className="text-xs text-zinc-500 italic mt-3">No programs found for this skill yet.</p>;
     }
+    
     return (
-      <div className="grid gap-2 mt-3">
+      <div className="grid gap-3 mt-4">
         {courses.map((course, idx) => {
           const isGovt = course.isGovt || /swayam|nptel|skill india|govt|moe|iit/i.test(course.provider);
           return (
@@ -153,40 +93,40 @@ export const RecommendedProgramsView: React.FC = () => {
               href={course.url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex items-center justify-between gap-3 border p-3 rounded-lg transition-all group ${
+              className={`flex items-center justify-between gap-4 p-4 rounded-2xl border transition-all duration-300 group ${
                 isGovt
-                  ? 'bg-amber-50/40 border-amber-200/80 hover:bg-amber-50 hover:border-amber-300'
-                  : 'bg-zinc-50 border-zinc-100 hover:border-zinc-200 hover:bg-zinc-100/50'
+                  ? 'bg-orange-50/30 border-orange-200/60 hover:bg-orange-50/60 hover:shadow-md hover:border-orange-300'
+                  : 'bg-zinc-50/50 border-zinc-200/60 hover:bg-white hover:shadow-md hover:border-zinc-300'
               }`}
             >
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
                   {isGovt && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-100 text-orange-800 border border-orange-200 rounded text-[10px] font-bold uppercase tracking-wider">
-                      <Landmark size={11} className="text-orange-700" />
-                      Indian Govt. Program
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-orange-100 text-orange-800 border border-orange-200/50 rounded-lg text-[10px] font-bold uppercase tracking-wider">
+                      <Landmark size={12} className="text-orange-700" />
+                      Govt. Program
                     </span>
                   )}
                   {course.isFree && (
-                    <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[9px] font-black uppercase tracking-wider">
+                    <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 border border-emerald-200/50 rounded-lg text-[10px] font-bold uppercase tracking-wider">
                       Free Access
                     </span>
                   )}
                   {course.badge && !isGovt && (
-                    <span className="px-1.5 py-0.5 bg-zinc-200/80 text-zinc-700 rounded text-[9px] font-bold uppercase tracking-wider">
+                    <span className="px-2.5 py-1 bg-zinc-200 text-zinc-800 border border-zinc-300/50 rounded-lg text-[10px] font-bold uppercase tracking-wider">
                       {course.badge}
                     </span>
                   )}
                 </div>
-                <p className="text-sm font-semibold text-slate-900 break-words group-hover:text-blue-700 transition-colors">
+                <p className="text-sm font-semibold text-zinc-950 break-words group-hover:text-blue-600 transition-colors line-clamp-1">
                   {course.title}
                 </p>
-                <div className="flex items-center gap-2 mt-1 text-[11px] text-zinc-500 font-medium">
-                  <span className="font-semibold text-zinc-600 uppercase tracking-wider">{course.provider}</span>
+                <div className="flex items-center gap-2 mt-1.5 text-xs text-zinc-500 font-medium">
+                  <span>{course.provider}</span>
                 </div>
               </div>
-              <div className="shrink-0 w-8 h-8 rounded-full bg-white border border-zinc-200 flex items-center justify-center text-zinc-400 group-hover:text-zinc-600 group-hover:border-zinc-300 transition-all">
-                <ChevronRight size={14} strokeWidth={3} />
+              <div className="shrink-0 w-10 h-10 rounded-full bg-white border border-zinc-200 flex items-center justify-center text-zinc-400 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all shadow-sm">
+                <ChevronRight size={16} strokeWidth={2.5} />
               </div>
             </a>
           );
@@ -196,82 +136,80 @@ export const RecommendedProgramsView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto bg-slate-50 p-6 flex flex-col gap-4 max-w-7xl w-full mx-auto">
+    <div className="flex-1 h-full overflow-y-auto px-4 py-8 sm:p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto custom-scrollbar">
+      
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-md flex items-center justify-center shrink-0" style={{ background: USER_COLOR_LIGHT }}>
-            <GraduationCap size={16} strokeWidth={2.5} style={{ color: USER_COLOR }} />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-zinc-950 flex items-center justify-center shrink-0 shadow-lg shadow-zinc-900/10">
+            <GraduationCap size={22} strokeWidth={2} className="text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 leading-tight">Recommended Programs & Courses</h1>
-            <p className="text-[11px] text-zinc-500 font-medium">
-              Verified Indian Government training portals (SWAYAM, NPTEL, Skill India) & free accredited courses
+            <h1 className="text-2xl font-display font-bold text-zinc-950 tracking-tight leading-tight">Recommended Programs</h1>
+            <p className="text-xs text-zinc-500 font-medium mt-1">
+              Verified Indian Government training portals (SWAYAM, NPTEL) & free accredited courses
             </p>
           </div>
         </div>
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-lg text-orange-800 text-xs font-semibold">
-          <Landmark size={14} className="text-orange-700" />
-          <span>Govt. Accredited Portals Included</span>
+        <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-orange-50/80 border border-orange-200/80 rounded-xl text-orange-800 text-xs font-semibold shadow-sm">
+          <Landmark size={16} className="text-orange-700" />
+          <span>Govt. Accredited Included</span>
         </div>
       </div>
 
       {loading && (
-        <div className="flex-1 flex flex-col items-center justify-center bg-white rounded-lg border border-slate-200">
-          <Loader2 size={24} className="animate-spin text-zinc-300 mb-3" />
-          <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Searching course catalogs & government registries...</p>
+        <div className="flex-1 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm rounded-3xl border border-zinc-200/60 shadow-[var(--shadow-subtle)] min-h-[400px]">
+          <Loader2 size={32} className="animate-spin text-zinc-950 mb-4" />
+          <p className="text-sm font-bold text-zinc-950 tracking-tight">Searching Course Catalogs...</p>
+          <p className="text-xs text-zinc-500 mt-2">Connecting to government registries</p>
         </div>
       )}
 
       {error && !loading && (
-        <div className="p-4 bg-red-50 text-red-600 text-xs rounded-md border border-red-100 font-medium">
+        <div className="p-4 bg-red-50/80 text-red-700 text-sm rounded-2xl border border-red-200 font-medium">
           {error}
         </div>
       )}
 
       {!loading && !error && allGaps.length === 0 && (
-        <div className="flex-1 flex flex-col items-center justify-center bg-white rounded-lg border border-slate-200 p-6 text-center">
-          <BookOpen size={24} className="text-zinc-300 mb-3 mx-auto" />
-          <p className="text-sm font-black text-zinc-900 mb-1">No Skill Gaps Detected!</p>
-          <p className="text-xs font-medium text-zinc-500">You already possess all the required and nice-to-have skills for this role.</p>
+        <div className="flex-1 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm rounded-3xl border border-zinc-200/60 shadow-[var(--shadow-subtle)] min-h-[400px]">
+          <BookOpen size={48} className="text-zinc-300 mb-4" />
+          <p className="text-lg font-display font-bold text-zinc-950 mb-2">No Skill Gaps Detected!</p>
+          <p className="text-sm font-medium text-zinc-500">You already possess the required qualifications.</p>
         </div>
       )}
 
       {!loading && !error && allGaps.length > 0 && (
-        <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {requiredGaps.length > 0 && (
-            <div>
-              <p className="text-[11px] font-black uppercase tracking-widest text-zinc-400 mb-3 px-1">Critical Priority (Required Gaps)</p>
-              <div className="flex flex-col gap-4">
-                {requiredGaps.slice(0, 3).map(skill => (
-                  <div key={skill} className="bg-white rounded-lg border border-slate-200 p-5">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-1 bg-red-50 text-red-600 border border-red-100 rounded-lg text-[11px] font-bold select-none">
-                        {skill}
-                      </span>
-                    </div>
-                    {renderCourseList(skill)}
+            <div className="flex flex-col gap-4">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 px-2 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-red-500" /> Critical Priority (Required)
+              </h3>
+              {requiredGaps.slice(0, 3).map(skill => (
+                <div key={skill} className="bg-white rounded-3xl border border-zinc-200/60 p-6 shadow-[var(--shadow-subtle)] hover:shadow-md transition-shadow">
+                  <div className="inline-block px-3 py-1.5 bg-red-50 text-red-700 border border-red-200/60 rounded-xl text-xs font-bold mb-2">
+                    {skill}
                   </div>
-                ))}
-              </div>
+                  {renderCourseList(skill)}
+                </div>
+              ))}
             </div>
           )}
 
           {niceGaps.length > 0 && (
-            <div className="mt-2">
-              <p className="text-[11px] font-black uppercase tracking-widest text-zinc-400 mb-3 px-1">Secondary Priority (Nice-to-Have Gaps)</p>
-              <div className="flex flex-col gap-4">
-                {niceGaps.slice(0, 2).map(skill => (
-                  <div key={skill} className="bg-white rounded-lg border border-slate-200 p-5">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-1 bg-amber-50 text-amber-700 border border-amber-100 rounded-lg text-[11px] font-bold select-none">
-                        {skill}
-                      </span>
-                    </div>
-                    {renderCourseList(skill)}
+            <div className="flex flex-col gap-4">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 px-2 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-amber-500" /> Secondary Priority (Nice-to-Have)
+              </h3>
+              {niceGaps.slice(0, 2).map(skill => (
+                <div key={skill} className="bg-white rounded-3xl border border-zinc-200/60 p-6 shadow-[var(--shadow-subtle)] hover:shadow-md transition-shadow">
+                  <div className="inline-block px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200/60 rounded-xl text-xs font-bold mb-2">
+                    {skill}
                   </div>
-                ))}
-              </div>
+                  {renderCourseList(skill)}
+                </div>
+              ))}
             </div>
           )}
         </div>

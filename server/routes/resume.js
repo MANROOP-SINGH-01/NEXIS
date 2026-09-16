@@ -1,4 +1,4 @@
-﻿import { Router } from 'express'
+import { Router } from 'express'
 import { PDFParse } from 'pdf-parse'
 import prisma from '../lib/prisma.js'
 import { upload } from '../middleware/upload.js'
@@ -19,10 +19,13 @@ import {
 import { buildResumePdfFromStructured } from '../services/pdfGenerator.js'
 import { normalizeSarvamError, requireEnv } from '../utils/errors.js'
 import { tryParseJsonLoose } from '../utils/helpers.js'
+import { requireAuth } from '../middleware/authMiddleware.js'
+import { aiLimiter } from '../middleware/rateLimit.js'
+import agentActivityService from '../services/agentActivityService.js'
 
 const router = Router()
 
-router.post('/resume/extract', upload.single('resumePdf'), async (req, res) => {
+router.post('/resume/extract', requireAuth, aiLimiter, upload.single('resumePdf'), async (req, res) => {
   if (!req.file) {
     res.status(400).json({ error: 'Missing resume PDF file' })
     return
@@ -48,7 +51,7 @@ router.post('/resume/extract', upload.single('resumePdf'), async (req, res) => {
   }
 })
 
-router.post('/resume/bullet', async (req, res) => {
+router.post('/resume/bullet', requireAuth, aiLimiter, async (req, res) => {
   const userGeminiKey = req.body?.keys?.gemini
   const runtimeGeminiKey = userGeminiKey || GEMINI_API_KEY
   if (!requireEnv('GEMINI_API_KEY', runtimeGeminiKey, res)) return
@@ -144,7 +147,10 @@ async function persistSkillGapSnapshotIfTrainee({ traineeId, jd, skillProfile, a
   }
 }
 
-router.post('/resume/tailor', async (req, res) => {
+router.post('/resume/tailor', requireAuth, aiLimiter, async (req, res) => {
+  // Start event
+  agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_DIRECTOR', 'RESUME_OPTIMIZATION_STARTED');
+
   const resume = String(req.body?.resume || '').trim()
   const jd = String(req.body?.jd || '').trim()
   const traineeId = req.body?.traineeId
@@ -174,6 +180,8 @@ router.post('/resume/tailor', async (req, res) => {
     const skillProfile = buildFallbackSkillProfile(resume, jd)
 
     await persistSkillGapSnapshotIfTrainee({ traineeId, jd, skillProfile, analysis })
+
+    agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_DIRECTOR', 'RESUME_OPTIMIZATION_COMPLETE', { model: 'resilient-local-fallback' });
 
     res.json({
       tailoredResume: structuredResumeText,
@@ -259,6 +267,14 @@ router.post('/resume/tailor', async (req, res) => {
       '  "strategist": { "priorities": string[], "gaps": string[], "strengths": string[] },',
       '  "analysis": {',
       '    "atsCompatibility": number(0-100),',
+      '    "dimensions": {',
+      '      "keywordAlignment": number(0-100),',
+      '      "quantifiedImpact": number(0-100),',
+      '      "evidenceDepth": number(0-100),',
+      '      "structuralQuality": number(0-100),',
+      '      "seniorityFit": number(0-100)',
+      '    },',
+      '    "overallScore": number(0-100),',
       '    "skillGaps": [{"skill": string, "status": "verified"|"needs-proof"|"gap"}],',
       '    "interviewReadiness": { "technicalDeepDive": number, "behavioralQuestions": number, "systemDesign": number }',
       '  },',
@@ -267,7 +283,7 @@ router.post('/resume/tailor', async (req, res) => {
       '    "jd_seniority": string ("Junior"|"Mid"|"Senior"|"Lead"|"Staff"|"Principal"),',
       '    "jd_required_skills": string[],',
       '    "jd_nice_to_have_skills": string[],',
-      '    "candidate_skills": [{ "skill": string, "demonstrated": boolean }],',
+      '    "candidate_skills": [{ "skill": string, "demonstrated": boolean, "provenance": "VERIFIED"|"DECLARED"|"INFERRED"|"UNSUPPORTED", "evidenceSource": string }],',
       '    "candidate_experience_summary": { "level": string, "years": number, "domains": string[] }',
       '  },',
       '  "structuredResume": {',
@@ -346,6 +362,8 @@ router.post('/resume/tailor', async (req, res) => {
 
     await persistSkillGapSnapshotIfTrainee({ traineeId, jd, skillProfile, analysis })
 
+    agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_DIRECTOR', 'RESUME_OPTIMIZATION_COMPLETE', { model: modelUsed });
+
     res.json({
       tailoredResume: structuredResumeText,
       structuredResume,
@@ -374,6 +392,8 @@ router.post('/resume/tailor', async (req, res) => {
 
     await persistSkillGapSnapshotIfTrainee({ traineeId, jd, skillProfile, analysis })
 
+    agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_DIRECTOR', 'RESUME_OPTIMIZATION_COMPLETE', { model: 'resilient-local-fallback', fallback: true });
+
     res.json({
       tailoredResume: structuredResumeText,
       structuredResume,
@@ -386,7 +406,7 @@ router.post('/resume/tailor', async (req, res) => {
   }
 })
 
-router.post('/resume/render-pdf', async (req, res) => {
+router.post('/resume/render-pdf', requireAuth, aiLimiter, async (req, res) => {
   let structuredResume = req.body?.structuredResume
   const resumeText = String(req.body?.resume || '').trim()
   const jd = String(req.body?.jd || '').trim()

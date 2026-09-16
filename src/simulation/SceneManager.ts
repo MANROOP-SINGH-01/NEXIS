@@ -113,6 +113,10 @@ export class SceneManager {
     
     this.init();
     this.startWatchingCoreStore();
+    this.engine.onLowFps(() => {
+      console.warn('[SceneManager] FPS persistently low. Triggering 2D Fallback HUD.');
+      useUiStore.getState().setLowFpsFallback(true);
+    });
   }
 
   private startWatchingCoreStore() {

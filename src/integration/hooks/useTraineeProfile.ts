@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ConsentScope, ConsentStateMap, TraineeProfileData } from '../../types';
 import { useCoreStore } from '../store/coreStore';
+import { useAuthStore } from '../store/authStore';
 
 const GITHUB_TOKEN_KEY = 'forge-github-token';
-const DEV_DEFAULT_TOKEN = 'dev_trainee';
 
 export interface CreateProfilePayload {
   phoneNumber: string;
@@ -19,8 +19,6 @@ export interface CreateProfilePayload {
   district?: string | null;
   identityLast4?: string | null;
   githubUrl?: string | null;
-  /** Optional educational background, used as a stratification signal for
-   *  the illustrative impact estimation. Values: "Below 10th" | "10th Pass" | "12th Pass" | "Graduate" */
   priorQualification?: string | null;
   otpVerificationToken?: string;
 }
@@ -46,13 +44,23 @@ export function useTraineeProfile(): UseTraineeProfileResult {
     setConsentState,
   } = useCoreStore();
 
+  const authToken = useAuthStore((s) => s.token);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [needsConsent, setNeedsConsent] = useState(false);
   const [needsProfile, setNeedsProfile] = useState(false);
 
-  // Read GitHub token from localStorage or URL query parameter
+  /**
+   * Resolve the best available auth token:
+   * 1. User session token from authStore (phone+password login)
+   * 2. GitHub token from localStorage/URL (legacy path)
+   */
   const getActiveToken = useCallback((): string => {
+    // Prefer User session token
+    if (authToken) return authToken;
+
+    // Fallback: GitHub token from URL or localStorage
     try {
       const params = new URLSearchParams(window.location.search);
       const queryToken = params.get('github_token');
@@ -67,8 +75,8 @@ export function useTraineeProfile(): UseTraineeProfileResult {
     } catch {
       // Ignore localStorage access failures
     }
-    return DEV_DEFAULT_TOKEN;
-  }, []);
+    return '';
+  }, [authToken]);
 
   const token = getActiveToken();
 
@@ -77,6 +85,14 @@ export function useTraineeProfile(): UseTraineeProfileResult {
     setError(null);
 
     const activeToken = getActiveToken();
+    if (!activeToken) {
+      // No auth token available — user needs to log in
+      setNeedsConsent(false);
+      setNeedsProfile(false);
+      setLoading(false);
+      return;
+    }
+
     const authHeaders = {
       Authorization: `Bearer ${activeToken}`,
       Accept: 'application/json',

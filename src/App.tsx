@@ -30,8 +30,10 @@ import AgentDetailDrawer from './interface/AgentDetailDrawer';
 import { VisualConfigurator } from './interface/VisualConfigurator/VisualConfigurator';
 import { SceneContext } from './simulation/SceneContext';
 import { SceneManager } from './simulation/SceneManager';
+import { CareerHealthDashboard } from './interface/CareerHealthDashboard';
 import { DedupReviewPanel } from './interface/admin/DedupReviewPanel';
 import { AnalyticsDashboard } from './interface/admin/AnalyticsDashboard';
+import { AgentActivityHUD } from './interface/AgentActivityHUD';
 import EmployerVerificationPage from './interface/employer/EmployerVerificationPage';
 import ProviderViewPage from './interface/provider/ProviderViewPage';
 
@@ -71,6 +73,7 @@ const App: React.FC = () => {
     setDedupReviewOpen,
     isAnalyticsDashboardOpen,
     setAnalyticsDashboardOpen,
+    isLowFpsFallback,
   } = useUiStore();
 
   const {
@@ -99,9 +102,41 @@ const App: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const eventSource = new EventSource('/api/agents/activity');
+    eventSource.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data.type === 'connected' || data.type === 'ping') return;
+        
+        const agentMap: Record<string, number> = {
+          'NEXUS_DIRECTOR': 0,
+          'NEXUS_VISION': 1,
+          'NEXUS_STRATEGIST': 2,
+          'NEXUS_WRITER': 3,
+          'NEXUS_HUNTER': 4,
+          'NEXUS_MIRROR': 5,
+        };
+        
+        const idx = agentMap[data.agent];
+        if (idx !== undefined) {
+          if (data.eventType.endsWith('_STARTED')) {
+            useCoreStore.getState().setAgentStatus(idx, 'working');
+          } else if (data.eventType.endsWith('_COMPLETE')) {
+            useCoreStore.getState().setAgentStatus(idx, 'idle');
+          }
+        }
+      } catch (err) {}
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, []);
+
   return (
     <SceneContext.Provider value={sceneManager}>
-      <div className="w-screen h-screen bg-white overflow-hidden flex flex-row">
+      <div className="w-screen h-screen bg-zinc-50 overflow-hidden flex flex-row font-sans text-zinc-950">
         {/* PART A: Permanent Left Sidebar - Full height from top to bottom of page */}
         {!isFullscreen && <Sidebar />}
 
@@ -111,7 +146,7 @@ const App: React.FC = () => {
           {!isFullscreen && viewMode !== 'design' && activeSidebarTab === 'dashboard' && <PhaseOneControlPanel />}
 
           {/* Center: Main View Area */}
-          <div className="relative flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-zinc-50">
+          <div className="relative flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-transparent">
             {/* Sections 2–8: Render views or empty state */}
             {activeSidebarTab === 'skill-gaps' && <SkillGapsView />}
             {activeSidebarTab === 'job-matches' && <JobMatchesView />}
@@ -120,6 +155,7 @@ const App: React.FC = () => {
             {activeSidebarTab === 'new-cv' && <NewCVView />}
             {activeSidebarTab === 'my-outcome' && <OutcomeStatusView />}
             {activeSidebarTab === 'linkedin-integration' && <LinkedInIntegrationView />}
+            {activeSidebarTab === 'career-health' && <CareerHealthDashboard />}
             {activeSidebarTab !== 'dashboard' &&
               activeSidebarTab !== 'skill-gaps' &&
               activeSidebarTab !== 'job-matches' &&
@@ -127,19 +163,24 @@ const App: React.FC = () => {
               activeSidebarTab !== 'interview-prep' &&
               activeSidebarTab !== 'new-cv' &&
               activeSidebarTab !== 'my-outcome' &&
+              activeSidebarTab !== 'career-health' &&
               activeSidebarTab !== 'linkedin-integration' && (
                 <EmptySectionView tab={activeSidebarTab} />
               )}
 
             {/* Section 1: Dashboard (Simulation Context - Persistently Mounted) */}
             <div
-              className="flex-1 flex flex-col min-w-0 min-h-0"
+              className="flex-1 flex flex-col min-w-0 min-h-0 relative"
               style={{
                 display: activeSidebarTab === 'dashboard' ? 'flex' : 'none',
                 visibility: viewMode === 'design' ? 'hidden' : 'visible',
               }}
             >
-              <SimulationView canvasRef={canvasRef} isFullscreen={isFullscreen} setIsFullscreen={setIsFullscreen} />
+              {isLowFpsFallback ? (
+                <AgentActivityHUD />
+              ) : (
+                <SimulationView canvasRef={canvasRef} isFullscreen={isFullscreen} setIsFullscreen={setIsFullscreen} />
+              )}
             </div>
           </div>
 

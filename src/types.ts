@@ -19,7 +19,10 @@ export type ActiveSidebarTab =
   | 'interview-prep'
   | 'new-cv'
   | 'my-outcome'
-  | 'linkedin-integration';
+  | 'linkedin-integration'
+  | 'career-health';
+
+export type JobBucket = 'APPLY_NOW' | 'LEARN_THEN_APPLY' | 'STRETCH' | 'IGNORE';
 
 export interface DiscoveredJob {
   id: string;
@@ -33,6 +36,19 @@ export interface DiscoveredJob {
   discoveredAt: number;
   source: 'linkedin' | 'company-careers' | 'hidden' | 'adzuna';
   ai_suggested?: boolean;
+  // P1.9 Job Trust Score
+  trustScore?: number;
+  trustPercent?: number;
+  trustLevel?: 'HIGH' | 'MEDIUM' | 'LOW';
+  isLikelyGhost?: boolean;
+  isDirectAts?: boolean;
+  // P1.5 Multi-Signal Scoring & Buckets
+  skillScore?: number;
+  experienceScore?: number;
+  titleScore?: number;
+  projectScore?: number;
+  overallScore?: number;
+  bucket?: JobBucket;
 }
 
 export interface RecommendedProgram {
@@ -44,9 +60,13 @@ export interface RecommendedProgram {
   url: string;
 }
 
+export type Provenance = 'VERIFIED' | 'DECLARED' | 'INFERRED' | 'UNSUPPORTED';
+
 export interface CandidateSkill {
   skill: string;
   demonstrated: boolean;
+  provenance?: Provenance;
+  evidenceSource?: string;
 }
 
 export interface SkillProfile {

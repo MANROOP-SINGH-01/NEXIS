@@ -2,6 +2,7 @@ import { Router } from 'express';
 import prisma from '../lib/prisma.js';
 import { hashPassword, verifyPassword, createSession, revokeSession, revokeAllUserSessions } from '../services/authService.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
+import { otpLimiter } from '../middleware/rateLimit.js';
 
 const router = Router();
 
@@ -170,7 +171,7 @@ router.post('/auth/logout-all', requireAuth, async (req, res) => {
 });
 
 // ZERO-COST DEV OTP HANDLERS (Simulated & Local console output only)
-router.post('/auth/request-otp', async (req, res) => {
+router.post('/auth/request-otp', otpLimiter, async (req, res) => {
   const { phone } = req.body;
   if (!phone) return res.status(400).json({ error: 'Phone number is required.' });
 

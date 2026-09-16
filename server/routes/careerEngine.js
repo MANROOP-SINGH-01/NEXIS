@@ -13,25 +13,89 @@ router.get('/career/readiness', requireAuth, async (req, res) => {
       where: { userId: req.user.id },
       include: {
         applications: true,
-        readinessSnapshots: { take: 5, orderBy: { createdAt: 'desc' } }
+        readinessSnapshots: { take: 1, orderBy: { createdAt: 'desc' } },
+        interviewSessions: { take: 10, orderBy: { createdAt: 'desc' } },
+        skillEvidences: true,
       }
     });
 
-    // Deterministic readiness computation
-    const completeness = profile?.profileCompleteness || 40;
-    const resumeScore = 85;
-    const skillScore = 78;
-    const projectScore = profile?.githubUrl ? 80 : 60;
-    const interviewScore = 72;
-    const portfolioScore = profile?.githubUrl ? 75 : 50;
+    if (!profile) {
+      return res.json({
+        readiness: {
+          overallScore: null,
+          resumeScore: null,
+          skillScore: null,
+          projectScore: null,
+          interviewScore: null,
+          portfolioScore: null,
+          completeness: 0,
+        },
+        hint: 'Complete your profile and run a resume analysis to see career readiness scores.',
+      });
+    }
 
-    const overallScore = Math.round(
-      resumeScore * 0.25 +
-      skillScore * 0.25 +
-      projectScore * 0.15 +
-      interviewScore * 0.20 +
-      portfolioScore * 0.15
-    );
+    // ── Compute real scores from actual data ──
+    const completeness = profile.profileCompleteness || 0;
+
+    // Resume score: from latest readiness snapshot (populated after /resume/tailor runs)
+    const latestSnapshot = profile.readinessSnapshots?.[0];
+    const resumeScore = latestSnapshot?.resumeScore ?? null;
+
+    // Skill score: ratio of verified skill evidences to total
+    const totalEvidence = profile.skillEvidences?.length || 0;
+    const verifiedEvidence = profile.skillEvidences?.filter(e => e.verified)?.length || 0;
+    const skillScore = totalEvidence > 0
+      ? Math.round((verifiedEvidence / totalEvidence) * 100)
+      : null;
+
+    // Project score: GitHub presence + evidence count
+    const hasGitHub = Boolean(profile.githubUrl);
+    const projectEvidence = profile.skillEvidences?.filter(e => e.source === 'GITHUB')?.length || 0;
+    const projectScore = hasGitHub
+      ? Math.min(100, 40 + projectEvidence * 10)
+      : (projectEvidence > 0 ? Math.min(100, projectEvidence * 15) : null);
+
+    // Interview score: from completed interview sessions
+    const completedInterviews = profile.interviewSessions?.length || 0;
+    const interviewScore = completedInterviews > 0
+      ? Math.min(100, 30 + completedInterviews * 15)
+      : null;
+
+    // Portfolio score: combination of links and evidence
+    const hasLinkedIn = Boolean(profile.linkedinUrl);
+    const portfolioScore = (hasGitHub || hasLinkedIn)
+      ? Math.min(100, (hasGitHub ? 40 : 0) + (hasLinkedIn ? 30 : 0) + totalEvidence * 5)
+      : null;
+
+    // Overall: weighted composite of non-null scores only
+    const scores = [
+      { value: resumeScore, weight: 0.25 },
+      { value: skillScore, weight: 0.25 },
+      { value: projectScore, weight: 0.15 },
+      { value: interviewScore, weight: 0.20 },
+      { value: portfolioScore, weight: 0.15 },
+    ].filter(s => s.value !== null);
+
+    let overallScore = null;
+    if (scores.length > 0) {
+      const totalWeight = scores.reduce((sum, s) => sum + s.weight, 0);
+      const weightedSum = scores.reduce((sum, s) => sum + s.value * s.weight, 0);
+      overallScore = Math.round(weightedSum / totalWeight);
+    }
+
+    // Determine next priority action based on actual state
+    let nextPriorityAction = null;
+    if (resumeScore === null) {
+      nextPriorityAction = 'Upload your resume and run a resume analysis.';
+    } else if (skillScore !== null && skillScore < 50) {
+      nextPriorityAction = 'Verify your skills with evidence (GitHub, certifications).';
+    } else if (interviewScore === null) {
+      nextPriorityAction = 'Practice with the interview simulator.';
+    } else if (overallScore !== null && overallScore < 75) {
+      nextPriorityAction = 'Address your top skill gaps and strengthen your resume.';
+    } else {
+      nextPriorityAction = 'You are well-prepared. Focus on targeted job applications.';
+    }
 
     res.json({
       readiness: {
@@ -43,7 +107,7 @@ router.get('/career/readiness', requireAuth, async (req, res) => {
         portfolioScore,
         completeness,
       },
-      nextPriorityAction: overallScore < 75 ? 'Upskill Critical Gaps via Govt Portals' : 'Submit Applications to High-Match Roles'
+      nextPriorityAction,
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to compute career readiness.' });
@@ -65,42 +129,12 @@ router.get('/career/actions', requireAuth, async (req, res) => {
       take: 10
     });
 
-    // Seed default actionable plan if empty
+    // Return existing actions, or empty with a hint if none exist
     if (actions.length === 0) {
-      actions = await prisma.$transaction([
-        prisma.careerAction.create({
-          data: {
-            candidateId: profile.id,
-            type: 'LEARN_SKILL',
-            priority: 'HIGH',
-            reason: 'Missing Docker / Containerization requirement across target roles.',
-            skill: 'Docker',
-            estimatedEffort: '2 hours',
-            expectedImpact: '+8% ATS Match & Unlocks 14 Jobs',
-          }
-        }),
-        prisma.careerAction.create({
-          data: {
-            candidateId: profile.id,
-            type: 'PRACTICE_INTERVIEW',
-            priority: 'HIGH',
-            reason: 'Prepare defense for distributed systems latency questions.',
-            skill: 'System Design',
-            estimatedEffort: '45 mins',
-            expectedImpact: 'Improves Interview Pass Probability',
-          }
-        }),
-        prisma.careerAction.create({
-          data: {
-            candidateId: profile.id,
-            type: 'APPLY_JOB',
-            priority: 'MEDIUM',
-            reason: 'Resume aligns with 3 active low-competition direct employer openings.',
-            estimatedEffort: '30 mins',
-            expectedImpact: 'Direct Interview Pipeline Entry',
-          }
-        })
-      ]);
+      return res.json({
+        actions: [],
+        hint: 'Complete a resume analysis to receive personalized career actions based on your actual skill gaps.',
+      });
     }
 
     res.json({ actions });
@@ -219,9 +253,18 @@ router.get('/career/github-evidence', requireAuth, async (req, res) => {
       return res.json({ evidence: JSON.parse(cached.payload), cached: true });
     }
 
-    // Zero-cost unauthenticated GitHub REST API call
-    const ghRes = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}/repos?per_page=10&sort=updated`, {
-      headers: { 'User-Agent': 'Nexus-Evidence-Harvester' }
+    // Authenticated or unauthenticated GitHub REST API call (Section 14.3)
+    const ghHeaders = {
+      'User-Agent': 'Nexus-Evidence-Harvester',
+      Accept: 'application/vnd.github.v3+json',
+    };
+    const ghToken = process.env.GITHUB_EVIDENCE_TOKEN || process.env.GITHUB_TOKEN;
+    if (ghToken) {
+      ghHeaders['Authorization'] = `Bearer ${ghToken}`;
+    }
+
+    const ghRes = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}/repos?per_page=15&sort=updated`, {
+      headers: ghHeaders,
     });
 
     if (!ghRes.ok) {
@@ -232,7 +275,7 @@ router.get('/career/github-evidence', requireAuth, async (req, res) => {
     const languageCounts = {};
     const analyzedRepos = [];
 
-    repos.forEach(r => {
+    repos.forEach((r) => {
       if (r.language) {
         languageCounts[r.language] = (languageCounts[r.language] || 0) + 1;
       }
@@ -245,17 +288,97 @@ router.get('/career/github-evidence', requireAuth, async (req, res) => {
       });
     });
 
+    // Automatically sync verified languages to UserSkill (Provenance: VERIFIED)
+    for (const [lang, count] of Object.entries(languageCounts)) {
+      try {
+        const skillRecord = await prisma.skill.upsert({
+          where: { name: lang },
+          update: {},
+          create: { name: lang, category: 'Technology' },
+        });
+
+        await prisma.userSkill.upsert({
+          where: {
+            userId_skillId: {
+              userId: req.user.id,
+              skillId: skillRecord.id,
+            },
+          },
+          update: {
+            proficiency: count >= 3 ? 'ADVANCED' : 'INTERMEDIATE',
+            provenance: 'VERIFIED',
+            evidenceSource: `GitHub: ${username} (${count} public repos)`,
+            lastVerified: new Date(),
+          },
+          create: {
+            userId: req.user.id,
+            skillId: skillRecord.id,
+            proficiency: count >= 3 ? 'ADVANCED' : 'INTERMEDIATE',
+            provenance: 'VERIFIED',
+            evidenceSource: `GitHub: ${username} (${count} public repos)`,
+            lastVerified: new Date(),
+          },
+        });
+      } catch (skillErr) {
+        console.warn(`[github-evidence] skill sync error for ${lang}:`, skillErr.message);
+      }
+    }
+
+    // Sync candidate profile and SkillEvidence if profile exists
+    try {
+      const profile = await prisma.candidateProfile.findUnique({
+        where: { userId: req.user.id },
+      });
+      if (profile) {
+        for (const [lang, count] of Object.entries(languageCounts)) {
+          await prisma.skillEvidence.create({
+            data: {
+              candidateId: profile.id,
+              skill: lang,
+              source: 'GITHUB',
+              evidenceType: 'CODE_EVIDENCE',
+              confidence: 0.90,
+              evidenceDetails: JSON.stringify({
+                username,
+                reposCount: count,
+                verifiedAt: new Date().toISOString(),
+              }),
+            },
+          });
+        }
+      }
+
+      // Log Audit Event
+      await prisma.auditEvent.create({
+        data: {
+          userId: req.user.id,
+          action: 'GITHUB_EVIDENCE_VERIFIED',
+          actorRole: 'TRAINEE',
+          targetType: 'GITHUB_PROFILE',
+          targetId: username,
+          details: JSON.stringify({
+            username,
+            totalRepos: repos.length,
+            languagesVerified: Object.keys(languageCounts),
+          }),
+        },
+      });
+    } catch (auditErr) {
+      console.warn('[github-evidence] audit log error:', auditErr.message);
+    }
+
     const evidence = {
       username,
       totalPublicRepos: repos.length,
       primaryLanguages: languageCounts,
-      verifiedCodeEvidence: Object.keys(languageCounts).map(lang => ({
+      verifiedCodeEvidence: Object.keys(languageCounts).map((lang) => ({
         skill: lang,
         evidenceType: 'CODE_EVIDENCE',
-        confidence: 0.85,
+        confidence: 0.90,
         reposCount: languageCounts[lang],
+        provenance: 'VERIFIED',
       })),
-      recentProjects: analyzedRepos.slice(0, 5)
+      recentProjects: analyzedRepos.slice(0, 5),
     };
 
     // Cache for 6 hours
@@ -270,7 +393,7 @@ router.get('/career/github-evidence', requireAuth, async (req, res) => {
         category: 'GITHUB_EVIDENCE',
         payload: JSON.stringify(evidence),
         expiresAt: new Date(Date.now() + 6 * 3600 * 1000),
-      }
+      },
     });
 
     res.json({ evidence, cached: false });

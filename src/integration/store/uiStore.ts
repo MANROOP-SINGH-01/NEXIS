@@ -1,6 +1,14 @@
 import { create } from 'zustand';
 import { getAllAgents } from '../../data/agents';
 import { AgentState, CharacterState, SkillProfile } from '../../types';
+
+declare module '../../types' {
+  interface CharacterState {
+    isLowFpsFallback: boolean;
+    setLowFpsFallback: (val: boolean) => void;
+  }
+}
+
 import { useTeamStore, getActiveAgentSet } from './teamStore';
 import { DEFAULT_MODELS } from '../../core/llm/constants';
 
@@ -25,6 +33,9 @@ export const useUiStore = create<CharacterState>()(
 
     skillProfile: null,
     setSkillProfile: (profile: SkillProfile | null) => set({ skillProfile: profile }),
+    
+    isLowFpsFallback: false,
+    setLowFpsFallback: (val: boolean) => set({ isLowFpsFallback: val }),
 
     jobMatchesCurrent: [],
     jobMatchesReachable: [],

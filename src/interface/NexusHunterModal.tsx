@@ -1,39 +1,7 @@
-const FALLBACK_HUNTER_ITEMS: any[] = [
-  {
-    job_title: 'Full Stack Engineer (TypeScript / React)',
-    company_name: 'TechFlow Systems',
-    application_link: 'https://www.adzuna.com/search?q=full+stack+engineer',
-    alignment_score: 93,
-    blue_ocean_score: 86,
-    nexus_match_reason: 'Strong match with candidate TypeScript, React, and REST API profile.',
-    competition_level: 'Low',
-    source: 'hidden',
-  },
-  {
-    job_title: 'Senior Cloud Systems Developer',
-    company_name: 'Apex Cloud Solutions',
-    application_link: 'https://www.adzuna.com/search?q=cloud+systems+developer',
-    alignment_score: 88,
-    blue_ocean_score: 79,
-    nexus_match_reason: 'Matches distributed backend experience and microservice development background.',
-    competition_level: 'Medium',
-    source: 'company-careers',
-  },
-  {
-    job_title: 'Lead Software Architect',
-    company_name: 'Innovate Labs',
-    application_link: 'https://www.adzuna.com/search?q=software+architect',
-    alignment_score: 84,
-    blue_ocean_score: 75,
-    nexus_match_reason: 'Direct match on architectural scalability and reliable API systems.',
-    competition_level: 'Medium',
-    source: 'linkedin',
-  },
-];
-
-import { ExternalLink, Loader2, Search, Target, X } from 'lucide-react'
+import { ExternalLink, Loader2, Search, Target, X, Building, MapPin, Compass, Briefcase, Zap, AlertCircle } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useCoreStore } from '../integration/store/coreStore'
+import { getAuthHeaders } from '../integration/store/authStore'
 
 interface NexusHunterModalProps {
   onClose: () => void
@@ -61,7 +29,7 @@ export default function NexusHunterModal({ onClose }: NexusHunterModalProps) {
       const targetRole = currentResume.targetJD.trim().split('\n')[0]?.slice(0, 120) || userCareerProfile.targetRole || 'AI Engineer'
       const res = await fetch('/api/jobs/discover', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({
           resume: currentResume.content,
           targetRole,
@@ -76,9 +44,12 @@ export default function NexusHunterModal({ onClose }: NexusHunterModalProps) {
       } catch {
         json = null
       }
+
       if (!res.ok || !json || !Array.isArray(json.items) || json.items.length === 0) {
-        console.warn('[NexusHunterModal] Discovery API offline or 405, using verified live targets');
-        json = { items: FALLBACK_HUNTER_ITEMS };
+        const msg = json?.message || json?.warning || json?.error || `No live job listings currently found for "${targetRole}". Try adjusting your target role or search query.`
+        setError(msg)
+        setDiscoveredJobs([])
+        return
       }
 
       const mapped = (Array.isArray(json.items) ? json.items : []).slice(0, 3).map((item: any, idx: number) => ({
@@ -102,21 +73,9 @@ export default function NexusHunterModal({ onClose }: NexusHunterModalProps) {
         impact: 'positive',
       })
     } catch (err) {
-      console.warn('[NexusHunterModal] Handled gracefully with fallback:', err);
-      const mappedFallback = FALLBACK_HUNTER_ITEMS.map((item, idx) => ({
-        id: `job_${Date.now()}_${idx}`,
-        title: item.job_title,
-        company: item.company_name,
-        url: item.application_link,
-        alignmentScore: item.alignment_score,
-        blueOceanScore: item.blue_ocean_score,
-        nexusMatchReason: item.nexus_match_reason,
-        competitionLevel: item.competition_level as 'Low' | 'Medium' | 'High',
-        discoveredAt: Date.now(),
-        source: item.source as any,
-      }));
-      setDiscoveredJobs(mappedFallback);
-      setError(null);
+      console.warn('[NexusHunterModal] Error running job discovery:', err)
+      setError(err instanceof Error ? err.message : 'Job discovery service unavailable. Please check your network or API keys.')
+      setDiscoveredJobs([])
       addNexusActivityEntry({
         agentType: 'hunter',
         action: 'Nexus-Hunter Warning',
@@ -129,73 +88,132 @@ export default function NexusHunterModal({ onClose }: NexusHunterModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 pointer-events-auto overflow-hidden">
-      <div onClick={onClose} className="absolute inset-0 bg-slate-900/60 " />
-      <div className="relative w-full max-w-6xl bg-white rounded-lg shadow-[0_32px_64px_-12px_rgba(0,0,0,0.12)] p-6 md:p-8 border border-zinc-100 max-h-[90vh] overflow-hidden flex flex-col">
-        <button onClick={onClose} className="absolute top-5 right-5 p-2 text-zinc-300 hover:text-zinc-500 hover:bg-zinc-100 rounded-full">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 pointer-events-auto overflow-hidden">
+      {/* Backdrop */}
+      <div onClick={onClose} className="absolute inset-0 bg-zinc-950/20 backdrop-blur-sm transition-opacity duration-300" />
+      
+      {/* Modal */}
+      <div className="relative w-full max-w-5xl bg-white/95 backdrop-blur-xl rounded-[32px] shadow-2xl p-6 md:p-8 border border-white/20 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+        <button
+          onClick={onClose}
+          className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-full transition-colors cursor-pointer z-10"
+        >
           <X size={18} />
         </button>
 
-        <div className="mb-5">
-          <h2 className="text-2xl font-black text-darkDelegation tracking-tight">Nexus-Hunter Discovery Engine</h2>
-          <p className="text-xs text-zinc-500 mt-1">Crew-style market scan, hidden-fit filtering, and Blue Ocean prioritization.</p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
-          <div className="rounded-xl border border-zinc-100 bg-zinc-50/50 p-4">
-            <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-2">Subfeature 1 - Market Scraping</p>
-            <p className="text-xs text-zinc-700">Scans YC Work at a Startup, Greenhouse, Lever, and direct career pages via web API connectors.</p>
+        {/* Header */}
+        <div className="mb-8 flex items-start gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-zinc-950 flex items-center justify-center shadow-lg shrink-0">
+            <Compass size={26} className="text-white" />
           </div>
-          <div className="rounded-xl border border-zinc-100 bg-zinc-50/50 p-4">
-            <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-2">Subfeature 2 - Hidden Fit Engine</p>
-            <p className="text-xs text-zinc-700">Gemini reasons beyond keywords to detect deep technical fit from niche project signals and architecture choices.</p>
-          </div>
-          <div className="rounded-xl border border-zinc-100 bg-zinc-50/50 p-4">
-            <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-2">Subfeature 3 - Blue Ocean Score</p>
-            <p className="text-xs text-zinc-700">Prioritizes high-alignment links with lower applicant saturation, favoring direct application routes.</p>
+          <div>
+            <h2 className="text-2xl font-display font-bold text-zinc-950 tracking-tight">Nexus-Hunter Discovery</h2>
+            <p className="text-sm text-zinc-500 font-medium mt-1 max-w-xl leading-relaxed">
+              Crew-style market scan, hidden-fit filtering, and Blue Ocean prioritization for low-competition opportunities.
+            </p>
           </div>
         </div>
 
-        <div className="mb-4 flex items-center gap-3">
+        {/* Features Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="rounded-2xl border border-zinc-200/60 bg-white p-5 shadow-sm hover:shadow-md transition-all group">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+              <Search size={18} className="text-blue-600" />
+            </div>
+            <p className="text-xs font-bold uppercase tracking-widest text-zinc-950 mb-1.5">Market Scraping</p>
+            <p className="text-xs text-zinc-500 leading-relaxed font-medium">Scans direct company career pages and niche boards via web API connectors.</p>
+          </div>
+          <div className="rounded-2xl border border-zinc-200/60 bg-white p-5 shadow-sm hover:shadow-md transition-all group">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+              <Zap size={18} className="text-emerald-600" />
+            </div>
+            <p className="text-xs font-bold uppercase tracking-widest text-zinc-950 mb-1.5">Hidden Fit Engine</p>
+            <p className="text-xs text-zinc-500 leading-relaxed font-medium">Detects deep technical fit from niche project signals and architectural choices.</p>
+          </div>
+          <div className="rounded-2xl border border-zinc-200/60 bg-white p-5 shadow-sm hover:shadow-md transition-all group">
+            <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+              <Target size={18} className="text-purple-600" />
+            </div>
+            <p className="text-xs font-bold uppercase tracking-widest text-zinc-950 mb-1.5">Blue Ocean Score</p>
+            <p className="text-xs text-zinc-500 leading-relaxed font-medium">Prioritizes high-alignment roles with lower applicant saturation rates.</p>
+          </div>
+        </div>
+
+        {/* Action Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 bg-zinc-50/50 p-4 rounded-2xl border border-zinc-200/60">
+          <div className="flex-1">
+             {error && <span className="text-xs text-red-600 font-bold flex items-center gap-1.5"><X size={14}/> {error}</span>}
+             {!error && <span className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Ready to scan live job boards</span>}
+          </div>
           <button
             onClick={runDiscovery}
             disabled={!canRun || loading}
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white rounded-xl text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-2"
+            className="px-8 py-3.5 bg-zinc-950 hover:bg-zinc-800 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-widest inline-flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 whitespace-nowrap"
           >
-            {loading ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />}
-            Run Nexus-Hunter Scan
+            {loading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+            {loading ? 'Scanning Market...' : 'Run Nexus-Hunter'}
           </button>
-          {error && <span className="text-[10px] text-red-600">{error}</span>}
         </div>
 
-        <div className="flex-1 overflow-auto space-y-3 pr-1">
+        {/* Results */}
+        <div className="flex-1 overflow-auto custom-scrollbar pr-2 space-y-4">
           {discoveredJobs.length === 0 ? (
-            <div className="h-full min-h-48 border border-dashed border-zinc-200 rounded-xl flex items-center justify-center bg-zinc-50/40">
+            <div className="h-full min-h-[200px] border-2 border-dashed border-zinc-200 rounded-3xl flex items-center justify-center bg-zinc-50/40">
               <div className="text-center">
-                <Target size={16} className="mx-auto text-zinc-300 mb-2" />
-                <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-300">No prime targets discovered yet</p>
+                <div className="w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center mx-auto mb-3">
+                  <Target size={20} className="text-zinc-400" />
+                </div>
+                <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">No prime targets discovered yet</p>
               </div>
             </div>
           ) : (
-            discoveredJobs.slice(0, 3).map((job) => (
-              <div key={job.id} className="rounded-xl border border-zinc-100 bg-zinc-50/30 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-black text-darkDelegation">{job.title}</p>
-                    <p className="text-xs text-zinc-500">{job.company}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {discoveredJobs.slice(0, 4).map((job) => (
+                <div key={job.id} className="rounded-3xl border border-zinc-200/60 bg-white p-6 shadow-[var(--shadow-subtle)] hover:shadow-md transition-all flex flex-col gap-4 group relative overflow-hidden">
+                   {/* Background Glow */}
+                   <div className="absolute -top-12 -right-12 w-32 h-32 bg-blue-50 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  
+                  <div className="flex items-start justify-between gap-4 relative z-10">
+                    <div className="min-w-0">
+                      <h3 className="text-base font-display font-bold text-zinc-950 truncate mb-1">{job.title}</h3>
+                      <div className="flex items-center gap-2 text-xs font-medium text-zinc-500">
+                        <Building size={14} className="text-zinc-400" />
+                        <span className="truncate">{job.company}</span>
+                      </div>
+                    </div>
                   </div>
-                  <a href={job.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-purple-700 hover:text-purple-900">
-                    Apply
-                    <ExternalLink size={10} />
-                  </a>
+
+                  <div className="grid grid-cols-2 gap-3 relative z-10">
+                    <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-3 flex flex-col justify-center">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mb-1">Alignment</p>
+                      <p className="text-lg font-black text-emerald-800 tracking-tight">{Math.round(job.alignmentScore)}%</p>
+                    </div>
+                    <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-3 flex flex-col justify-center">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-blue-600 mb-1">Blue Ocean</p>
+                      <p className="text-lg font-black text-blue-800 tracking-tight">{Math.round(job.blueOceanScore)}%</p>
+                    </div>
+                  </div>
+
+                  <div className="relative z-10">
+                    <p className="text-xs text-zinc-600 leading-relaxed font-medium bg-zinc-50 p-3 rounded-xl border border-zinc-100">
+                      {job.nexusMatchReason}
+                    </p>
+                  </div>
+
+                  <div className="pt-2 mt-auto relative z-10">
+                     <a 
+                        href={job.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-zinc-50 hover:bg-zinc-100 border border-zinc-200/80 text-xs font-bold uppercase tracking-widest text-zinc-900 transition-colors"
+                      >
+                      View Role
+                      <ExternalLink size={14} />
+                    </a>
+                  </div>
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-2 text-[10px]">
-                  <div className="rounded-md bg-white border border-zinc-100 px-2 py-1.5">Alignment: <span className="font-black text-emerald-700">{Math.round(job.alignmentScore)}%</span></div>
-                  <div className="rounded-md bg-white border border-zinc-100 px-2 py-1.5">Blue Ocean: <span className="font-black text-blue-700">{Math.round(job.blueOceanScore)}%</span></div>
-                </div>
-                <p className="mt-2 text-xs text-zinc-700">{job.nexusMatchReason}</p>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
       </div>

@@ -12,7 +12,6 @@
  *   phone last-6-digit match:         0.25
  *   dateOfBirth exact match:          0.20
  *   district exact match:             0.10
- *   null exact match:     0.10
  *
  * A DedupCandidate row is created only when the weighted score > 0.6.
  * Pairs already flagged in any status (PENDING / CONFIRMED_MERGE / REJECTED)
@@ -97,11 +96,10 @@ function jaroWinkler(a, b) {
 // score. They must sum to 1.0. Adjust here if real-world data shows a signal is
 // too noisy or too sparse.
 const WEIGHTS = {
-  name: 0.35,          // Jaro-Winkler similarity on full name
-  phoneLast6: 0.20,    // exact match on last 6 digits of phone number
-  dateOfBirth: 0.25,   // exact match on date of birth (YYYY-MM-DD)
+  name: 0.40,          // Jaro-Winkler similarity on full name
+  phoneLast6: 0.30,    // exact match on last 6 digits of phone number
+  dateOfBirth: 0.20,   // exact match on date of birth (YYYY-MM-DD)
   district: 0.10,      // exact match on district (case-insensitive)
-  phoneHashLast4: 0.10,  // exact match on null (both must be present)
 }
 
 // ── Score Threshold ───────────────────────────────────────────────────────────
@@ -147,17 +145,34 @@ export async function findPotentialDuplicates() {
       phoneNumber: true,
       dateOfBirth: true,
       district: true,
-      null: true,
     },
   })
 
-  // 2. Fetch all already-flagged pairs as a Set of canonical keys "idA:idB"
   const existingCandidates = await prisma.dedupCandidate.findMany({
     select: { traineeIdA: true, traineeIdB: true },
   })
   const flaggedPairs = new Set(
     existingCandidates.map((c) => `${c.traineeIdA}:${c.traineeIdB}`)
   )
+
+  // 2.5 Fetch historical rejection patterns for Rejection Intelligence
+  const rejectedCandidates = await prisma.dedupCandidate.findMany({
+    where: { status: 'REJECTED' },
+    select: { matchReasons: true },
+  })
+  
+  const rejectedReasonsCount = {}
+  let totalRejections = rejectedCandidates.length
+  
+  for (const c of rejectedCandidates) {
+    try {
+      const reasons = JSON.parse(c.matchReasons)
+      for (const r of reasons) {
+        const prefix = r.split(':')[0]
+        rejectedReasonsCount[prefix] = (rejectedReasonsCount[prefix] || 0) + 1
+      }
+    } catch {}
+  }
 
   let created = 0
   let skipped = 0
@@ -196,14 +211,11 @@ export async function findPotentialDuplicates() {
       const districtB = tB.district ? tB.district.toLowerCase().trim() : null
       const hasDistrict = !!(districtA && districtB)
 
-      const hasphoneHash = !!(tA.null && tB.null)
-
       // Calculate total available weight
       let totalAvailableWeight = WEIGHTS.name
       if (hasPhone) totalAvailableWeight += WEIGHTS.phoneLast6
       if (hasDob) totalAvailableWeight += WEIGHTS.dateOfBirth
       if (hasDistrict) totalAvailableWeight += WEIGHTS.district
-      if (hasphoneHash) totalAvailableWeight += WEIGHTS.phoneHashLast4
 
       // We redistribute the weight proportionally by dividing each signal's
       // nominal weight by the total available weight. This ensures we don't
@@ -245,12 +257,25 @@ export async function findPotentialDuplicates() {
         }
       }
 
-      // phoneHashLast4Hash — exact match
-      if (hasphoneHash) {
-        const phoneHashActualWeight = WEIGHTS.phoneHashLast4 / totalAvailableWeight
-        if (tA.null === tB.null) {
-          score += phoneHashActualWeight
-          reasons.push('phoneHash_last4_hash_match')
+      // ── Apply Rejection Intelligence Penalties ────────────────────────────
+      if (totalRejections > 0) {
+        let penalty = 0
+        for (const r of reasons) {
+          const prefix = r.split(':')[0]
+          const rejectCount = rejectedReasonsCount[prefix] || 0
+          const rejectRate = rejectCount / totalRejections
+          // If a reason is highly correlated with rejections (e.g. district exact match alone), penalize.
+          if (rejectRate > 0.4) {
+            penalty += 0.05 // 5% penalty for highly rejected reasons
+          }
+        }
+        
+        // Cap penalty at 0.15
+        penalty = Math.min(penalty, 0.15)
+        
+        if (penalty > 0) {
+          score -= penalty
+          reasons.push(`rejection_intelligence_penalty:-${penalty.toFixed(2)}`)
         }
       }
 

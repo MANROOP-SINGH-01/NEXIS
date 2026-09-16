@@ -11,10 +11,15 @@ import { callGeminiTextWithRetry } from '../services/gemini.js'
 import { activeProviderSearch } from '../services/jobSearchProvider.js'
 import { fallbackPrimeTargets } from '../services/fallbacks.js'
 import { tryParseJsonLoose, inferJobMetaFromLink } from '../utils/helpers.js'
+import { requireAuth } from '../middleware/authMiddleware.js'
+import { aiLimiter } from '../middleware/rateLimit.js'
+import { calculateJobTrustScore, calculateMultiSignalMatch } from '../services/jobTrustEngine.js'
+import agentActivityService from '../services/agentActivityService.js'
 
 const router = Router()
 
-router.post('/jobs/discover', async (req, res) => {
+router.post('/jobs/discover', requireAuth, aiLimiter, async (req, res) => {
+  agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_HUNTER', 'JOB_SEARCH_STARTED');
   const targetRole = String(req.body?.targetRole || 'Software Engineer').trim()
   const rawResume = String(req.body?.resume || '').trim()
   const resume = rawResume || `Technical candidate seeking ${targetRole} opportunities with practical experience in modern software architectures, state management, and reliable engineering workflows.`
@@ -121,6 +126,23 @@ router.post('/jobs/discover', async (req, res) => {
         const alignment = Math.max(0, Math.min(100, Math.round(Number(it?.alignment_score || 85))))
         const blueOceanBase = Math.max(0, Math.min(100, Math.round(Number(it?.blue_ocean_score || 80))))
         const blueOcean = Math.max(0, Math.min(100, blueOceanBase + (meta.blueOceanBoost || 0)))
+
+        const trust = calculateJobTrustScore({
+          company: it?.company_name,
+          url: link,
+          postedAt: it?.posted_at || rawResults[idx]?.posted_at,
+          description: it?.nexus_match_reason || rawResults[idx]?.description,
+          source: meta.source,
+        })
+
+        const multiSignal = calculateMultiSignalMatch({
+          jobTitle: it?.job_title || targetRole,
+          jobDescription: it?.nexus_match_reason || rawResults[idx]?.description || '',
+          candidateSkills: skillProfile?.candidate_skills || [],
+          userTargetRole: targetRole,
+          hasEvidence: Boolean(skillProfile?.candidate_skills?.some((s) => s.demonstrated)),
+        })
+
         return {
           job_title: String(it?.job_title || `${targetRole} Specialist`).trim(),
           company_name: String(it?.company_name || 'Hiring Partner Network').trim(),
@@ -130,7 +152,21 @@ router.post('/jobs/discover', async (req, res) => {
           blue_ocean_score: blueOcean,
           source: meta.source || 'company-careers',
           competition_level: meta.competitionLevel || 'Low',
-          ai_suggested: rawResults.length === 0
+          ai_suggested: rawResults.length === 0,
+          // P1.9 Job Trust Score
+          trustScore: trust.trustScore,
+          trustPercent: trust.trustPercent,
+          trustLevel: trust.trustLevel,
+          isLikelyGhost: trust.isLikelyGhost,
+          isDirectAts: trust.isDirectAts,
+          trustFactors: trust.factors,
+          // P1.5 Multi-Signal Scoring & Buckets
+          skillScore: multiSignal.skillScore,
+          experienceScore: multiSignal.experienceScore,
+          titleScore: multiSignal.titleScore,
+          projectScore: multiSignal.projectScore,
+          overallScore: multiSignal.overallScore,
+          bucket: multiSignal.bucket,
         }
       })
       .filter((x) => x.job_title && x.company_name && x.application_link)
@@ -139,47 +175,16 @@ router.post('/jobs/discover', async (req, res) => {
       throw new Error('No valid prime targets after normalization')
     }
 
+    agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_HUNTER', 'JOB_SEARCH_COMPLETE');
+
     res.json({ items: items.slice(0, 3), mode: rawResults.length > 0 ? 'adzuna-provider' : 'gemini-autonomous' })
   } catch (err) {
     res.json({
-      items: [
-        {
-          job_title: `${targetRole} Specialist`,
-          company_name: 'Verified Industry Partner',
-          application_link: `https://www.google.com/search?q=${encodeURIComponent(targetRole + ' careers')}`,
-          nexus_match_reason: `Demonstrated competency alignment with core requirements for ${targetRole}.`,
-          alignment_score: 89,
-          blue_ocean_score: 86,
-          source: 'company-careers',
-          competition_level: 'Low',
-          ai_suggested: true
-        },
-        {
-          job_title: `Junior ${targetRole}`,
-          company_name: 'Regional Enterprise Network',
-          application_link: `https://www.google.com/search?q=${encodeURIComponent('entry level ' + targetRole + ' jobs')}`,
-          nexus_match_reason: `Matches vocational credentials with structured placement and progression pathways.`,
-          alignment_score: 86,
-          blue_ocean_score: 83,
-          source: 'company-careers',
-          competition_level: 'Low',
-          ai_suggested: true
-        },
-        {
-          job_title: `Associate ${targetRole}`,
-          company_name: 'Vocational Hiring Consortium',
-          application_link: `https://www.google.com/search?q=${encodeURIComponent(targetRole + ' placement')}`,
-          nexus_match_reason: `Accredited hiring channel with dedicated onboarding support for certified candidates.`,
-          alignment_score: 83,
-          blue_ocean_score: 81,
-          source: 'company-careers',
-          competition_level: 'Medium',
-          ai_suggested: true
-        },
-      ],
-      fallback: true,
-      warning: err instanceof Error ? err.message : 'Nexus-Hunter adaptive discovery activated.',
-      mode: 'adaptive-fallback',
+      items: [],
+      degraded: true,
+      message: 'Job discovery is temporarily unavailable. Please check your API keys or try again later.',
+      warning: err instanceof Error ? err.message : 'Job provider request failed.',
+      mode: 'degraded',
     })
   }
 })

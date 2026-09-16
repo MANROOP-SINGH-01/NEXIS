@@ -10,6 +10,7 @@
  *   POST /api/admin/run-dedup-scan             — requireAdmin("ANALYST"), triggers scan
  *   GET  /api/admin/dedup-candidates           — requireAdmin("REVIEWER"), list PENDING
  *   POST /api/admin/dedup-candidates/:id/resolve — requireAdmin("REVIEWER"), merge or reject
+ *   GET  /api/admin/dedup-analytics            — requireAdmin("ANALYST"), dedup metrics
  *
  * DEPENDENCIES: server/lib/prisma, server/utils/adminAuth, server/services/matchingService,
  *               server/utils/auth
@@ -300,6 +301,131 @@ router.post('/admin/dedup-candidates/:id/resolve', requireAdmin('REVIEWER'), asy
   } catch (err) {
     console.error('[admin/dedup-candidates/:id/resolve POST] error:', err)
     res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to resolve candidate' })
+  }
+})
+
+// ── GET /api/admin/dedup-analytics ───────────────────────────────────────────
+// Returns analytics on the dedup process, specifically top reasons for rejection.
+// requireAdmin("ANALYST")
+router.get('/admin/dedup-analytics', requireAdmin('ANALYST'), async (req, res) => {
+  try {
+    const candidates = await prisma.dedupCandidate.findMany({
+      select: { status: true, matchReasons: true },
+    })
+
+    let scanned = 0 // Actually we don't store scanned total, only in logs.
+    let merged = 0
+    let rejected = 0
+    let pending = 0
+
+    const rejectionReasonsCount = {}
+
+    for (const c of candidates) {
+      if (c.status === 'CONFIRMED_MERGE') merged++
+      if (c.status === 'REJECTED') {
+        rejected++
+        try {
+          const reasons = JSON.parse(c.matchReasons)
+          if (Array.isArray(reasons)) {
+            for (const r of reasons) {
+              const prefix = r.split(':')[0] // Group variations like phone_last6_match:123456
+              rejectionReasonsCount[prefix] = (rejectionReasonsCount[prefix] || 0) + 1
+            }
+          }
+        } catch {}
+      }
+      if (c.status === 'PENDING') pending++
+    }
+
+    const topRejectionPatterns = Object.entries(rejectionReasonsCount)
+      .map(([reason, count]) => ({ reason, count }))
+      .sort((a, b) => b.count - a.count)
+
+    res.json({
+      totalCandidates: candidates.length,
+      merged,
+      rejected,
+      pending,
+      topRejectionPatterns,
+      falsePositiveRate: candidates.length > 0 ? (rejected / candidates.length) : 0,
+    })
+  } catch (err) {
+    console.error('[admin/dedup-analytics GET] error:', err)
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to fetch dedup analytics' })
+  }
+})
+
+// ── GET /api/admin/audit-export ──────────────────────────────────────────────
+// Phase 6 (P1.11): CSV export of admin action log + audit events.
+// ponytail: build CSV inline, no library needed.
+router.get('/admin/audit-export', requireAdmin('ANALYST'), async (req, res) => {
+  try {
+    const [adminLogs, auditEvents] = await Promise.all([
+      prisma.adminActionLog.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 5000,
+        include: { admin: { select: { name: true, role: true } } },
+      }),
+      prisma.auditEvent.findMany({
+        orderBy: { timestamp: 'desc' },
+        take: 5000,
+      }),
+    ])
+
+    const escape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
+
+    // Admin action logs
+    const adminCsv = [
+      'Timestamp,Admin,Role,Action,TargetType,TargetId,Details',
+      ...adminLogs.map((l) =>
+        [l.createdAt.toISOString(), escape(l.admin?.name), escape(l.admin?.role), escape(l.action), escape(l.targetType), escape(l.targetId), escape(l.details)].join(',')
+      ),
+    ].join('\n')
+
+    // Audit events
+    const auditCsv = [
+      'Timestamp,UserId,Action,ActorRole,TargetType,TargetId,Details',
+      ...auditEvents.map((e) =>
+        [e.timestamp.toISOString(), escape(e.userId), escape(e.action), escape(e.actorRole), escape(e.targetType), escape(e.targetId), escape(e.details)].join(',')
+      ),
+    ].join('\n')
+
+    const combined = `=== ADMIN ACTION LOG ===\n${adminCsv}\n\n=== AUDIT EVENTS ===\n${auditCsv}`
+
+    res.setHeader('Content-Type', 'text/csv')
+    res.setHeader('Content-Disposition', `attachment; filename="nexis-audit-${new Date().toISOString().slice(0, 10)}.csv"`)
+    res.send(combined)
+  } catch (err) {
+    console.error('[admin/audit-export GET] error:', err)
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to export audit log' })
+  }
+})
+
+// ── POST /api/admin/dedup-feedback ───────────────────────────────────────────
+// Phase 6 (P1.10): Dedup feedback loop — admins can flag false positives/negatives
+// to tune future matching thresholds.
+router.post('/admin/dedup-feedback', requireAdmin('REVIEWER'), async (req, res) => {
+  try {
+    const { candidateId, feedback, notes } = req.body
+    if (!candidateId || !['FALSE_POSITIVE', 'CONFIRMED_CORRECT', 'NEEDS_REVIEW'].includes(feedback)) {
+      return res.status(400).json({ error: 'candidateId and valid feedback (FALSE_POSITIVE|CONFIRMED_CORRECT|NEEDS_REVIEW) required' })
+    }
+
+    const candidate = await prisma.dedupCandidate.findUnique({ where: { id: candidateId } })
+    if (!candidate) return res.status(404).json({ error: 'Candidate not found' })
+
+    // Store feedback as a detail on the admin action log
+    await logAdminAction(req, {
+      action: 'DEDUP_FEEDBACK',
+      targetType: 'DedupCandidate',
+      targetId: candidateId,
+      details: JSON.stringify({ feedback, notes: notes || '', matchScore: candidate.matchScore }),
+    })
+
+    res.json({ ok: true, feedback })
+  } catch (err) {
+    console.error('[admin/dedup-feedback POST] error:', err)
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to save feedback' })
   }
 })
 

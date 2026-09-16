@@ -152,12 +152,33 @@ export function normalizeAnalysisShape(rawAnalysis, fallbackAnalysis) {
       .filter((x) => x.skill)
     : fallbackAnalysis.skillGaps
 
-  const interview = rawAnalysis?.interviewReadiness || {}
+  const rawDims = rawAnalysis?.dimensions || {}
+  const ats = Number.isFinite(atsCompatibility)
+    ? Math.max(0, Math.min(100, Math.round(atsCompatibility)))
+    : fallbackAnalysis.atsCompatibility
+
+  // Deterministic fallbacks for dimensions based on analysis & ats
+  const dimensions = {
+    keywordAlignment: toPercent(rawDims.keywordAlignment, Math.min(100, Math.max(40, ats - 5))),
+    quantifiedImpact: toPercent(rawDims.quantifiedImpact, Math.min(100, Math.max(35, ats - 12))),
+    evidenceDepth: toPercent(rawDims.evidenceDepth, Math.min(100, Math.max(30, ats - 8))),
+    structuralQuality: toPercent(rawDims.structuralQuality, Math.min(100, Math.max(50, ats + 2))),
+    seniorityFit: toPercent(rawDims.seniorityFit, Math.min(100, Math.max(45, ats - 4))),
+  }
+
+  const computedOverall = Math.round(
+    dimensions.keywordAlignment * 0.30 +
+    dimensions.quantifiedImpact * 0.25 +
+    dimensions.evidenceDepth * 0.20 +
+    dimensions.structuralQuality * 0.15 +
+    dimensions.seniorityFit * 0.10
+  )
+  const overallScore = toPercent(rawAnalysis?.overallScore, computedOverall)
 
   return {
-    atsCompatibility: Number.isFinite(atsCompatibility)
-      ? Math.max(0, Math.min(100, Math.round(atsCompatibility)))
-      : fallbackAnalysis.atsCompatibility,
+    atsCompatibility: ats,
+    dimensions,
+    overallScore,
     skillGaps: skillGaps.length ? skillGaps : fallbackAnalysis.skillGaps,
     interviewReadiness: {
       technicalDeepDive: toPercent(interview.technicalDeepDive, fallbackAnalysis.interviewReadiness.technicalDeepDive),
@@ -370,10 +391,18 @@ export function normalizeSkillProfile(raw) {
 
   const candidate_skills = Array.isArray(raw.candidate_skills)
     ? raw.candidate_skills
-        .map((x) => ({
-          skill: safeStr(x?.skill),
-          demonstrated: Boolean(x?.demonstrated),
-        }))
+        .map((x) => {
+          const rawProv = String(x?.provenance || '').toUpperCase();
+          const provenance = ['VERIFIED', 'DECLARED', 'INFERRED', 'UNSUPPORTED'].includes(rawProv)
+            ? rawProv
+            : (Boolean(x?.demonstrated) ? 'DECLARED' : 'INFERRED');
+          return {
+            skill: safeStr(x?.skill),
+            demonstrated: Boolean(x?.demonstrated),
+            provenance,
+            evidenceSource: safeStr(x?.evidenceSource, provenance === 'VERIFIED' ? 'Verified evidence' : 'Candidate resume profile'),
+          };
+        })
         .filter((x) => x.skill)
     : []
 
@@ -413,7 +442,6 @@ export function normalizeSkillProfile(raw) {
 export function buildFallbackSkillProfile(resume, jd) {
   const extractedJd = extractSkillsHeuristic(jd);
   const extractedResume = extractSkillsHeuristic(resume);
-  const resumeSkillSet = new Set(extractedResume.map((s) => s.toLowerCase()));
 
   const jd_required_skills = extractedJd.length > 0 ? extractedJd.slice(0, 8) : ['Software Engineering'];
   const jd_nice_to_have_skills = extractedJd.length > 8 ? extractedJd.slice(8, 14) : [];
@@ -421,6 +449,8 @@ export function buildFallbackSkillProfile(resume, jd) {
   const candidate_skills = (extractedResume.length > 0 ? extractedResume : ['Software Development']).map((s) => ({
     skill: s,
     demonstrated: true,
+    provenance: 'DECLARED',
+    evidenceSource: 'Extracted from resume text',
   }));
 
   const candidateSkillNames = new Set(candidate_skills.map((c) => c.skill.toLowerCase()));

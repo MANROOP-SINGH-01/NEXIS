@@ -22,10 +22,11 @@ Thumbs.db
 # Database
 *.db
 *.sqlite
+dev.db
+dev.db-journal
 
 # Archives
 offline-snapshots/
 
 graphify-out/
-dev.db
-dev.db-journal
+.playwright-mcp/

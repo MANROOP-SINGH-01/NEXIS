@@ -1,10 +1,12 @@
 import type { GitHubRepoDigest } from '../../integration/hooks/useGitHubData'
+import { getAuthHeaders } from '../../integration/store/authStore'
 
 export async function generateResumeBullet(repoData: GitHubRepoDigest): Promise<string> {
   const response = await fetch('/api/resume/bullet', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...getAuthHeaders(),
     },
     body: JSON.stringify({
       repoData: {

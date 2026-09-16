@@ -12,10 +12,13 @@ import { callSarvamWithRetry } from '../services/sarvam.js'
 import { buildMirrorFallbackCrossQuestion } from '../services/interviewEngine.js'
 import { normalizeSarvamError } from '../utils/errors.js'
 import { tryParseJsonLoose } from '../utils/helpers.js'
+import { requireAuth } from '../middleware/authMiddleware.js'
+import { aiLimiter } from '../middleware/rateLimit.js'
+import agentActivityService from '../services/agentActivityService.js'
 
 const router = Router()
 
-router.post('/interview/brief', async (req, res) => {
+router.post('/interview/brief', requireAuth, aiLimiter, async (req, res) => {
   const roleTitle = String(req.body?.roleTitle || '').trim()
   const seniority = String(req.body?.seniority || '').trim()
   const requiredGaps = Array.isArray(req.body?.requiredGaps) ? req.body.requiredGaps : []
@@ -95,7 +98,8 @@ router.post('/interview/brief', async (req, res) => {
 })
 
 
-router.post('/interview/generate', async (req, res) => {
+router.post('/interview/generate', requireAuth, aiLimiter, async (req, res) => {
+  agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_MIRROR', 'INTERVIEW_GENERATION_STARTED');
   const resume = String(req.body?.resume || '').trim()
   const jd = String(req.body?.jd || '').trim()
   const geminiKey = String(req.body?.key || GEMINI_API_KEY).trim()
@@ -145,6 +149,8 @@ router.post('/interview/generate', async (req, res) => {
       throw new Error('Sarvam returned empty interview set')
     }
 
+    agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_MIRROR', 'INTERVIEW_GENERATION_COMPLETE');
+
     res.json({ items })
   } catch (err) {
     const fallback = [
@@ -176,7 +182,8 @@ router.post('/interview/generate', async (req, res) => {
   }
 })
 
-router.post('/interview/cross-question', async (req, res) => {
+router.post('/interview/cross-question', requireAuth, aiLimiter, async (req, res) => {
+  agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_MIRROR', 'CROSS_QUESTION_STARTED');
   const question = String(req.body?.question || '').trim()
   const userAnswer = String(req.body?.answer || '').trim()
   const category = String(req.body?.category || 'technical').trim().toLowerCase()
@@ -251,6 +258,8 @@ router.post('/interview/cross-question', async (req, res) => {
     if (!payload.phaseB.followUpQuestion) {
       throw new Error('Missing follow-up question in cross-questioning response')
     }
+
+    agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_MIRROR', 'CROSS_QUESTION_COMPLETE');
 
     res.json(payload)
   } catch (err) {

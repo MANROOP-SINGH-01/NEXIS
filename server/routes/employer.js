@@ -11,10 +11,68 @@ import { Router } from 'express'
 import crypto from 'crypto'
 import prisma from '../lib/prisma.js'
 import { resolveGithubIdentity } from '../utils/auth.js'
+import { validateSession } from '../services/authService.js'
 import { resolveCurrentConsent } from '../utils/consent.js'
 import { sendEmployerVerificationRequest } from '../services/notificationService.js'
 
 const router = Router()
+
+// ── Dual-Path Trainee Resolver ───────────────────────────────────────────────
+async function resolveCallerTrainee(req) {
+  const authHeader = req.headers.authorization || ''
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : ''
+
+  if (token && token !== 'dev_trainee') {
+    const user = await validateSession(token)
+    if (user) {
+      if (user.traineeId) {
+        const trainee = await prisma.trainee.findUnique({ where: { id: user.traineeId } })
+        if (trainee) return trainee
+      }
+      const trainee = await prisma.trainee.create({
+        data: {
+          name: user.candidateProfile?.name || 'User',
+          phoneNumber: user.phone,
+          user: { connect: { id: user.id } },
+        },
+      })
+      return trainee
+    }
+  }
+
+  if (token === 'dev_trainee') {
+    let trainee = await prisma.trainee.findFirst({ where: { githubId: 'dev_trainee' } })
+    if (!trainee) {
+      trainee = await prisma.trainee.create({
+        data: {
+          githubId: 'dev_trainee',
+          name: 'Developer Trainee',
+          phoneNumber: '9999999999',
+        },
+      })
+    }
+    return trainee
+  }
+
+  try {
+    const caller = await resolveGithubIdentity(req)
+    let trainee = await prisma.trainee.findUnique({ where: { githubId: caller.githubId } })
+    if (!trainee) {
+      trainee = await prisma.trainee.create({
+        data: {
+          githubId: caller.githubId,
+          name: caller.login || 'Trainee',
+          phoneNumber: `temp_${caller.githubId}`,
+        },
+      })
+    }
+    return trainee
+  } catch {}
+
+  const err = new Error('Authentication required. Please log in.')
+  err.statusCode = 401
+  throw err
+}
 
 // ── Configuration & Value Sets ───────────────────────────────────────────────
 
@@ -59,12 +117,12 @@ function generateVerificationToken() {
 
 // ── POST /api/trainee/request-employer-verification ──────────────────────────
 // Trainee triggers verification email for an "EMPLOYED" checkin.
-// Auth: Authorization: Bearer <github_token>
+// Auth: User session token OR GitHub OAuth token
 // Body: { outcomeCheckInId, employerContact }
 router.post('/trainee/request-employer-verification', async (req, res) => {
-  let caller
+  let trainee
   try {
-    caller = await resolveGithubIdentity(req)
+    trainee = await resolveCallerTrainee(req)
   } catch (authErr) {
     res.status(authErr.statusCode || 401).json({ error: authErr.message })
     return
@@ -86,17 +144,7 @@ router.post('/trainee/request-employer-verification', async (req, res) => {
   }
 
   try {
-    // 2. Identify trainee
-    const trainee = await prisma.trainee.findUnique({
-      where: { githubId: caller.githubId },
-    })
-
-    if (!trainee) {
-      res.status(404).json({ error: 'No trainee profile found for this account.' })
-      return
-    }
-
-    // 3. Consent check: EMPLOYER_SHARING must be granted
+    // 2. Consent check: EMPLOYER_SHARING must be granted
     const consent = await resolveCurrentConsent(trainee.id, prisma)
     if (!consent?.EMPLOYER_SHARING?.granted) {
       res.status(403).json({

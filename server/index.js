@@ -10,7 +10,7 @@
  * - Removed hardcoded API keys (moved to .env via config.js)
  *
  * REFACTORING DONE:
- * - Split monolithic file into 20 focused modules (added trainee.js, consent.js)
+ * - Split monolithic file into focused modules
  * - Each route file uses Express Router for clean mounting
  * - Services are independently testable
  */
@@ -26,6 +26,7 @@ import careerEngineRoutes from './routes/careerEngine.js'
 import healthRoutes from './routes/health.js'
 import resumeRoutes from './routes/resume.js'
 import githubRoutes from './routes/github.js'
+import linkedinAuthRoutes from './routes/linkedinAuth.js'
 import chatRoutes from './routes/chat.js'
 import interviewRoutes from './routes/interview.js'
 import jobsRoutes from './routes/jobs.js'
@@ -38,7 +39,8 @@ import otpAuthRoutes from './routes/otpAuth.js'
 import employerRoutes from './routes/employer.js'
 import govtCheckRoutes from './routes/govtCheck.js'
 import analyticsRoutes from './routes/analytics.js'
-import linkedinAuthRoutes from './routes/linkedinAuth.js'
+import careerGraphRoutes from './routes/careerGraph.js'
+import agentsRoutes from './routes/agents.js'
 
 import { seedAdminUser } from './lib/seedAdminUser.js'
 
@@ -68,6 +70,8 @@ app.use('/api', otpAuthRoutes)
 app.use('/api', employerRoutes)
 app.use('/api', govtCheckRoutes)
 app.use('/api', analyticsRoutes)
+app.use('/api', careerGraphRoutes)
+app.use('/api/agents', agentsRoutes)
 
 // Direct root redirect for provider view links
 app.get('/provider-view/:token', (req, res) => {
@@ -79,4 +83,3 @@ app.listen(PORT, async () => {
   await seedAdminUser()
   console.log(`[forge-api] listening on http://localhost:${PORT}`)
 })
-

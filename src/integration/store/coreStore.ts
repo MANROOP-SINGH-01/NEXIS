@@ -87,8 +87,18 @@ export interface ResumeForgeItem {
   addedToLedger: boolean
 }
 
+export interface AnalysisDimensions {
+  keywordAlignment: number
+  quantifiedImpact: number
+  evidenceDepth: number
+  structuralQuality: number
+  seniorityFit: number
+}
+
 export interface ResumeAnalysis {
   atsCompatibility: number
+  dimensions?: AnalysisDimensions
+  overallScore?: number
   skillGaps: Array<{ skill: string; status: 'verified' | 'needs-proof' | 'gap' }>
   interviewReadiness: {
     technicalDeepDive: number
@@ -148,6 +158,9 @@ interface CoreState {
   agentHistories: Record<number, LLMMessage[]>
   agentSummaries: Record<number, string>
   boardroomHistories: Record<string, LLMMessage[]>
+  
+  // ── Agent 3D Status (SSE Driven) ─────────────────────────────
+  agentStatuses: Record<number, 'idle' | 'working' | 'talking'>
 
   // ── UI ───────────────────────────────────────────────────────
   isKanbanOpen: boolean
@@ -265,6 +278,9 @@ interface CoreState {
   setAgentSummary: (agentIndex: number, summary: string) => void;
   appendBoardroomHistory: (taskId: string, role: 'user' | 'assistant', parts: any[]) => void;
   clearAllHistories: () => void;
+  
+  // ── Actions — Agent Statuses ──────────────────────────────────
+  setAgentStatus: (agentIndex: number, status: 'idle' | 'working' | 'talking') => void;
 
   // ── Actions — UI ──────────────────────────────────────────────
   setKanbanOpen: (open: boolean) => void;
@@ -328,6 +344,7 @@ export const useCoreStore = create<CoreState>()(
       agentHistories: {},
       agentSummaries: {},
       boardroomHistories: {},
+      agentStatuses: {},
       isKanbanOpen: true,
       isLogOpen: true,
       isFinalOutputOpen: false,
@@ -763,6 +780,13 @@ export const useCoreStore = create<CoreState>()(
         })),
 
       clearAllHistories: () => set({ agentHistories: {}, boardroomHistories: {} }),
+      
+      setAgentStatus: (agentIndex, status) => set((s) => ({
+        agentStatuses: {
+          ...s.agentStatuses,
+          [agentIndex]: status
+        }
+      })),
 
       setKanbanOpen: (open) => set({ isKanbanOpen: open }),
       setLogOpen: (open, filterAgent = null) =>
@@ -777,7 +801,17 @@ export const useCoreStore = create<CoreState>()(
     {
       name: 'core-storage',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({}),
+      // ponytail: persist only what's needed for offline resilience mid-demo
+      partialize: (state) => ({
+        currentResume: state.currentResume,
+        structuredResume: state.structuredResume,
+        discoveredJobs: state.discoveredJobs,
+        resumeAnalysis: state.resumeAnalysis,
+        hasResumeAnalysis: state.hasResumeAnalysis,
+        skillVerifications: state.skillVerifications,
+        nexusActivityLog: state.nexusActivityLog,
+        forgeMode: state.forgeMode,
+      }),
     }
   )
 )

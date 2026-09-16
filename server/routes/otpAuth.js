@@ -5,6 +5,7 @@
 
 import { Router } from 'express';
 import { sendOtp, verifyOtp } from '../services/otpService.js';
+import { otpLimiter } from '../middleware/rateLimit.js';
 import crypto from 'crypto';
 
 const router = Router();
@@ -46,7 +47,7 @@ export function validateOtpVerificationToken(tokenBase64) {
 }
 
 // ── POST /api/otp/send ───────────────────────────────────────────────────────
-router.post('/otp/send', async (req, res) => {
+router.post('/otp/send', otpLimiter, async (req, res) => {
   const { phoneNumber } = req.body;
   if (!phoneNumber) {
     return res.status(400).json({ error: 'phoneNumber is required' });
