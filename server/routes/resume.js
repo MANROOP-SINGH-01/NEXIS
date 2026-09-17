@@ -1,5 +1,4 @@
 import { Router } from 'express'
-import { PDFParse } from 'pdf-parse'
 import prisma from '../lib/prisma.js'
 import { upload } from '../middleware/upload.js'
 import { GEMINI_API_KEY, DEFAULT_SARVAM_KEY, DEFAULT_RESUME_STRUCTURER_KEY } from '../config.js'
@@ -31,6 +30,7 @@ router.post('/resume/extract', requireAuth, aiLimiter, upload.single('resumePdf'
   }
 
   try {
+    const { PDFParse } = await import('pdf-parse')
     const parser = new PDFParse({ data: req.file.buffer })
     const textResult = await parser.getText()
     await parser.destroy()
