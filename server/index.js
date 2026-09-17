@@ -48,7 +48,13 @@ import { seedAdminUser } from './lib/seedAdminUser.js'
 const app = express()
 
 // ── Middleware ─────────────────────────────────────────────────────────────────
-app.use(cors({ origin: [FRONTEND_URL, 'http://localhost:3000'], credentials: true }))
+// Relaxed CORS for the demo environment to ensure Vercel proxying works flawlessly
+app.use(cors({
+  origin: function (origin, callback) {
+    callback(null, true)
+  },
+  credentials: true
+}))
 app.use(express.json({ limit: '1mb' }))
 app.use(cookieParser())
 
