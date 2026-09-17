@@ -6,7 +6,6 @@
  */
 
 import { Router } from 'express'
-import { PDFParse } from 'pdf-parse'
 import prisma from '../lib/prisma.js'
 import { upload } from '../middleware/upload.js'
 import { LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET, GEMINI_API_KEY } from '../config.js'
@@ -127,6 +126,7 @@ router.post('/linkedin/import-profile-pdf', upload.single('profilePdf'), async (
   const runtimeGeminiKey = userGeminiKey || GEMINI_API_KEY
 
   try {
+    const { PDFParse } = await import('pdf-parse')
     const parser = new PDFParse({ data: req.file.buffer })
     const textResult = await parser.getText()
     await parser.destroy()
