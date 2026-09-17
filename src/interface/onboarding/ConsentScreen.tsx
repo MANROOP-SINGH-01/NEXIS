@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ShieldCheck, ShieldAlert, Loader2, ArrowRight, CheckCircle2, Lock, X } from 'lucide-react';
 import { ConsentScope } from '../../types';
 import { USER_COLOR, USER_COLOR_LIGHT } from '../../theme/brand';
+import { useLocale } from '../../integration/hooks/useLocale';
 
 interface ConsentScreenProps {
   onConsentsSaved: (scopes: Record<ConsentScope, boolean>) => Promise<boolean>;
@@ -59,6 +60,7 @@ export const ConsentScreen: React.FC<ConsentScreenProps> = ({ onConsentsSaved, o
     return initial;
   });
 
+  const { t } = useLocale();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -123,11 +125,10 @@ export const ConsentScreen: React.FC<ConsentScreenProps> = ({ onConsentsSaved, o
               </span>
             </div>
             <h2 className="text-2xl font-black text-darkDelegation tracking-tight leading-tight">
-              Trainee Consent & Data Privacy
+              {t('consentTitle')}
             </h2>
             <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
-              Your trainee record is privacy-first. In compliance with the Digital Personal Data Protection Act,
-              grant granular permissions for how your profile, skill certifications, and job search records are utilized.
+              {t('consentSubtitle')}
             </p>
           </div>
 

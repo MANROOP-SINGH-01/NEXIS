@@ -1,7 +1,7 @@
 import React from 'react';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useUiStore } from '../integration/store/uiStore';
-import { Bot, Activity, CheckCircle2, Zap } from 'lucide-react';
+import { Bot, Activity, CheckCircle2, Zap, AlertCircle, Move } from 'lucide-react';
 import { getActiveAgentSet } from '../integration/store/teamStore';
 import { getAllAgents } from '../data/agents';
 
@@ -13,7 +13,11 @@ export const AgentActivityHUD: React.FC = () => {
   const agents = getAllAgents(system).filter(a => a.index !== system.user.index);
 
   return (
-    <div className="absolute inset-0 bg-zinc-950 flex flex-col p-6 z-40 text-white animate-in fade-in duration-300">
+    <div 
+      className="absolute inset-0 bg-zinc-950 flex flex-col p-6 z-40 text-white animate-in fade-in duration-300"
+      aria-live="polite"
+      role="status"
+    >
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-zinc-100 flex items-center gap-3">
@@ -44,6 +48,12 @@ export const AgentActivityHUD: React.FC = () => {
                   ? 'bg-blue-900/20 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]' 
                   : status === 'talking'
                   ? 'bg-emerald-900/20 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
+                  : status === 'success'
+                  ? 'bg-green-900/20 border-green-500/30'
+                  : status === 'error'
+                  ? 'bg-red-900/20 border-red-500/30'
+                  : status === 'dragged'
+                  ? 'bg-orange-900/20 border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.1)]'
                   : 'bg-zinc-900/50 border-zinc-800'
               }`}
             >
@@ -52,6 +62,9 @@ export const AgentActivityHUD: React.FC = () => {
                   <div className={`p-2 rounded-lg ${
                     status === 'working' ? 'bg-blue-500/20 text-blue-400' :
                     status === 'talking' ? 'bg-emerald-500/20 text-emerald-400' :
+                    status === 'success' ? 'bg-green-500/20 text-green-400' :
+                    status === 'error' ? 'bg-red-500/20 text-red-400' :
+                    status === 'dragged' ? 'bg-orange-500/20 text-orange-400' :
                     'bg-zinc-800 text-zinc-400'
                   }`}>
                     <Bot className="w-5 h-5" />
@@ -64,6 +77,9 @@ export const AgentActivityHUD: React.FC = () => {
                 
                 {status === 'working' && <Activity className="w-4 h-4 text-blue-400 animate-pulse" />}
                 {status === 'talking' && <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />}
+                {status === 'success' && <CheckCircle2 className="w-4 h-4 text-green-400" />}
+                {status === 'error' && <AlertCircle className="w-4 h-4 text-red-400" />}
+                {status === 'dragged' && <Move className="w-4 h-4 text-orange-400 animate-bounce" />}
                 {status === 'idle' && <CheckCircle2 className="w-4 h-4 text-zinc-600" />}
               </div>
 
@@ -85,6 +101,15 @@ export const AgentActivityHUD: React.FC = () => {
                     </span>
                     Communicating...
                   </span>
+                )}
+                {status === 'success' && (
+                  <span className="text-green-400">Task completed</span>
+                )}
+                {status === 'error' && (
+                  <span className="text-red-400">Task failed</span>
+                )}
+                {status === 'dragged' && (
+                  <span className="text-orange-400">Repositioning...</span>
                 )}
                 {status === 'idle' && (
                   <span className="text-zinc-500">Standby</span>

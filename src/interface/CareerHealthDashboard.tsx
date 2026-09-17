@@ -17,7 +17,8 @@ import {
   GitFork,
   ArrowUpRight,
   CheckCircle2,
-  ChevronRight
+  ChevronRight,
+  Trash2
 } from 'lucide-react';
 import { Provenance } from '../types';
 
@@ -117,6 +118,24 @@ export const CareerHealthDashboard: React.FC = () => {
   const [pathingData, setPathingData] = useState<CareerPathingData | null>(null);
   const [pathingLoading, setPathingLoading] = useState<boolean>(false);
   const [selectedPathItem, setSelectedPathItem] = useState<CareerPathItem | null>(null);
+
+  const [hypotheticalSkills, setHypotheticalSkills] = useState<Set<string>>(new Set());
+
+  const handleDeleteData = async () => {
+    if (!window.confirm("Are you sure you want to permanently erase your data? This action cannot be undone and complies with the DPDP Act 2023.")) return;
+    try {
+      const res = await fetch('/api/trainee/profile', {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        localStorage.clear();
+        window.location.reload();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   // 1. Fetch available roles
   useEffect(() => {
@@ -253,14 +272,23 @@ export const CareerHealthDashboard: React.FC = () => {
               <p className="text-xs text-zinc-400">No verified skills mapped to this target role yet.</p>
             ) : (
               <ul className="space-y-3">
-                {gapsResult.matches.map((m, idx) => (
-                  <li key={idx} className="flex justify-between items-center text-sm border-b border-zinc-100 pb-2">
-                    <span className="font-medium text-zinc-700">{m.skill}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold">
-                      {m.provenance || 'Verified'}
-                    </span>
-                  </li>
-                ))}
+                {gapsResult.matches.map((m, idx) => {
+                  const prov = m.provenance || 'DECLARED';
+                  const provClass = 
+                    prov === 'VERIFIED' ? 'bg-emerald-100 text-emerald-700' :
+                    prov === 'DECLARED' ? 'bg-blue-100 text-blue-700' :
+                    prov === 'INFERRED' ? 'bg-purple-100 text-purple-700' :
+                    'bg-red-100 text-red-700'; // UNSUPPORTED
+
+                  return (
+                    <li key={idx} className="flex justify-between items-center text-sm border-b border-zinc-100 pb-2">
+                      <span className="font-medium text-zinc-700">{m.skill}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded uppercase font-black tracking-wider ${provClass}`}>
+                        {prov}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
@@ -281,6 +309,22 @@ export const CareerHealthDashboard: React.FC = () => {
               ))}
             </ul>
           </div>
+        </div>
+
+        {/* Data Privacy & Compliance (DPDP Act) */}
+        <div className="bg-red-50 border border-red-100 rounded-xl p-6 shadow-sm mt-8">
+          <h3 className="text-base font-bold text-red-900 mb-2 flex items-center gap-2">
+            <Trash2 size={18} /> Data Privacy & Compliance (DPDP Act)
+          </h3>
+          <p className="text-red-700 text-sm mb-4">
+            You have the right to request the complete erasure of your personal data, verified skills, and consent records from NEXIS servers.
+          </p>
+          <button 
+            onClick={handleDeleteData}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold transition-colors cursor-pointer"
+          >
+            Permanently Erase My Data
+          </button>
         </div>
       </div>
     );
@@ -395,16 +439,27 @@ export const CareerHealthDashboard: React.FC = () => {
   };
 
   const renderWhatIf = () => {
+    if (!gapsResult) return null;
+    
+    const baseCoverage = gapsResult.gapSummary.coveragePercent || 0;
+    const totalRequired = gapsResult.gapSummary.totalRequired || 1;
+    const additionalMatches = hypotheticalSkills.size;
+    const simulatedCoverage = Math.min(100, Math.round(((gapsResult.matches.length + additionalMatches) / totalRequired) * 100));
+    const isAtRisk = simulatedCoverage < 50;
+    
     return (
       <div className="animate-in fade-in duration-300">
         <h2 className="text-xl font-bold tracking-tight text-zinc-900 mb-2">What-If Simulator</h2>
-        <p className="text-zinc-500 mb-6 text-sm">Simulate your career health against a completely different role to see what it would take to pivot.</p>
+        <p className="text-zinc-500 mb-6 text-sm">Simulate your career health against a completely different role and toggle skills to see what it would take to pivot.</p>
         
         <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-sm mb-6">
           <label className="block text-sm font-semibold text-zinc-900 mb-2">Select Target Role</label>
           <select 
             value={selectedRoleId}
-            onChange={(e) => setSelectedRoleId(e.target.value)}
+            onChange={(e) => {
+              setSelectedRoleId(e.target.value);
+              setHypotheticalSkills(new Set()); // reset on role change
+            }}
             className="w-full p-2.5 bg-zinc-50 border border-zinc-300 rounded-lg text-sm text-zinc-900 focus:ring-2 focus:ring-zinc-900 outline-none transition-shadow"
           >
             {onetRoles.map(r => (
@@ -416,8 +471,54 @@ export const CareerHealthDashboard: React.FC = () => {
         {isLoading ? (
           <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-zinc-400" /></div>
         ) : (
-          <div className="opacity-75">
-            {renderHealth()}
+          <div className="space-y-6">
+            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-6 shadow-sm flex items-center gap-6">
+              <div className={`w-20 h-20 rounded-full flex flex-col items-center justify-center font-bold border-4 ${isAtRisk ? 'border-amber-400 text-amber-600 bg-white' : 'border-emerald-500 text-emerald-600 bg-white'}`}>
+                <span className="text-2xl leading-none">{simulatedCoverage}%</span>
+              </div>
+              <div>
+                <h2 className="text-xl font-bold tracking-tight text-indigo-950 flex items-center gap-2">
+                  <PlayCircle size={20} /> Projected Match Rate
+                </h2>
+                <p className="text-indigo-800/80 text-sm mt-1">
+                  Base Match: {baseCoverage}%. With {hypotheticalSkills.size} hypothetical skills, your projected match rises to {simulatedCoverage}%.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-sm">
+              <h3 className="text-base font-semibold text-zinc-900 mb-4 flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Toggle Missing Skills to Simulate Upskilling
+              </h3>
+              
+              <ul className="space-y-2 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+                {gapsResult.gaps.map((g, idx) => {
+                  const isSimulated = hypotheticalSkills.has(g.skillId);
+                  return (
+                    <li 
+                      key={idx} 
+                      className={`flex justify-between items-center text-sm border border-zinc-100 p-3 rounded-lg transition-colors cursor-pointer select-none ${isSimulated ? 'bg-indigo-50/50 border-indigo-200 shadow-sm' : 'hover:bg-zinc-50'}`}
+                      onClick={() => {
+                        const next = new Set(hypotheticalSkills);
+                        if (next.has(g.skillId)) next.delete(g.skillId);
+                        else next.add(g.skillId);
+                        setHypotheticalSkills(next);
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-5 h-5 rounded border flex items-center justify-center ${isSimulated ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-zinc-300'}`}>
+                          {isSimulated && <CheckCircle2 size={14} />}
+                        </div>
+                        <span className={`font-medium ${isSimulated ? 'text-indigo-900' : 'text-zinc-700'}`}>{g.skill}</span>
+                      </div>
+                      <span className={`text-xs px-2 py-0.5 rounded font-semibold ${g.priority === 'CRITICAL' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}`}>
+                        {g.priority}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           </div>
         )}
       </div>

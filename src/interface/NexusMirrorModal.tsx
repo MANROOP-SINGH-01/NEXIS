@@ -30,9 +30,10 @@ interface NexusMirrorModalProps {
 
 interface CrossQuestionResult {
   phaseA: {
-    detectedType: 'technical-claim' | 'logic-gap'
+    detectedType: 'technical-claim' | 'logic-gap' | 'unsupported-quantitative-claim'
     technicalClaim: string
     logicGap: string
+    unsupportedQuantitativeClaim?: string
     thinOrNonTechnical: boolean
     reason: string
   }
@@ -349,6 +350,8 @@ export default function NexusMirrorModal({ onClose }: NexusMirrorModalProps) {
                       <p className="text-sm text-zinc-900 font-medium mb-2 leading-relaxed">
                         {crossByItem[item.id].phaseA.detectedType === 'technical-claim'
                           ? <><span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded mr-1">Claim:</span> {crossByItem[item.id].phaseA.technicalClaim}</>
+                          : crossByItem[item.id].phaseA.detectedType === 'unsupported-quantitative-claim'
+                          ? <><span className="text-orange-700 font-bold bg-orange-50 px-2 py-0.5 rounded mr-1">Unsupported Claim:</span> {crossByItem[item.id].phaseA.unsupportedQuantitativeClaim}</>
                           : <><span className="text-red-700 font-bold bg-red-50 px-2 py-0.5 rounded mr-1">Gap:</span> {crossByItem[item.id].phaseA.logicGap}</>}
                       </p>
                       <p className="text-xs text-zinc-500 font-medium bg-white border border-zinc-100 p-2.5 rounded-xl">{crossByItem[item.id].phaseA.reason || 'No reason returned.'}</p>

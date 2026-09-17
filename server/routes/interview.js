@@ -196,14 +196,15 @@ router.post('/interview/cross-question', requireAuth, aiLimiter, async (req, res
 
   const prompt = [
     'You are Nexus-Mirror operating in Recursive Cross-Questioning mode.',
-    'Phase A (Scan): analyze the user answer and identify either ONE concrete technical claim or a Logic Gap.',
+    'Phase A (Scan): analyze the user answer and identify either ONE concrete technical claim, a Logic Gap, or an unsupported quantitative claim (e.g., "improved performance by 50%" without explaining how).',
     'Phase B (Grill): as a skeptical lead engineer, produce ONE challenging follow-up question strictly grounded in the Phase A finding.',
     'Return strict JSON with this shape only:',
     '{',
     '  "phaseA": {',
-    '    "detectedType": "technical-claim"|"logic-gap",',
+    '    "detectedType": "technical-claim"|"logic-gap"|"unsupported-quantitative-claim",',
     '    "technicalClaim": string,',
     '    "logicGap": string,',
+    '    "unsupportedQuantitativeClaim": string,',
     '    "thinOrNonTechnical": boolean,',
     '    "reason": string',
     '  },',
@@ -242,9 +243,10 @@ router.post('/interview/cross-question', requireAuth, aiLimiter, async (req, res
 
     const payload = {
       phaseA: {
-        detectedType: String(phaseA.detectedType || '').toLowerCase() === 'technical-claim' ? 'technical-claim' : 'logic-gap',
+        detectedType: String(phaseA.detectedType || '').toLowerCase() === 'unsupported-quantitative-claim' ? 'unsupported-quantitative-claim' : String(phaseA.detectedType || '').toLowerCase() === 'technical-claim' ? 'technical-claim' : 'logic-gap',
         technicalClaim: String(phaseA.technicalClaim || '').trim(),
         logicGap: String(phaseA.logicGap || '').trim(),
+        unsupportedQuantitativeClaim: String(phaseA.unsupportedQuantitativeClaim || '').trim(),
         thinOrNonTechnical: Boolean(phaseA.thinOrNonTechnical),
         reason: String(phaseA.reason || '').trim(),
       },

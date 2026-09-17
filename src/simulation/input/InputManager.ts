@@ -15,6 +15,7 @@ export class InputManager {
   private dragStartX = 0;
   private dragStartY = 0;
   private isDragging = false;
+  private draggedAgentIdx: number | null = null;
 
   public selectedIndex: number | null = null;
 
@@ -29,6 +30,8 @@ export class InputManager {
     private getPois: () => PoiDef[],
     private onPoiHover: (id: string | null, label: string | null, pos: { x: number; y: number } | null) => void,
     private onPoiClick: (id: string) => void,
+    private onDrag: (index: number, pos: THREE.Vector3) => void,
+    private onDragEnd: (index: number) => void,
     private raycastObject?: THREE.Object3D,
     private isPointValid?: (point: THREE.Vector3) => boolean,
   ) {
@@ -46,6 +49,12 @@ export class InputManager {
     this.dragStartX = event.clientX;
     this.dragStartY = event.clientY;
     this.isDragging = false;
+    
+    // Check if we started dragging an agent
+    const rect = this.canvas.getBoundingClientRect();
+    this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    this.draggedAgentIdx = this.getAgentAtPointer();
   }
 
   private handlePointerMove(event: PointerEvent) {
@@ -53,20 +62,31 @@ export class InputManager {
     this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    // If any button is pressed, skip hover/cursor updates to avoid fighting with OrbitControls or dragging logic
+    // If any button is pressed, handle dragging or skip hover
     if (event.buttons !== 0) {
       if (event.buttons === 1) {
         const dx = event.clientX - this.dragStartX;
         const dy = event.clientY - this.dragStartY;
         if ((dx * dx + dy * dy) > DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX) {
           this.isDragging = true;
+          
+          if (this.draggedAgentIdx !== null) {
+            const floorPos = this.getWorldClickPosition();
+            if (floorPos) {
+              this.onDrag(this.draggedAgentIdx, floorPos);
+            }
+          }
         }
       }
       return;
     }
 
     // Reset dragging state when no buttons are pressed
+    if (this.isDragging && this.draggedAgentIdx !== null) {
+       this.onDragEnd(this.draggedAgentIdx);
+    }
     this.isDragging = false;
+    this.draggedAgentIdx = null;
 
     // Detect hover
     const hoveredIdx = this.getAgentAtPointer();
@@ -185,7 +205,14 @@ export class InputManager {
 
   private handlePointerUp(event: PointerEvent) {
     if (event.button !== 0) return;
-    if (this.isDragging) return;
+    if (this.isDragging) {
+      if (this.draggedAgentIdx !== null) {
+        this.onDragEnd(this.draggedAgentIdx);
+        this.draggedAgentIdx = null;
+      }
+      return;
+    }
+    this.draggedAgentIdx = null;
     this.handleClick(event as unknown as MouseEvent);
   }
 

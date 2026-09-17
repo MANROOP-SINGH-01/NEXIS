@@ -9,7 +9,7 @@ export interface ChatMessage {
 }
 
 // ── Store state (pure data + simple setters) ─────────────────
-export type AgentState = 'idle' | 'moving' | 'working' | 'on_hold' | 'talking';
+export type AgentState = 'idle' | 'moving' | 'working' | 'on_hold' | 'talking' | 'success' | 'error' | 'dragged';
 
 export type ActiveSidebarTab =
   | 'dashboard'
@@ -185,7 +185,10 @@ export type CharacterStateKey =
   | 'sad'
   | 'pick'
   | 'wave'
-  | 'wave_loop'; // looping version of wave, no auto-transition
+  | 'wave_loop' // looping version of wave, no auto-transition
+  | 'success'
+  | 'error'
+  | 'dragged';
 
 /**
  * Declarative definition of a character state.

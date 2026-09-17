@@ -25,6 +25,9 @@ export const STATE_MAP: Record<CharacterStateKey, CharacterStateDef> = {
   wave:        { animation: AnimationName.WAVE,                                 loop: false, nextState: 'idle',    interruptible: true },
   wave_loop:   { animation: AnimationName.WAVE,                                 loop: true,  interruptible: true },
   happy_loop:  { animation: AnimationName.HAPPY,   expression: 'happy',         loop: true,  interruptible: true },
+  success:     { animation: AnimationName.HAPPY,   expression: 'happy',         loop: false, nextState: 'idle', interruptible: true },
+  error:       { animation: AnimationName.SAD,     expression: 'sad',           loop: false, nextState: 'idle', interruptible: true },
+  dragged:     { animation: AnimationName.PICK,    expression: 'surprised',     loop: true,  interruptible: true },
 };
 
 // ── STATE MACHINE ────────────────────────────────────────────

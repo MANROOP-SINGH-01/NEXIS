@@ -6,6 +6,10 @@ declare module '../../types' {
   interface CharacterState {
     isLowFpsFallback: boolean;
     setLowFpsFallback: (val: boolean) => void;
+    language: 'en' | 'hi' | 'mr';
+    setLanguage: (lang: 'en' | 'hi' | 'mr') => void;
+    demoFailureMode: boolean;
+    setDemoFailureMode: (val: boolean) => void;
   }
 }
 
@@ -36,6 +40,12 @@ export const useUiStore = create<CharacterState>()(
     
     isLowFpsFallback: false,
     setLowFpsFallback: (val: boolean) => set({ isLowFpsFallback: val }),
+
+    language: 'en',
+    setLanguage: (lang) => set({ language: lang }),
+    
+    demoFailureMode: false,
+    setDemoFailureMode: (val) => set({ demoFailureMode: val }),
 
     jobMatchesCurrent: [],
     jobMatchesReachable: [],

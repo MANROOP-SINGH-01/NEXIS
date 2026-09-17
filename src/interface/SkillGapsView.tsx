@@ -231,7 +231,7 @@ export const SkillGapsView: React.FC = () => {
   const matchedRequired = requiredSkills.filter((s) => candidateNames.has(s.toLowerCase()));
   const calculatedMatchPct = requiredSkills.length > 0
     ? Math.round((matchedRequired.length / requiredSkills.length) * 100)
-    : 70;
+    : 0;
 
   const pct = skillProfile?.match_pct ?? calculatedMatchPct;
   const matchLabel = pct >= 75 ? 'Strong Role Alignment' : pct >= 50 ? 'Moderate Match (Gaps to Close)' : 'Critical Gaps Detected';

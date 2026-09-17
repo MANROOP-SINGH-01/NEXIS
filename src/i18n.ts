@@ -49,6 +49,10 @@ const strings = {
     mainNavigation: 'Main navigation',
     agentPanel: 'Agent interaction panel',
     simulationCanvas: '3D Agent simulation',
+    
+    // Consent
+    consentTitle: 'Trainee Consent & Data Privacy',
+    consentSubtitle: 'Your trainee record is privacy-first. In compliance with the Digital Personal Data Protection Act.',
   },
   hi: {
     careerHealth: 'कैरियर स्वास्थ्य',
@@ -90,6 +94,9 @@ const strings = {
     mainNavigation: 'मुख्य नेविगेशन',
     agentPanel: 'एजेंट इंटरैक्शन पैनल',
     simulationCanvas: '3D एजेंट सिमुलेशन',
+
+    consentTitle: 'प्रशिक्षु सहमति और डेटा गोपनीयता',
+    consentSubtitle: 'आपका रिकॉर्ड गोपनीयता-प्रथम है। DPDP अधिनियम के अनुपालन में।',
   },
   ta: {
     dashboard: 'டாஷ்போர்டு',
@@ -130,6 +137,9 @@ const strings = {
     mainNavigation: 'முதன்மை வழிசெலுத்தல்',
     agentPanel: 'முகவர் தொடர்பு பேனல்',
     simulationCanvas: '3D முகவர் உருவகிப்பு',
+
+    consentTitle: 'பயிற்சியாளர் சம்மதம் மற்றும் தரவு தனியுரிமை',
+    consentSubtitle: 'உங்கள் பயிற்சியாளர் பதிவு தனியுரிமை முதன்மையானது. டிஜிட்டல் தனிநபர் தரவு பாதுகாப்பு சட்டத்திற்கு இணங்க.',
   },
 } as const;
 

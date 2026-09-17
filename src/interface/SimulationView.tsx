@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useTeamStore, useActiveTeam } from '../integration/store/teamStore';
 import { useUiStore } from '../integration/store/uiStore';
+import { useLocale } from '../integration/hooks/useLocale';
 import InspectorPanel from './InspectorPanel';
 import UIOverlay from './UIOverlay';
 import TeamFlowModal from './TeamFlowModal';
@@ -18,6 +19,7 @@ interface SimulationViewProps {
 const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen, setIsFullscreen }) => {
   const { selectedNpcIndex, activeAuditTaskId, setActiveAuditTaskId } = useUiStore();
   const activeSet = useActiveTeam();
+  const { t } = useLocale();
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
 
   React.useEffect(() => {
@@ -56,7 +58,12 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
         </div>
       </div>
 
-      <div ref={canvasRef} className="flex-1 min-h-0 relative overflow-hidden bg-black/5">
+      <div 
+        ref={canvasRef} 
+        className="flex-1 min-h-0 relative overflow-hidden bg-black/5"
+        role="region"
+        aria-label={t('simulationCanvas')}
+      >
         <UIOverlay />
       </div>
 

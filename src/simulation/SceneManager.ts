@@ -180,6 +180,14 @@ export class SceneManager {
       () => this.poiManager.getAllPois(),
       (id, label, pos) => useUiStore.getState().setHoveredPoi(id, label, pos),
       (id) => this.driverManager?.getPlayerDriver().onPoiClick(id),
+      (idx, pos) => {
+        useUiStore.getState().setAgentStatus(idx, 'dragged');
+        this.characterManager.setPosition(idx, pos);
+      },
+      (idx) => {
+        useUiStore.getState().setAgentStatus(idx, 'idle');
+        this.moveNpcToSpawn(idx); // agent paths back to default position on release
+      },
       this.worldManager.getOffice() ?? undefined, (p) => this.navMesh.isPointOnNavMesh(p)
     );
 
@@ -235,6 +243,21 @@ export class SceneManager {
           if (status !== prevStatus) {
              if (status === 'talking') this.setNpcTalking(idx, true);
              else if (prevStatus === 'talking') this.setNpcTalking(idx, false);
+             
+             if (status === 'working') this.setNpcWorking(idx, true);
+             else if (prevStatus === 'working' && status !== 'working') this.setNpcWorking(idx, false);
+             
+             if (status === 'success') {
+               this.controller!.play(idx, 'success');
+               setTimeout(() => useUiStore.getState().setAgentStatus(idx, 'idle'), 3000);
+             } else if (status === 'error') {
+               this.controller!.play(idx, 'error');
+               setTimeout(() => useUiStore.getState().setAgentStatus(idx, 'idle'), 3000);
+             } else if (status === 'dragged') {
+               this.controller!.play(idx, 'dragged');
+             } else if (prevStatus === 'dragged' && status === 'idle') {
+               this.controller!.play(idx, 'idle');
+             }
           }
         });
       }
