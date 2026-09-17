@@ -11,7 +11,7 @@
   "version": "0.2.0",
   "type": "module",
   "scripts": {
-    "start": "node server/index.js",
+    "start": "npx prisma db push --accept-data-loss && node server/scripts/importOnet.js && node server/index.js",
     "dev": "concurrently \"npm:dev:api\" \"npm:dev:web\"",
     "dev:web": "vite --port=3000 --host=0.0.0.0",
     "dev:api": "cross-env NODE_OPTIONS=--dns-result-order=ipv4first node --watch server/index.js",
