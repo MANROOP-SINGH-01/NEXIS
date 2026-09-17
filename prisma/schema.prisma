@@ -8,9 +8,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL") // optional for Supabase
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ── Trainee ───────────────────────────────────────────────────────────────────
@@ -396,6 +396,7 @@ model CandidateProfile {
   readinessSnapshots  CareerReadinessSnapshot[]
   interviewSessions   InterviewSession[]
   skillEvidences      SkillEvidence[]
+  passportItems       CareerPassportItem[]
 }
 
 model CareerReadinessSnapshot {
@@ -440,6 +441,30 @@ model JobApplication {
   notes           String?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  events          ApplicationEvent[]
+}
+
+model ApplicationEvent {
+  id              String           @id @default(cuid())
+  applicationId   String
+  application     JobApplication   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  status          String           // The status transitioned to
+  notes           String?
+  createdAt       DateTime         @default(now())
+}
+
+model CareerPassportItem {
+  id          String   @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  type        String   // SKILL, PROJECT, CERTIFICATE, EDUCATION
+  title       String
+  description String?
+  verified    Boolean  @default(false)
+  issuedBy    String?
+  issuedAt    DateTime?
+  url         String?
+  createdAt   DateTime @default(now())
 }
 
 model InterviewSession {

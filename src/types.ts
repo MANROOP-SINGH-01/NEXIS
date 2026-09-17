@@ -20,7 +20,9 @@ export type ActiveSidebarTab =
   | 'new-cv'
   | 'my-outcome'
   | 'linkedin-integration'
-  | 'career-health';
+  | 'career-health'
+  | 'application-tracker'
+  | 'career-passport';
 
 export type JobBucket = 'APPLY_NOW' | 'LEARN_THEN_APPLY' | 'STRETCH' | 'IGNORE';
 

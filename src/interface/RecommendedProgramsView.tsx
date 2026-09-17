@@ -5,24 +5,7 @@ import { useCoreStore } from '../integration/store/coreStore';
 import { USER_COLOR, USER_COLOR_LIGHT } from '../theme/brand';
 import { CandidateSkill, RecommendedProgram } from '../types';
 
-const CURATED_PROGRAMS_FALLBACK: Record<string, RecommendedProgram[]> = {
-  'AWS / Cloud Architecture': [
-    { title: 'Cloud Computing & Distributed Systems', provider: 'NPTEL (Ministry of Education, Govt. of India)', url: 'https://onlinecourses.nptel.ac.in/explorer?q=cloud+computing', isFree: true, isGovt: true, badge: 'NPTEL / IIT' },
-    { title: 'AWS Certified Solutions Architect', provider: 'AWS Training & Coursera', url: 'https://www.coursera.org/learn/aws-cloud-technical-essentials', isFree: true, isGovt: false, badge: 'Industry Audit' },
-  ],
-  'Docker & Containers': [
-    { title: 'Linux and Open Source Container Technologies', provider: 'SWAYAM (Govt. of India / IIT Bombay)', url: 'https://swayam.gov.in/explorer?searchText=linux', isFree: true, isGovt: true, badge: 'Govt. of India' },
-    { title: 'Introduction to Kubernetes & Containers', provider: 'edX & Linux Foundation', url: 'https://www.edx.org/course/introduction-to-kubernetes', isFree: true, isGovt: false, badge: 'Free Course' },
-  ],
-  'PostgreSQL Optimization': [
-    { title: 'Database Management Systems & SQL Query Architecture', provider: 'NPTEL & IIT Kharagpur', url: 'https://onlinecourses.nptel.ac.in/explorer?q=database', isFree: true, isGovt: true, badge: 'NPTEL / IIT' },
-    { title: 'Database Design & Relational Modeling', provider: 'Skill India Digital Hub', url: 'https://www.skillindiadigital.gov.in/courses?search=database', isFree: true, isGovt: true, badge: 'Skill India' },
-  ],
-  'CI/CD Pipelines': [
-    { title: 'DevOps & Software Automation Practices', provider: 'SWAYAM & NPTEL', url: 'https://swayam.gov.in/explorer?searchText=devops', isFree: true, isGovt: true, badge: 'Govt. of India' },
-    { title: 'Automated CI/CD with GitHub Actions', provider: 'GitHub Skills Lab', url: 'https://skills.github.com', isFree: true, isGovt: false, badge: 'Free Lab' },
-  ],
-};
+
 
 export const RecommendedProgramsView: React.FC = () => {
   const { skillProfile, recommendedPrograms, setRecommendedPrograms } = useUiStore();
@@ -55,14 +38,14 @@ export const RecommendedProgramsView: React.FC = () => {
         const json = await res.json();
         
         if (!res.ok || !json?.programs || Object.keys(json.programs).length === 0) {
-          setRecommendedPrograms(CURATED_PROGRAMS_FALLBACK);
+          setError(json?.error || 'Failed to fetch recommended programs from server.');
           return;
         }
 
         setRecommendedPrograms(json.programs);
       } catch (err) {
-        console.warn('[RecommendedProgramsView] API fallback activated:', err);
-        setRecommendedPrograms(CURATED_PROGRAMS_FALLBACK);
+        console.warn('[RecommendedProgramsView] API error:', err);
+        setError('Service error. Could not fetch programs.');
       } finally {
         setLoading(false);
       }
@@ -71,9 +54,6 @@ export const RecommendedProgramsView: React.FC = () => {
     fetchPrograms();
   }, [skillProfile, Object.keys(recommendedPrograms).length, runtimeKeys, setRecommendedPrograms]);
 
-  if (Object.keys(recommendedPrograms).length === 0) {
-    setRecommendedPrograms(CURATED_PROGRAMS_FALLBACK);
-  }
 
   const renderCourseList = (skill: string) => {
     const courses = recommendedPrograms[skill];

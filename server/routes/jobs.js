@@ -6,17 +6,34 @@
  */
 
 import { Router } from 'express'
-import { GEMINI_API_KEY, SERPER_API_KEY } from '../config.js'
-import { callGeminiTextWithRetry } from '../services/gemini.js'
+import { SERPER_API_KEY, ADZUNA_APP_ID, ADZUNA_APP_KEY, GEMINI_API_KEY } from '../config.js'
+import { structuredOutput } from '../services/aiRouter.js'
 import { activeProviderSearch } from '../services/jobSearchProvider.js'
 import { fallbackPrimeTargets } from '../services/fallbacks.js'
-import { tryParseJsonLoose, inferJobMetaFromLink } from '../utils/helpers.js'
+import { inferJobMetaFromLink } from '../utils/helpers.js'
 import { requireAuth } from '../middleware/authMiddleware.js'
 import { aiLimiter } from '../middleware/rateLimit.js'
 import { calculateJobTrustScore, calculateMultiSignalMatch } from '../services/jobTrustEngine.js'
 import agentActivityService from '../services/agentActivityService.js'
 
 const router = Router()
+
+// GET /api/jobs/discover — direct authenticated Adzuna job search
+router.get('/jobs/discover', requireAuth, async (req, res) => {
+  const query = String(req.query.what || req.query.targetRole || 'Software Engineer').trim()
+  const location = String(req.query.country || req.query.location || 'in').trim().toLowerCase()
+  
+  try {
+    const results = await activeProviderSearch({ query, location })
+    if (results.length === 0) {
+      return res.status(200).json({ results: [], total: 0, provider: 'adzuna', message: 'No live jobs found for query' })
+    }
+    return res.json({ results, total: results.length, provider: 'adzuna' })
+  } catch (error) {
+    console.error('[jobs.get] Error:', error.message)
+    return res.status(502).json({ error: 'Adzuna provider temporarily unavailable', provider: 'adzuna' })
+  }
+})
 
 router.post('/jobs/discover', requireAuth, aiLimiter, async (req, res) => {
   agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_HUNTER', 'JOB_SEARCH_STARTED');
@@ -53,8 +70,16 @@ router.post('/jobs/discover', requireAuth, aiLimiter, async (req, res) => {
   try {
     const rawResults = await activeProviderSearch({ query: queryTerms }).catch(() => [])
 
-    const prompt = rawResults.length > 0
-      ? [
+    if (rawResults.length === 0) {
+      return res.status(503).json({
+        items: [],
+        degraded: true,
+        message: 'No active job listings found from the Adzuna provider for this role. (Gemini job hallucination has been disabled by reality audit).',
+        mode: 'adzuna-provider',
+      })
+    }
+
+    const prompt = [
           'You are Nexus-Hunter autonomous discovery engine (CrewAI style).',
           'Task: choose top 3 Prime Targets from discovered jobs using deep reasoning.',
           'Apply alignment filtering against the resume.',
@@ -73,39 +98,18 @@ router.post('/jobs/discover', requireAuth, aiLimiter, async (req, res) => {
           `RESUME:\n${resume}`,
           `DISCOVERED JOB CANDIDATES:\n${JSON.stringify(rawResults, null, 2)}`,
         ].filter(Boolean).join('\n\n')
-      : [
-          'You are Nexus-Hunter autonomous discovery engine.',
-          `Task: Identify and generate top 3 realistic, high-fit Prime Target job opportunities specifically matching the target role "${targetRole}" and the candidate's resume competencies.`,
-          'Focus on direct employer hiring channels with high placement probability and genuine role alignment.',
-          extraPromptContext,
-          'Return strict JSON array with exactly 3 objects and fields:',
-          '{',
-          '  "job_title": string,',
-          '  "company_name": string,',
-          '  "application_link": string,',
-          '  "nexus_match_reason": string,',
-          '  "alignment_score": number(0-100),',
-          '  "blue_ocean_score": number(0-100)',
-          '}',
-          `TARGET ROLE: ${targetRole}`,
-          `RESUME:\n${resume}`,
-        ].filter(Boolean).join('\n\n')
 
-    const llmRaw = await callGeminiTextWithRetry({
-      apiKey: geminiKey,
+    const parsed = await structuredOutput({
+      task: 'ATS_ANALYSIS',
       prompt,
       systemInstruction: 'You are Nexus-Hunter. Return strict JSON only.',
       attempts: 3,
+      timeout: 45000,
+      fallbackKeys: { gemini: geminiKey },
+      schemaValidator: (arr) => {
+        if (!Array.isArray(arr) || arr.length === 0) throw new Error('Expected non-empty array of prime targets');
+      }
     })
-
-    let parsed = tryParseJsonLoose(llmRaw)
-    if (!Array.isArray(parsed)) {
-      const arrMatch = String(llmRaw || '').match(/\[[\s\S]*\]/)
-      parsed = arrMatch ? JSON.parse(arrMatch[0]) : null
-    }
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      throw new Error('Gemini returned invalid prime target payload')
-    }
 
     const realLinks = new Set(rawResults.map(r => r.link))
     const items = parsed
@@ -150,9 +154,9 @@ router.post('/jobs/discover', requireAuth, aiLimiter, async (req, res) => {
           nexus_match_reason: String(it?.nexus_match_reason || `Strong candidate match for ${targetRole}.`).trim(),
           alignment_score: alignment,
           blue_ocean_score: blueOcean,
-          source: meta.source || 'company-careers',
+          source: meta.source || 'adzuna-provider',
           competition_level: meta.competitionLevel || 'Low',
-          ai_suggested: rawResults.length === 0,
+          ai_suggested: false,
           // P1.9 Job Trust Score
           trustScore: trust.trustScore,
           trustPercent: trust.trustPercent,
@@ -177,7 +181,7 @@ router.post('/jobs/discover', requireAuth, aiLimiter, async (req, res) => {
 
     agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_HUNTER', 'JOB_SEARCH_COMPLETE');
 
-    res.json({ items: items.slice(0, 3), mode: rawResults.length > 0 ? 'adzuna-provider' : 'gemini-autonomous' })
+    res.json({ items: items.slice(0, 3), mode: 'adzuna-provider' })
   } catch (err) {
     res.json({
       items: [],

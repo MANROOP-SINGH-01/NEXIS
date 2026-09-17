@@ -22,7 +22,7 @@ async function resolveCallerTrainee(req) {
   const authHeader = req.headers.authorization || ''
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : ''
 
-  if (token && token !== 'dev_trainee') {
+  if (token) {
     const user = await validateSession(token)
     if (user) {
       if (user.traineeId) {
@@ -40,19 +40,7 @@ async function resolveCallerTrainee(req) {
     }
   }
 
-  if (token === 'dev_trainee') {
-    let trainee = await prisma.trainee.findFirst({ where: { githubId: 'dev_trainee' } })
-    if (!trainee) {
-      trainee = await prisma.trainee.create({
-        data: {
-          githubId: 'dev_trainee',
-          name: 'Developer Trainee',
-          phoneNumber: '9999999999',
-        },
-      })
-    }
-    return trainee
-  }
+
 
   try {
     const caller = await resolveGithubIdentity(req)

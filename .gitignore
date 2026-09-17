@@ -21,9 +21,13 @@ Thumbs.db
 
 # Database
 *.db
+*.db.backup
 *.sqlite
 dev.db
 dev.db-journal
+
+# Vercel
+.vercel/
 
 # Archives
 offline-snapshots/

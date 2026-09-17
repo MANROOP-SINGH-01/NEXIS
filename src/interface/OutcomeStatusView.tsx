@@ -9,8 +9,6 @@ import { useCoreStore } from '../integration/store/coreStore';
 import { OutcomeCheckInRecord, GovtCrossCheckRecord } from '../types';
 import { USER_COLOR, USER_COLOR_LIGHT } from '../theme/brand';
 
-const GITHUB_TOKEN_KEY = 'forge-github-token';
-const DEV_DEFAULT_TOKEN = 'dev_trainee';
 
 function formatCheckinType(type: string): string {
   switch (type) {
@@ -90,10 +88,13 @@ export const OutcomeStatusView: React.FC = () => {
 
   const getActiveToken = useCallback((): string => {
     try {
-      const stored = localStorage.getItem(GITHUB_TOKEN_KEY);
-      if (stored && stored.trim()) return stored.trim();
+      const auth = localStorage.getItem('nexis-auth');
+      if (auth) {
+        const parsed = JSON.parse(auth);
+        if (parsed?.state?.token) return parsed.state.token;
+      }
     } catch {}
-    return DEV_DEFAULT_TOKEN;
+    return '';
   }, []);
 
   const fetchGovtChecks = useCallback(async () => {

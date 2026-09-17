@@ -26,7 +26,7 @@ async function resolveCallerTrainee(req) {
   const authHeader = req.headers.authorization || ''
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : ''
 
-  if (token && token !== 'dev_trainee') {
+  if (token) {
     const user = await validateSession(token)
     if (user) {
       // User is authenticated via the newer auth system.

@@ -10,31 +10,16 @@ import { PDFParse } from 'pdf-parse'
 import prisma from '../lib/prisma.js'
 import { upload } from '../middleware/upload.js'
 import { LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET, GEMINI_API_KEY } from '../config.js'
-import { callGeminiTextWithRetry } from '../services/gemini.js'
+import { generate } from '../services/aiRouter.js'
+import { aiLimiter } from '../middleware/rateLimit.js'
 
 const router = Router()
 
 // GET /api/linkedin/oauth/start
 router.get('/linkedin/oauth/start', (req, res) => {
   const appReturn = process.env.APP_RETURN_URL || 'http://localhost:3000/'
-  const next = new URL(appReturn)
-
-  // ZERO-COST RESILIENCE: If developer has not provisioned a paid/complex LinkedIn App ID, simulate clean verification locally
   if (!LINKEDIN_CLIENT_ID || !LINKEDIN_CLIENT_SECRET) {
-    const traineeId = req.query.traineeId || 'dev_trainee'
-    console.log('[linkedin/oauth] No LINKEDIN_CLIENT_ID configured in .env. Completing instant local dev verification.');
-    
-    // Soft update trainee in background
-    prisma.trainee.updateMany({
-      where: { OR: [{ id: traineeId }, { githubId: 'dev_trainee' }] },
-      data: {
-        linkedinId: 'dev_verified_linkedin_id',
-        linkedinVerified: true,
-      }
-    }).catch(() => {});
-
-    next.searchParams.set('linkedin_token', 'dev_verified_token_' + Date.now())
-    return res.redirect(next.toString())
+    return res.status(503).json({ error: 'LinkedIn OAuth is not configured on this server.' })
   }
 
   const redirectUri = process.env.LINKEDIN_REDIRECT_URI || `${req.protocol}://${req.get('host')}/api/linkedin/oauth/callback`
@@ -131,26 +116,6 @@ router.get('/linkedin/oauth/callback', async (req, res) => {
   }
 })
 
-// POST /api/linkedin/verify-url
-router.post('/linkedin/verify-url', async (req, res) => {
-  const { url } = req.body
-  if (!url || typeof url !== 'string' || !url.includes('linkedin.com')) {
-    return res.status(400).json({ error: 'Valid LinkedIn URL is required.' })
-  }
-
-  const cleanUrl = url.trim()
-  const usernameMatch = cleanUrl.match(/linkedin\.com\/in\/([a-zA-Z0-9_-]+)/)
-  const username = usernameMatch ? usernameMatch[1] : 'candidate'
-
-  res.json({
-    verified: true,
-    linkedinUrl: cleanUrl,
-    username,
-    token: `li_verified_${Date.now()}`,
-    message: `Verified LinkedIn identity for ${username}`
-  })
-})
-
 // POST /api/linkedin/import-profile-pdf
 router.post('/linkedin/import-profile-pdf', upload.single('profilePdf'), async (req, res) => {
   if (!req.file) {
@@ -176,11 +141,11 @@ router.post('/linkedin/import-profile-pdf', upload.single('profilePdf'), async (
     if (runtimeGeminiKey) {
       const prompt = `Based on this LinkedIn profile export, generate 3 high-impact, quantified resume bullet points using Action Verbs. Focus on work experience, projects, and achievements. Return ONLY the bullet points, each on a new line starting with a bullet character (-).\n\nProfile Data:\n${text.substring(0, 8000)}`
 
-      const response = await callGeminiTextWithRetry({
-        apiKey: runtimeGeminiKey,
+      const response = await generate({
+        task: 'RESUME_PARSE',
         prompt,
         systemInstruction: 'You are Nexus-Writer. Extract key professional achievements from LinkedIn profiles and rewrite them into powerful, quantified resume bullets.',
-        attempts: 2,
+        fallbackKeys: { gemini: runtimeGeminiKey }
       }).catch(() => null)
 
       if (response) {

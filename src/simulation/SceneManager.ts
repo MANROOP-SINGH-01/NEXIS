@@ -245,7 +245,7 @@ export class SceneManager {
              else if (prevStatus === 'talking') this.setNpcTalking(idx, false);
              
              if (status === 'working') this.setNpcWorking(idx, true);
-             else if (prevStatus === 'working' && status !== 'working') this.setNpcWorking(idx, false);
+             else if (prevStatus === 'working') this.setNpcWorking(idx, false);
              
              if (status === 'success') {
                this.controller!.play(idx, 'success');

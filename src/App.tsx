@@ -24,6 +24,8 @@ import InterviewPrepView from './interface/InterviewPrepView';
 import NewCVView from './interface/NewCVView';
 import OutcomeStatusView from './interface/OutcomeStatusView';
 import LinkedInIntegrationView from './interface/LinkedInIntegrationView';
+import ApplicationTrackerView from './interface/ApplicationTrackerView';
+import CareerPassportView from './interface/CareerPassportView';
 import ConsentScreen from './interface/onboarding/ConsentScreen';
 import TraineeProfileSetup from './interface/onboarding/TraineeProfileSetup';
 import AgentDetailDrawer from './interface/AgentDetailDrawer';
@@ -156,6 +158,8 @@ const App: React.FC = () => {
             {activeSidebarTab === 'my-outcome' && <OutcomeStatusView />}
             {activeSidebarTab === 'linkedin-integration' && <LinkedInIntegrationView />}
             {activeSidebarTab === 'career-health' && <CareerHealthDashboard />}
+            {activeSidebarTab === 'application-tracker' && <ApplicationTrackerView />}
+            {activeSidebarTab === 'career-passport' && <CareerPassportView />}
             {activeSidebarTab !== 'dashboard' &&
               activeSidebarTab !== 'skill-gaps' &&
               activeSidebarTab !== 'job-matches' &&
@@ -164,6 +168,8 @@ const App: React.FC = () => {
               activeSidebarTab !== 'new-cv' &&
               activeSidebarTab !== 'my-outcome' &&
               activeSidebarTab !== 'career-health' &&
+              activeSidebarTab !== 'application-tracker' &&
+              activeSidebarTab !== 'career-passport' &&
               activeSidebarTab !== 'linkedin-integration' && (
                 <EmptySectionView tab={activeSidebarTab} />
               )}

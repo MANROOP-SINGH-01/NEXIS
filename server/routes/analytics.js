@@ -35,7 +35,7 @@ import prisma from '../lib/prisma.js'
 import { requireAdmin, logAdminAction } from '../utils/adminAuth.js'
 import { computeRelevanceScores } from '../services/relevanceScoringService.js'
 import { computeImpact } from '../services/impactMeasurementService.js'
-import { seedControlGroup } from '../scripts/seedControlGroup.js'
+
 
 const router = Router()
 
@@ -949,7 +949,8 @@ router.post('/admin/seed-control-group', requireAdmin('ANALYST'), async (req, re
       return
     }
 
-    const seeded = await seedControlGroup(rowCount, prisma)
+    // Disabled for Reality Audit
+    const seeded = 0
 
     await logAdminAction(
       req.adminUser.id,

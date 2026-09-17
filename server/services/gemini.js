@@ -99,6 +99,7 @@ export async function callGeminiTextWithRetry({ apiKey = GEMINI_API_KEY, prompt,
       lastError = err
       const shouldRetry = err?.retriable || isRetriableNetworkError(err)
       console.warn(`[gemini] attempt ${i + 1}/${attempts} failed${shouldRetry ? ' (retriable)' : ''}:`, err.message)
+      if (!shouldRetry) throw lastError
       if (i < attempts - 1) {
         await new Promise((resolve) => setTimeout(resolve, backoffMs(i)))
       }

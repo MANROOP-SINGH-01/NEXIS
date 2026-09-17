@@ -71,6 +71,18 @@ const SECTION_CONFIG: Record<
     icon: LayoutDashboard,
     badge: 'Career Metrics',
   },
+  'application-tracker': {
+    title: 'Application Tracker',
+    description: 'Comprehensive tracking for job applications, interview stages, follow-ups, and offer negotiations.',
+    icon: Briefcase,
+    badge: 'Pipelines',
+  },
+  'career-passport': {
+    title: 'Career Passport',
+    description: 'Verifiable cryptographic credential passport with skill evidence, credentials, and achievements.',
+    icon: Award,
+    badge: 'Verified Identity',
+  },
 };
 
 export const EmptySectionView: React.FC<EmptySectionViewProps> = ({ tab }) => {

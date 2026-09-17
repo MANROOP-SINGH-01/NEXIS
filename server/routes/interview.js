@@ -7,11 +7,9 @@
 
 import { Router } from 'express'
 import { GEMINI_API_KEY, DEFAULT_SARVAM_KEY, SARVAM_MODEL } from '../config.js'
-import { callGeminiTextWithRetry } from '../services/gemini.js'
-import { callSarvamWithRetry } from '../services/sarvam.js'
-import { buildMirrorFallbackCrossQuestion } from '../services/interviewEngine.js'
+import { structuredOutput } from '../services/aiRouter.js'
+
 import { normalizeSarvamError } from '../utils/errors.js'
-import { tryParseJsonLoose } from '../utils/helpers.js'
 import { requireAuth } from '../middleware/authMiddleware.js'
 import { aiLimiter } from '../middleware/rateLimit.js'
 import agentActivityService from '../services/agentActivityService.js'
@@ -51,23 +49,19 @@ router.post('/interview/brief', requireAuth, aiLimiter, async (req, res) => {
 
   try {
     console.time('brief-gemini-total');
-    const raw = await callGeminiTextWithRetry({
-      apiKey: geminiKey,
+    const parsed = await structuredOutput({
+      task: 'INTERVIEW_GENERATION',
       prompt,
       systemInstruction: 'You are Nexus-Strategist. Return strict JSON only, no markdown.',
       attempts: 3,
+      timeout: 45000,
+      schemaValidator: (obj) => {
+        if (!obj || typeof obj !== 'object') throw new Error('Expected object payload');
+        if (!Array.isArray(obj.focus_areas)) throw new Error('focus_areas must be an array');
+        if (!Array.isArray(obj.gap_topics)) throw new Error('gap_topics must be an array');
+      }
     })
     console.timeEnd('brief-gemini-total');
-
-    let parsed = tryParseJsonLoose(raw)
-    if (!parsed || typeof parsed !== 'object') {
-      const objMatch = String(raw || '').match(/\{[\s\S]*\}/)
-      parsed = objMatch ? JSON.parse(objMatch[0]) : null
-    }
-
-    if (!parsed) {
-      throw new Error('Gemini returned invalid brief payload')
-    }
 
     res.json({
       focus_areas: Array.isArray(parsed.focus_areas) ? parsed.focus_areas.slice(0, 4) : [],
@@ -76,23 +70,9 @@ router.post('/interview/brief', requireAuth, aiLimiter, async (req, res) => {
       overall_readiness_note: String(parsed.overall_readiness_note || ''),
     })
   } catch (err) {
-    // Minimal graceful fallback
-    res.json({
-      focus_areas: [
-        { category: 'technical', topic: 'Core domain skills', why: 'Foundational for this role', tip: 'Review your most recent project in this domain' },
-        { category: 'behavioral', topic: 'Ownership and delivery', why: 'Expected at this seniority level', tip: 'Prepare a STAR story about a high-stakes delivery' },
-        { category: 'system-design', topic: 'Scalability trade-offs', why: 'Common at senior+ levels', tip: 'Practice a back-of-envelope scaling exercise' },
-        { category: 'technical', topic: 'Gap skill preparation', why: 'You have identified gaps in required skills', tip: `Focus on: ${requiredGaps.slice(0, 2).join(', ') || 'your gap areas'}` },
-      ],
-      gap_topics: requiredGaps.slice(0, 5).map(skill => ({
-        skill,
-        likely_question_angle: `Explain how you would use ${skill} in a production environment`,
-        prep_suggestion: `Spend 1-2 hours building a minimal project using ${skill} to get hands-on experience`,
-      })),
-      key_strength_to_lead_with: matchedSkills[0] ? `Your demonstrated expertise in ${matchedSkills[0]}` : 'Your production delivery track record',
-      overall_readiness_note: `Review the ${requiredGaps.length} required skill gaps before the interview.`,
-      fallback: true,
-      warning: err instanceof Error ? err.message : 'Brief generation fallback activated',
+    res.status(503).json({
+      error: 'AI Briefing generation failed. Please check AI provider configuration.',
+      details: err instanceof Error ? err.message : 'Unknown error',
     })
   }
 })
@@ -119,19 +99,17 @@ router.post('/interview/generate', requireAuth, aiLimiter, async (req, res) => {
 
   try {
     console.time('generate-gemini-total');
-    const raw = await callGeminiTextWithRetry({
-      apiKey: geminiKey,
+    const parsed = await structuredOutput({
+      task: 'INTERVIEW_GENERATION',
       prompt,
       systemInstruction: 'You are Nexus-Mirror. Return strict JSON array only, no markdown.',
       attempts: 3,
+      timeout: 60000,
+      schemaValidator: (arr) => {
+        if (!Array.isArray(arr)) throw new Error('Expected array of interview questions');
+      }
     })
     console.timeEnd('generate-gemini-total');
-
-    let parsed = tryParseJsonLoose(raw)
-    if (!parsed || !Array.isArray(parsed)) {
-      const match = String(raw || '').match(/\[[\s\S]*\]/)
-      parsed = match ? JSON.parse(match[0]) : []
-    }
 
     const items = (Array.isArray(parsed) ? parsed : [])
       .slice(0, 8)
@@ -153,31 +131,9 @@ router.post('/interview/generate', requireAuth, aiLimiter, async (req, res) => {
 
     res.json({ items })
   } catch (err) {
-    const fallback = [
-      {
-        id: `nmx_${Date.now()}_1`,
-        category: 'technical',
-        question: 'How would you design a resilient API layer for this target role?',
-        answer: 'I would define SLOs first, then build observability, retries, idempotency, and circuit breakers; finally validate through load and failure testing with measurable latency/error improvements.',
-      },
-      {
-        id: `nmx_${Date.now()}_2`,
-        category: 'behavioral',
-        question: 'Describe a time you handled conflicting stakeholder priorities.',
-        answer: 'I aligned stakeholders around shared success metrics, decomposed delivery into milestones, and communicated tradeoffs early, resulting in predictable execution and reduced escalation.',
-      },
-      {
-        id: `nmx_${Date.now()}_3`,
-        category: 'system-design',
-        question: 'How would you scale a real-time job matching system?',
-        answer: 'I would separate ingestion, ranking, and serving paths; use event-driven processing, cache hot recommendations, and instrument end-to-end KPIs to optimize throughput and relevance.',
-      },
-    ]
-
-    res.json({
-      items: fallback,
-      fallback: true,
-      warning: err instanceof Error ? err.message : 'Sarvam unavailable. Fallback interview set generated.',
+    res.status(503).json({
+      error: 'AI Interview generation failed. Please check AI provider configuration.',
+      details: err instanceof Error ? err.message : 'Unknown error',
     })
   }
 })
@@ -222,20 +178,21 @@ router.post('/interview/cross-question', requireAuth, aiLimiter, async (req, res
 
   try {
     console.time('cross-question-sarvam-total');
-    const sarvamRaw = await callSarvamWithRetry({
-      apiKey: key,
+    const parsed = await structuredOutput({
+      task: 'INTERVIEW_EVALUATION',
       messages: [
         { role: 'system', content: 'You are Nexus-Mirror. Return strict JSON only.' },
         { role: 'user', content: prompt },
       ],
       attempts: 3,
+      timeout: 30000,
+      schemaValidator: (obj) => {
+        if (!obj || typeof obj !== 'object') throw new Error('Expected object payload');
+        if (!obj.phaseA || typeof obj.phaseA !== 'object') throw new Error('Missing phaseA');
+        if (!obj.phaseB || typeof obj.phaseB !== 'object') throw new Error('Missing phaseB');
+      }
     })
     console.timeEnd('cross-question-sarvam-total');
-
-    const parsed = tryParseJsonLoose(sarvamRaw)
-    if (!parsed || typeof parsed !== 'object') {
-      throw new Error('Invalid JSON payload from Sarvam cross-questioning')
-    }
 
     const phaseA = parsed.phaseA && typeof parsed.phaseA === 'object' ? parsed.phaseA : {}
     const phaseB = parsed.phaseB && typeof parsed.phaseB === 'object' ? parsed.phaseB : {}
@@ -265,11 +222,9 @@ router.post('/interview/cross-question', requireAuth, aiLimiter, async (req, res
 
     res.json(payload)
   } catch (err) {
-    const fallback = buildMirrorFallbackCrossQuestion({ question, userAnswer, category })
-    res.json({
-      ...fallback,
-      fallback: true,
-      warning: normalizeSarvamError(err),
+    res.status(503).json({
+      error: 'AI Cross-Questioning failed. Please check AI provider configuration.',
+      details: normalizeSarvamError(err),
     })
   }
 })

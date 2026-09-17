@@ -22,30 +22,7 @@ export async function requireAuth(req, res, next) {
     console.error('[requireAuth] session validation error:', err);
   }
 
-  // 2. Dev / mock tokens for local testing, CI, and hackathon reliability
-  if (token.startsWith('mock_') || token.startsWith('dev_') || token === 'demo-token') {
-    let devUser = await prisma.user.findFirst({
-      include: { candidateProfile: true },
-    });
-    if (!devUser) {
-      devUser = await prisma.user.create({
-        data: {
-          phone: '+919999999999',
-          role: 'CANDIDATE',
-          candidateProfile: {
-            create: {
-              name: 'Dev Candidate',
-              profileCompleteness: 80,
-            },
-          },
-        },
-        include: { candidateProfile: true },
-      });
-    }
-    req.user = devUser;
-    req.sessionToken = token;
-    return next();
-  }
+
 
   // 3. Fallback: GitHub OAuth token (legacy path)
   try {

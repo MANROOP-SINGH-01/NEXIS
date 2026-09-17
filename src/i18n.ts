@@ -13,6 +13,8 @@ const strings = {
     newCv: 'New CV',
     myOutcome: 'My Outcome',
     linkedinIntegration: 'LinkedIn Integration',
+    applicationTracker: 'Application Tracker',
+    careerPassport: 'Career Passport',
     
     // Controls
     uploadResume: 'Upload Resume',
@@ -64,6 +66,8 @@ const strings = {
     newCv: 'नया सीवी',
     myOutcome: 'मेरा परिणाम',
     linkedinIntegration: 'लिंक्डइन एकीकरण',
+    applicationTracker: 'एप्लिकेशन ट्रैकर',
+    careerPassport: 'कैरियर पासपोर्ट',
     
     uploadResume: 'रिज़्यूमे अपलोड करें',
     pasteResume: 'रिज़्यूमे पेस्ट करें',
@@ -107,6 +111,8 @@ const strings = {
     newCv: 'புதிய சுயவிவரம்',
     myOutcome: 'எனது முடிவு',
     linkedinIntegration: 'லிங்க்ட்இன் ஒருங்கிணைப்பு',
+    applicationTracker: 'பயன்பாட்டு கண்காணிப்பான்',
+    careerPassport: 'தொழில் கடவுச்சீட்டு',
     
     uploadResume: 'சுயவிவரம் பதிவேற்றம்',
     pasteResume: 'சுயவிவரம் ஒட்டவும்',

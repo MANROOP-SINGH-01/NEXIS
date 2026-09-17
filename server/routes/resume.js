@@ -3,8 +3,7 @@ import { PDFParse } from 'pdf-parse'
 import prisma from '../lib/prisma.js'
 import { upload } from '../middleware/upload.js'
 import { GEMINI_API_KEY, DEFAULT_SARVAM_KEY, DEFAULT_RESUME_STRUCTURER_KEY } from '../config.js'
-import { callGeminiTextWithRetry } from '../services/gemini.js'
-import { callSarvamWithRetry, callSarvamOrGemini } from '../services/sarvam.js'
+import { generate, structuredOutput } from '../services/aiRouter.js'
 import {
   buildFallbackStrategist,
   buildFallbackTailoredResume,
@@ -64,10 +63,11 @@ router.post('/resume/bullet', requireAuth, aiLimiter, async (req, res) => {
   const prompt = `Based on these code commits ${JSON.stringify(repoData, null, 2)}, write one high-impact, quantified resume bullet point using Action Verbs.`
 
   try {
-    const bullet = await callGeminiTextWithRetry({
-      apiKey: runtimeGeminiKey,
+    const bullet = await generate({
+      task: 'RESUME_TAILOR',
       prompt,
       systemInstruction: 'You are Nexus-Writer. Output exactly one resume bullet as plain text with measurable impact.',
+      fallbackKeys: { gemini: runtimeGeminiKey }
     })
     res.json({ bullet: bullet || 'Improved system reliability and delivery velocity across key repositories with measurable impact.' })
   } catch (err) {
@@ -166,32 +166,8 @@ router.post('/resume/tailor', requireAuth, aiLimiter, async (req, res) => {
 
   const hasAnyKey = Boolean(runtimeSarvamKey || runtimeGeminiKey)
   if (!hasAnyKey) {
-    const strategist = buildFallbackStrategist(resume, jd)
-    const tailoredResume = buildFallbackTailoredResume(resume, jd, strategist)
-    const structuredResume = await ensureStructuredResume({
-      resumeText: tailoredResume,
-      jd,
-      sarvamKey: '',
-      geminiKey: '',
-      structurerKey,
-    })
-    const structuredResumeText = structuredToResumeText(structuredResume)
-    const analysis = buildAnalysis(strategist)
-    const skillProfile = buildFallbackSkillProfile(resume, jd)
-
-    await persistSkillGapSnapshotIfTrainee({ traineeId, jd, skillProfile, analysis })
-
-    agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_DIRECTOR', 'RESUME_OPTIMIZATION_COMPLETE', { model: 'resilient-local-fallback' });
-
-    res.json({
-      tailoredResume: structuredResumeText,
-      structuredResume,
-      analysis,
-      skillProfile,
-      fallback: true,
-      warning: 'No AI API keys configured (Sarvam/Gemini). Generated local resilient fallback package.',
-      modelUsed: 'resilient-local-fallback',
-    })
+    agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_DIRECTOR', 'RESUME_OPTIMIZATION_FAILED', { error: 'No AI API keys configured (Sarvam/Gemini).' })
+    res.status(503).json({ error: 'AI Structuring Service is currently offline. Missing valid credentials or provider is down.' })
     return
   }
   void structurerKey
@@ -303,48 +279,28 @@ router.post('/resume/tailor', requireAuth, aiLimiter, async (req, res) => {
       `RESUME:\n${resume}`,
     ].join('\n\n')
 
-    let rawPackage = ''
-    let modelUsed = ''
+    let modelUsed = 'ai-router'
 
-    if (runtimeSarvamKey) {
-      try {
-        rawPackage = await callSarvamWithRetry({
-          apiKey: runtimeSarvamKey,
-          messages: [
-            { role: 'system', content: 'Return strict JSON only. No markdown formatting.' },
-            { role: 'user', content: singlePassPrompt },
-          ],
-          attempts: 2,
-        })
-        modelUsed = 'sarvam-105b'
-      } catch (sarvamErr) {
-        console.warn('[resume/tailor] Sarvam failed, attempting Gemini failover:', sarvamErr.message)
+    const parsedPackage = await structuredOutput({
+      task: 'RESUME_TAILOR',
+      prompt: singlePassPrompt,
+      systemInstruction: 'You are Nexus-Director & Nexus-Strategist. Return strict JSON only, with no markdown code fences or conversational text.',
+      attempts: 3,
+      timeout: 60000,
+      fallbackKeys: { gemini: runtimeGeminiKey, sarvam: runtimeSarvamKey },
+      schemaValidator: (obj) => {
+        if (!obj || typeof obj !== 'object') throw new Error('Expected object payload');
+        if (!obj.strategist || typeof obj.strategist !== 'object') throw new Error('Missing strategist object');
+        if (!obj.analysis || typeof obj.analysis !== 'object') throw new Error('Missing analysis object');
       }
-    }
+    })
 
-    if (!rawPackage && runtimeGeminiKey) {
-      rawPackage = await callGeminiTextWithRetry({
-        apiKey: runtimeGeminiKey,
-        prompt: singlePassPrompt,
-        systemInstruction: 'You are Nexus-Director & Nexus-Strategist. Return strict JSON only, with no markdown code fences or conversational text.',
-        attempts: 3,
-      })
-      modelUsed = 'gemini-3.6-flash'
-    }
+    const strategist = parsedPackage?.strategist
+    const analysis = parsedPackage?.analysis
 
-    if (!rawPackage) {
-      throw new Error('All configured AI model calls failed to produce completion.')
+    if (!strategist || !analysis) {
+      throw new Error('AI provider returned an incomplete payload.')
     }
-
-    const parsedPackage = tryParseJsonLoose(rawPackage) || {}
-    const strategist = parsedPackage?.strategist || {
-      priorities: ['Role alignment', 'Technical core capabilities'],
-      gaps: ['Domain-specific tooling evidence'],
-      strengths: ['Engineering delivery and ownership'],
-    }
-
-    const fallbackAnalysis = buildAnalysis(strategist)
-    const analysis = normalizeAnalysisShape(parsedPackage?.analysis || null, fallbackAnalysis)
 
     let structuredResume = normalizeStructuredResume(parsedPackage?.structuredResume || null, resume, jd)
     if (!structuredResume?.experience?.length) {
@@ -367,7 +323,9 @@ router.post('/resume/tailor', requireAuth, aiLimiter, async (req, res) => {
     res.json({
       tailoredResume: structuredResumeText,
       structuredResume,
+      structured: structuredResume,
       analysis,
+      strategist,
       skillProfile,
       modelUsed,
       structurer: structurerKey ? 'resume-maker-structured-pdf' : 'resume-maker-structured-pdf',
@@ -375,34 +333,8 @@ router.post('/resume/tailor', requireAuth, aiLimiter, async (req, res) => {
     })
   } catch (err) {
     console.error('[resume/tailor] model error:', err)
-    const strategist = buildFallbackStrategist(resume, jd)
-    const tailoredResume = buildFallbackTailoredResume(resume, jd, strategist)
-    const usedFallback = true
-
-    const structuredResume = await ensureStructuredResume({
-      resumeText: tailoredResume,
-      jd,
-      sarvamKey: runtimeSarvamKey,
-      geminiKey: runtimeGeminiKey,
-      structurerKey,
-    })
-    const structuredResumeText = structuredToResumeText(structuredResume)
-    const analysis = buildAnalysis(strategist)
-    const skillProfile = buildFallbackSkillProfile(resume, jd)
-
-    await persistSkillGapSnapshotIfTrainee({ traineeId, jd, skillProfile, analysis })
-
-    agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_DIRECTOR', 'RESUME_OPTIMIZATION_COMPLETE', { model: 'resilient-local-fallback', fallback: true });
-
-    res.json({
-      tailoredResume: structuredResumeText,
-      structuredResume,
-      analysis,
-      skillProfile,
-      fallback: usedFallback,
-      warning: normalizeSarvamError(err),
-      modelUsed: 'resilient-local-fallback',
-    })
+    agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_DIRECTOR', 'RESUME_OPTIMIZATION_FAILED', { error: err.message });
+    return res.status(503).json({ error: 'AI Structuring Service is currently offline. Missing valid credentials or provider is down.' });
   }
 })
 

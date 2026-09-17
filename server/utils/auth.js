@@ -25,18 +25,7 @@ export async function resolveGithubIdentity(req) {
     throw err
   }
 
-  // Development & mock token fallback for local demos or tests
-  if (token.startsWith('mock_') || token.startsWith('dev_') || token === 'demo-token') {
-    const raw = token.startsWith('mock_')
-      ? token.slice(5)
-      : token.startsWith('dev_')
-        ? (token === 'dev_trainee' ? 'dev_trainee' : token.slice(4))
-        : 'dev_trainee'
-    return {
-      githubId: raw || 'dev_trainee_1',
-      login: raw || 'dev_trainee',
-    }
-  }
+
 
   let userRes
   try {

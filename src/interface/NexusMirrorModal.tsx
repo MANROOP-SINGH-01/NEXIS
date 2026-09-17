@@ -1,23 +1,3 @@
-const FALLBACK_INTERVIEW_ITEMS: any[] = [
-  {
-    id: 'item_1',
-    question: 'How have you optimized latency and query performance in production web applications?',
-    answer: 'In my recent projects, I analyzed slow SQL queries using EXPLAIN ANALYZE, implemented composite indexes on high-cardinality foreign keys, and introduced an in-memory Redis caching layer for frequent read-heavy API routes. This reduced our p95 response time from 480ms to 95ms.',
-    category: 'Technical Architecture',
-  },
-  {
-    id: 'item_2',
-    question: 'Describe a situation where an unexpected bug made it into production. How did you handle the mitigation?',
-    answer: 'During a release, a race condition caused occasional duplicate transactions. I immediately activated our incident runbook, verified error telemetry in Datadog, rolled back the deployment within 4 minutes, and subsequently implemented database-level unique constraints and idempotent request keys.',
-    category: 'Incident Response & Reliability',
-  },
-  {
-    id: 'item_3',
-    question: 'How do you structure microservices or modular applications for high availability and maintainability?',
-    answer: 'I decouple bounded contexts using event-driven communication (e.g., Redis Streams or message queues), adhere to strict domain-driven interfaces with TypeScript contracts, and containerize each service via Docker with isolated configuration and health check endpoints.',
-    category: 'System Design',
-  },
-];
 
 import { Loader2, MessageSquare, Sparkles, X, BrainCircuit, Activity, Eye, ShieldAlert, Crosshair } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -91,8 +71,7 @@ export default function NexusMirrorModal({ onClose }: NexusMirrorModalProps) {
       }
 
       if (!res.ok || !json || !Array.isArray(json.items) || json.items.length === 0) {
-        console.warn('[NexusMirrorModal] API offline or 405, using verified interview prompts');
-        json = { items: FALLBACK_INTERVIEW_ITEMS };
+        throw new Error(json?.error || 'Failed to generate interview questions. The AI provider may be down or quota exceeded.');
       }
 
       const items: InterviewQAItem[] = Array.isArray(json?.items) ? json.items : []
@@ -122,13 +101,12 @@ export default function NexusMirrorModal({ onClose }: NexusMirrorModalProps) {
         impact: 'positive',
       })
     } catch (err) {
-      console.warn('[NexusMirrorModal] Handled gracefully with fallback:', err);
-      setNexusMirrorItems(FALLBACK_INTERVIEW_ITEMS);
-      setError(null);
+      const errMsg = err instanceof Error ? err.message : 'Unknown generation error';
+      setError(errMsg);
       addNexusActivityEntry({
         agentType: 'mirror',
-        action: 'Interview Generation Warning',
-        result: err instanceof Error ? err.message : 'Unknown generation error',
+        action: 'Interview Generation Error',
+        result: errMsg,
         impact: 'warning',
       })
     } finally {
@@ -198,21 +176,12 @@ export default function NexusMirrorModal({ onClose }: NexusMirrorModalProps) {
         impact: json.phaseA?.thinOrNonTechnical ? 'warning' : 'positive',
       })
     } catch (err) {
-      console.warn('[NexusMirrorModal] Cross-question fallback activated:', err);
-      setCrossByItem((prev) => ({
-        ...prev,
-        [item.id]: {
-        phaseA: { detectedType: 'technical-claim', technicalClaim: 'Answer provided', logicGap: 'None', thinOrNonTechnical: false, reason: 'Clear technical communication.' },
-        phaseB: { followUpQuestion: 'Strong foundation. How would you handle cache invalidation across distributed clusters under high load?' },
-        pressureDelta: 12,
-      } as any,
-      }));
-      setPressureMeter((prev) => Math.min(100, prev + 12));
-      setError(null);
+      const errMsg = err instanceof Error ? err.message : 'Unknown recursive interview error';
+      setError(errMsg);
       addNexusActivityEntry({
         agentType: 'mirror',
-        action: 'Recursive Cross-Questioning Warning',
-        result: err instanceof Error ? err.message : 'Unknown recursive interview error',
+        action: 'Recursive Cross-Questioning Error',
+        result: errMsg,
         impact: 'warning',
       })
     } finally {

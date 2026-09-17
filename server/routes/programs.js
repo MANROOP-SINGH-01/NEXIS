@@ -7,66 +7,14 @@
 
 import { Router } from 'express'
 import { GEMINI_API_KEY, SERPER_API_KEY } from '../config.js'
-import { callGeminiTextWithRetry } from '../services/gemini.js'
+import { structuredOutput } from '../services/aiRouter.js'
 import { serperSearchJobs } from '../services/serper.js'
+import { requireAuth } from '../middleware/authMiddleware.js'
 import { tryParseJsonLoose } from '../utils/helpers.js'
 
 const router = Router()
 
-/**
- * Curated high-reputation Indian Government portals for vocational, tech, and digital upskilling.
- */
-function getGovtFallback(skill) {
-  const enc = encodeURIComponent(skill)
-  return [
-    {
-      title: `${skill} Certification & Applied Modules`,
-      provider: 'SWAYAM (Govt. of India / MHRD)',
-      isFree: true,
-      isGovt: true,
-      badge: 'Govt. of India',
-      url: `https://swayam.gov.in/explorer?searchText=${enc}`,
-    },
-    {
-      title: `${skill} Professional Course (IIT / IISc)`,
-      provider: 'NPTEL (Ministry of Education)',
-      isFree: true,
-      isGovt: true,
-      badge: 'NPTEL / MoE',
-      url: `https://onlinecourses.nptel.ac.in/explorer?q=${enc}`,
-    },
-    {
-      title: `${skill} Qualification & Practical Skill Training`,
-      provider: 'Skill India Digital Hub (MSDE)',
-      isFree: true,
-      isGovt: true,
-      badge: 'Skill India',
-      url: `https://www.skillindiadigital.gov.in/courses?search=${enc}`,
-    },
-  ]
-}
 
-function getGlobalFallback(skill) {
-  const enc = encodeURIComponent(skill)
-  return [
-    {
-      title: `${skill} Interactive Full Curriculum`,
-      provider: 'freeCodeCamp',
-      isFree: true,
-      isGovt: false,
-      badge: 'Free Curriculum',
-      url: `https://www.freecodecamp.org/news/search/?query=${enc}`,
-    },
-    {
-      title: `${skill} Professional Specialization`,
-      provider: 'Coursera',
-      isFree: false,
-      isGovt: false,
-      badge: 'Industry Cert',
-      url: `https://www.coursera.org/search?query=${enc}`,
-    },
-  ]
-}
 
 router.post('/programs/recommend', async (req, res) => {
   const gaps = req.body?.gaps
@@ -108,10 +56,7 @@ router.post('/programs/recommend', async (req, res) => {
         ]
 
         if (!combinedRaw.length || !geminiKey) {
-          resultsBySkill[skill] = [
-            ...getGovtFallback(skill).slice(0, 2),
-            ...getGlobalFallback(skill).slice(0, 2),
-          ]
+          resultsBySkill[skill] = []
           return
         }
 
@@ -136,41 +81,29 @@ router.post('/programs/recommend', async (req, res) => {
 
         let parsed = null
         try {
-          const llmRaw = await callGeminiTextWithRetry({
-            apiKey: geminiKey,
+          parsed = await structuredOutput({
+            task: 'SKILL_GAP',
             prompt,
             systemInstruction: 'You are a precise educational JSON extractor. Return valid JSON array only. Always identify Indian Government programs.',
             attempts: 2,
+            timeout: 30000,
+            fallbackKeys: { gemini: geminiKey },
+            schemaValidator: (arr) => {
+              if (!Array.isArray(arr)) throw new Error('Expected array of educational programs');
+            }
           })
-
-          parsed = tryParseJsonLoose(llmRaw)
-          if (!Array.isArray(parsed)) {
-            const arrMatch = String(llmRaw || '').match(/\[[\s\S]*\]/)
-            parsed = arrMatch ? JSON.parse(arrMatch[0]) : null
-          }
         } catch (llmErr) {
           console.warn(`[programs/recommend] LLM extraction fallback for ${skill}:`, llmErr.message)
         }
 
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Guarantee at least 1 Indian government course is present
-          const hasGovt = parsed.some(p => p.isGovt || (p.provider && /swayam|nptel|skill india|govt/i.test(p.provider)))
-          if (!hasGovt) {
-            parsed.unshift(getGovtFallback(skill)[0])
-          }
           resultsBySkill[skill] = parsed.slice(0, 4)
         } else {
-          resultsBySkill[skill] = [
-            ...getGovtFallback(skill).slice(0, 2),
-            ...getGlobalFallback(skill).slice(0, 2),
-          ]
+          resultsBySkill[skill] = []
         }
       } catch (err) {
         console.error(`Error processing skill ${skill}:`, err)
-        resultsBySkill[skill] = [
-          ...getGovtFallback(skill).slice(0, 2),
-          ...getGlobalFallback(skill).slice(0, 1),
-        ]
+        resultsBySkill[skill] = []
       }
     }))
 

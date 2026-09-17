@@ -21,6 +21,15 @@ export const LINKEDIN_CLIENT_ID = process.env.LINKEDIN_CLIENT_ID || ''
 export const LINKEDIN_CLIENT_SECRET = process.env.LINKEDIN_CLIENT_SECRET || ''
 export const LINKEDIN_REDIRECT_URI = process.env.LINKEDIN_REDIRECT_URI || ''
 
+// â”€â”€ FreeLLMAPI Unified LLM Router â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+export const FREELLMAPI_BASE_URL = process.env.FREELLMAPI_BASE_URL || 'http://127.0.0.1:31415/v1'
+export const FREELLMAPI_API_KEY = process.env.FREELLMAPI_API_KEY || ''
+export const FREELLMAPI_MODEL = process.env.FREELLMAPI_MODEL || 'auto'
+export const FREELLMAPI_MODEL_GENERAL = process.env.LLM_MODEL_GENERAL || FREELLMAPI_MODEL
+export const FREELLMAPI_MODEL_RESUME = process.env.LLM_MODEL_RESUME || FREELLMAPI_MODEL
+export const FREELLMAPI_MODEL_ATS = process.env.LLM_MODEL_ATS || FREELLMAPI_MODEL
+export const FREELLMAPI_MODEL_INTERVIEW = process.env.LLM_MODEL_INTERVIEW || FREELLMAPI_MODEL
+
 // â”€â”€ AI Service Keys â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const DEFAULT_GEMINI_KEY = process.env.GEMINI_API_KEY || ''
 export const DEFAULT_SARVAM_KEY = process.env.SARVAM_API_KEY || ''

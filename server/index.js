@@ -18,6 +18,7 @@
 import cookieParser from 'cookie-parser'
 import express from 'express'
 import cors from 'cors'
+import { fileURLToPath } from 'url'
 import { PORT, FRONTEND_URL } from './config.js'
 
 // Route modules
@@ -42,16 +43,36 @@ import govtCheckRoutes from './routes/govtCheck.js'
 import analyticsRoutes from './routes/analytics.js'
 import careerGraphRoutes from './routes/careerGraph.js'
 import agentsRoutes from './routes/agents.js'
+import applicationsRoutes from './routes/applications.js'
+import evidenceRoutes from './routes/evidence.js'
+import passportRoutes from './routes/passport.js'
 
 import { seedAdminUser } from './lib/seedAdminUser.js'
 
 const app = express()
 
 // ── Middleware ─────────────────────────────────────────────────────────────────
-// Relaxed CORS for the demo environment to ensure Vercel proxying works flawlessly
+// Production-safe CORS: allow verified Vercel domains, configured FRONTEND_URL, and dev localhost
+const allowedOrigins = [
+  FRONTEND_URL,
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173',
+]
+
 app.use(cors({
   origin: function (origin, callback) {
-    callback(null, true)
+    if (!origin) return callback(null, true) // Allow server-to-server or non-browser requests
+    if (allowedOrigins.includes(origin)) return callback(null, true)
+    // Allow any Nexis Vercel preview or production domain
+    if (/^https:\/\/(nexis|nexis-forge)[a-z0-9-]*\.vercel\.app$/.test(origin)) {
+      return callback(null, true)
+    }
+    if (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost:')) {
+      return callback(null, true)
+    }
+    return callback(new Error(`Origin ${origin} not allowed by CORS`))
   },
   credentials: true
 }))
@@ -80,6 +101,9 @@ app.use('/api', govtCheckRoutes)
 app.use('/api', analyticsRoutes)
 app.use('/api', careerGraphRoutes)
 app.use('/api/agents', agentsRoutes)
+app.use('/api/applications', applicationsRoutes)
+app.use('/api/evidence', evidenceRoutes)
+app.use('/api/passport', passportRoutes)
 
 // Direct root redirect for provider view links
 app.get('/provider-view/:token', (req, res) => {
@@ -88,6 +112,17 @@ app.get('/provider-view/:token', (req, res) => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 const startServer = async () => {
+  if (process.env.NODE_ENV === 'production') {
+    const llmUrl = process.env.FREELLMAPI_BASE_URL || 'http://127.0.0.1:31415/v1'
+    const isLocalhost = llmUrl.includes('127.0.0.1') || llmUrl.includes('localhost') || llmUrl.includes('host.docker.internal')
+    
+    if (isLocalhost && process.env.VERCEL) {
+      console.error('[CONFIG ERROR] FREELLMAPI_BASE_URL is pointing to local/host gateway, but the app is running in a serverless environment (Vercel). FreeLLMAPI must be externally reachable.')
+    } else if (isLocalhost) {
+      console.warn('[CONFIG INFO] FREELLMAPI_BASE_URL is pointing to a local host-gateway in production mode. Ensure FreeLLMAPI is deployed on this exact same VM instance.')
+    }
+  }
+
   await seedAdminUser()
   app.listen(PORT, () => {
     console.log(`[forge-api] listening on http://localhost:${PORT}`)
@@ -95,7 +130,7 @@ const startServer = async () => {
 }
 
 // Only start the server if this file is run directly (not imported)
-if (process.env.NODE_ENV !== 'test' && import.meta.url === `file://${process.argv[1]}`) {
+if (process.env.NODE_ENV !== 'test' && process.argv[1] === fileURLToPath(import.meta.url)) {
   startServer()
 }
 

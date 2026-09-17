@@ -11,7 +11,8 @@
   "version": "0.2.0",
   "type": "module",
   "scripts": {
-    "start": "npx prisma db push --accept-data-loss && node server/scripts/importOnet.js && node server/index.js",
+    "start": "node server/index.js",
+    "postinstall": "prisma generate",
     "dev": "concurrently \"npm:dev:api\" \"npm:dev:web\"",
     "dev:web": "vite --port=3000 --host=0.0.0.0",
     "dev:api": "cross-env NODE_OPTIONS=--dns-result-order=ipv4first node --watch server/index.js",
@@ -19,6 +20,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
+    "db:deploy": "prisma migrate deploy",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed-control": "node server/scripts/seedControlGroup.js"
@@ -36,6 +38,7 @@
     "jspdf": "^4.2.1",
     "lucide-react": "^0.546.0",
     "multer": "^2.1.1",
+    "openai": "^7.17.0",
     "pdf-parse": "^2.4.5",
     "pdfkit": "^0.18.0",
     "react": "^19.0.0",
@@ -50,6 +53,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
     "concurrently": "^9.2.1",

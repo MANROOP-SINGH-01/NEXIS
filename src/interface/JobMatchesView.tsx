@@ -113,7 +113,7 @@ export const JobMatchesView: React.FC = () => {
 
     setTrackingJobId(job.id);
     try {
-      const res = await fetch('/api/career/applications', {
+      const res = await fetch('/api/applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({

@@ -6,8 +6,8 @@ import { getActiveAgentSet } from '../integration/store/teamStore';
 import { getAllAgents } from '../data/agents';
 
 export const AgentActivityHUD: React.FC = () => {
-  const { agentStatuses, phase } = useCoreStore();
-  const { isLowFpsFallback, setLowFpsFallback } = useUiStore();
+  const { phase } = useCoreStore();
+  const { agentStatuses, isLowFpsFallback, setLowFpsFallback } = useUiStore();
   
   const system = getActiveAgentSet();
   const agents = getAllAgents(system).filter(a => a.index !== system.user.index);

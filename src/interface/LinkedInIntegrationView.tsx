@@ -48,41 +48,7 @@ export const LinkedInIntegrationView: React.FC = () => {
     setTimeout(() => setSuccessToast(null), 3000);
   };
 
-  const handleVerifyUrl = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!profileUrlInput.trim()) {
-      setError('Please enter a valid LinkedIn profile URL (e.g., https://linkedin.com/in/yourname)');
-      return;
-    }
-    setUrlVerifying(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/linkedin/verify-url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: profileUrlInput }),
-      });
-      const data = await res.json();
-      if (res.ok && data.token) {
-        setToken(data.token);
-        const handle = data.username || 'candidate';
-        setVerifiedHandle(handle);
-        try {
-          localStorage.setItem('forge-linkedin-handle', handle);
-        } catch {
-          // ignore
-        }
-        showToast(`LinkedIn Profile Verified (@${handle})!`);
-        setProfileUrlInput('');
-      } else {
-        setError(data.error || 'Failed to verify LinkedIn URL');
-      }
-    } catch {
-      setError('Failed to reach backend service for LinkedIn verification');
-    } finally {
-      setUrlVerifying(false);
-    }
-  };
+
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -146,7 +112,7 @@ export const LinkedInIntegrationView: React.FC = () => {
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 mb-2">
               <Sparkles size={12} className="text-blue-600" />
               <span className="text-[10px] font-black uppercase tracking-wider text-blue-700">
-                Zero-Cost LinkedIn Career Sync
+                Official LinkedIn Career Sync
               </span>
             </div>
             <h1 className="text-2xl font-black text-darkDelegation tracking-tight">
@@ -233,43 +199,7 @@ export const LinkedInIntegrationView: React.FC = () => {
         </div>
       )}
 
-      {/* Zero-Cost Direct URL Verification Form */}
-      <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-xs space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Link2 size={18} className="text-[#0077B5]" />
-            <h3 className="text-sm font-black text-darkDelegation uppercase tracking-wider">
-              Direct Profile URL Verification (Zero-Cost / No API Key Required)
-            </h3>
-          </div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-            Zero Cost
-          </span>
-        </div>
-        <p className="text-xs text-zinc-500">
-          Provide your public LinkedIn handle or profile URL to establish candidate identity verification instantly.
-        </p>
 
-        <form onSubmit={handleVerifyUrl} className="flex flex-col sm:flex-row gap-3 pt-1">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              value={profileUrlInput}
-              onChange={(e) => setProfileUrlInput(e.target.value)}
-              placeholder="https://www.linkedin.com/in/yourname"
-              className="w-full bg-zinc-50 border border-slate-200 rounded-md px-4 py-2.5 text-xs text-zinc-800 font-sans focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={urlVerifying || !profileUrlInput.trim()}
-            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0077B5] hover:bg-[#006097] disabled:opacity-50 text-white text-xs font-black uppercase tracking-wider rounded-md transition-all shadow-sm cursor-pointer"
-          >
-            {urlVerifying ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-            {urlVerifying ? 'Verifying...' : 'Verify Profile'}
-          </button>
-        </form>
-      </div>
 
       {/* Upload Zone (Profile PDF export) */}
       <div className="bg-white rounded-lg p-8 border border-slate-200 border-dashed text-center space-y-4">

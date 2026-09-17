@@ -51,6 +51,10 @@ async function safeReadJson(response) {
 }
 
 export function callSarvamWithRetry({ apiKey, messages, attempts = 4 }) {
+  if (!apiKey || apiKey.trim() === '') {
+    throw new Error('Missing Sarvam API Key. Please configure SARVAM_API_KEY.')
+  }
+
   const run = async () => {
     let response
     try {
@@ -90,6 +94,7 @@ export function callSarvamWithRetry({ apiKey, messages, attempts = 4 }) {
         lastError = err
         const shouldRetry = err?.retriable || isRetriableNetworkError(err)
         console.warn(`[sarvam] attempt ${i + 1}/${attempts} failed${shouldRetry ? ' (retriable)' : ''}:`, err.message)
+        if (!shouldRetry) throw lastError
         if (i < attempts - 1) {
           await new Promise((resolve) => setTimeout(resolve, backoffMs(i)))
         }

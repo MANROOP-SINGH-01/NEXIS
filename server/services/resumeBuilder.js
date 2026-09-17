@@ -6,7 +6,7 @@
  */
 
 import { extractFromResumeText } from './resumeParser.js'
-import { callSarvamOrGemini } from './sarvam.js'
+import { structuredOutput } from './aiRouter.js'
 import { tokenize, tryParseJsonLoose } from '../utils/helpers.js'
 
 const COMMON_SKILL_CATALOG = [
@@ -358,16 +358,17 @@ export async function ensureStructuredResume({ resumeText, jd, sarvamKey, gemini
   ].join('\n\n')
 
   try {
-    const structurerResult = await callSarvamOrGemini({
-      sarvamKey,
-      geminiKey,
-      messages: [
-        { role: 'system', content: 'You are a strict JSON formatter. Return valid JSON only.' },
-        { role: 'user', content: structurerPrompt },
-      ],
+    const parsed = await structuredOutput({
+      task: 'RESUME_STRUCTURER',
+      prompt: structurerPrompt,
       systemInstruction: 'You are a strict JSON formatter. Return valid JSON only.',
+      attempts: 2,
+      timeout: 30000,
+      fallbackKeys: { sarvam: sarvamKey, gemini: geminiKey },
+      schemaValidator: (obj) => {
+        if (!obj || typeof obj !== 'object') throw new Error('Expected structured resume object');
+      }
     })
-    const parsed = tryParseJsonLoose(structurerResult.text)
     return normalizeStructuredResume(parsed, resumeText, jd)
   } catch {
     void structurerKey
