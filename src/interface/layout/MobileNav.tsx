@@ -11,7 +11,8 @@ import {
   ShieldCheck,
   Award,
   Linkedin,
-  Activity
+  Activity,
+  Settings
 } from 'lucide-react';
 import { ActiveSidebarTab } from '../../types';
 import { useUiStore } from '../../integration/store/uiStore';
@@ -22,19 +23,20 @@ export const MobileNav: React.FC = () => {
 
   const mainTabs: { id: ActiveSidebarTab; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: 'Command', icon: <LayoutDashboard size={20} /> },
-    { id: 'skill-gaps', label: 'Skills', icon: <Target size={20} /> },
+    { id: 'career-health', label: 'Overview', icon: <Activity size={20} /> },
     { id: 'job-matches', label: 'Jobs', icon: <Briefcase size={20} /> },
     { id: 'new-cv', label: 'Resume', icon: <FileText size={20} /> },
   ];
 
   const secondaryTabs: { id: ActiveSidebarTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'career-health', label: 'Career Health', icon: <Activity size={18} /> },
-    { id: 'recommended-programs', label: 'Roadmap Programs', icon: <GraduationCap size={18} /> },
-    { id: 'interview-prep', label: 'Interview Prep', icon: <MessageSquare size={18} /> },
-    { id: 'application-tracker', label: 'Application Tracker', icon: <Briefcase size={18} /> },
+    { id: 'skill-gaps', label: 'Skill Intelligence', icon: <Target size={18} /> },
+    { id: 'recommended-programs', label: 'Learning Paths', icon: <GraduationCap size={18} /> },
+    { id: 'interview-prep', label: 'Interview Studio', icon: <MessageSquare size={18} /> },
+    { id: 'application-tracker', label: 'Applications', icon: <Briefcase size={18} /> },
     { id: 'career-passport', label: 'Career Passport', icon: <ShieldCheck size={18} /> },
-    { id: 'my-outcome', label: 'My Outcome', icon: <Award size={18} /> },
+    { id: 'my-outcome', label: 'Outcome Proof', icon: <Award size={18} /> },
     { id: 'linkedin-integration', label: 'LinkedIn Sync', icon: <Linkedin size={18} /> },
+    { id: 'settings', label: 'Settings & Privacy', icon: <Settings size={18} /> },
   ];
 
   return (
@@ -43,17 +45,17 @@ export const MobileNav: React.FC = () => {
       {drawerOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex flex-col justify-end">
           <div
-            className="fixed inset-0 bg-black/70 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs"
             onClick={() => setDrawerOpen(false)}
           />
-          <div className="relative bg-[#12131c] border-t border-zinc-800 rounded-t-3xl p-5 shadow-2xl z-10 max-h-[70vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
-              <span className="text-sm font-semibold text-zinc-100 font-['Space_Grotesk']">
-                All Capabilities
+          <div className="relative bg-white border-t border-[#EADFCF] rounded-t-3xl p-5 shadow-2xl z-10 max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <div className="flex items-center justify-between pb-4 border-b border-[#EADFCF]">
+              <span className="text-sm font-bold text-[#181512]">
+                All Modules & Capabilities
               </span>
               <button
                 onClick={() => setDrawerOpen(false)}
-                className="p-1 rounded-lg text-zinc-400 hover:text-white"
+                className="p-1 rounded-lg text-[#7A7265] hover:text-[#181512] cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -68,13 +70,13 @@ export const MobileNav: React.FC = () => {
                       setActiveSidebarTab(tab.id);
                       setDrawerOpen(false);
                     }}
-                    className={`flex items-center gap-2.5 p-3 rounded-xl border text-left text-xs font-medium transition-all ${
+                    className={`flex items-center gap-2.5 p-3 rounded-xl border text-left text-xs font-bold transition-all cursor-pointer ${
                       isActive
-                        ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300'
-                        : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800'
+                        ? 'bg-[#FFF0E4] border-[#F5C5A5] text-[#C45E0E]'
+                        : 'bg-[#FBF8F3] border-[#EADFCF] text-[#181512] hover:bg-white'
                     }`}
                   >
-                    <span className="text-indigo-400">{tab.icon}</span>
+                    <span className={isActive ? 'text-[#F47B20]' : 'text-[#7A7265]'}>{tab.icon}</span>
                     <span className="truncate">{tab.label}</span>
                   </button>
                 );
@@ -85,24 +87,24 @@ export const MobileNav: React.FC = () => {
       )}
 
       {/* Bottom Floating/Docked Nav Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#0c0d14]/95 backdrop-blur-2xl border-t border-zinc-800/80 px-2 flex items-center justify-around z-40">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#FBF8F3]/95 backdrop-blur-xl border-t border-[#EADFCF] px-2 flex items-center justify-around z-40">
         {mainTabs.map((tab) => {
           const isActive = activeSidebarTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveSidebarTab(tab.id)}
-              className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
-                isActive ? 'text-indigo-400 font-semibold' : 'text-zinc-500 hover:text-zinc-300'
+              className={`flex flex-col items-center justify-center flex-1 py-1 transition-all cursor-pointer ${
+                isActive ? 'text-[#F47B20] font-bold' : 'text-[#7A7265] hover:text-[#181512]'
               }`}
             >
               <div className="relative">
                 {tab.icon}
-                {tab.id === 'dashboard' && (
-                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                {isActive && (
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#F47B20] rounded-full" />
                 )}
               </div>
-              <span className="text-[10px] mt-1 tracking-tight">{tab.label}</span>
+              <span className="text-[10px] tracking-tight mt-1">{tab.label}</span>
             </button>
           );
         })}
@@ -110,12 +112,12 @@ export const MobileNav: React.FC = () => {
         {/* More Drawer Button */}
         <button
           onClick={() => setDrawerOpen(true)}
-          className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
-            drawerOpen ? 'text-indigo-400' : 'text-zinc-500 hover:text-zinc-300'
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-all cursor-pointer ${
+            drawerOpen ? 'text-[#F47B20]' : 'text-[#7A7265] hover:text-[#181512]'
           }`}
         >
           <Menu size={20} />
-          <span className="text-[10px] mt-1 tracking-tight">More</span>
+          <span className="text-[10px] tracking-tight mt-1 font-semibold">More</span>
         </button>
       </nav>
     </>
