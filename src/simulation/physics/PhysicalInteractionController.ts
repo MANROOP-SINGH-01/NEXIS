@@ -134,8 +134,9 @@ export class PhysicalInteractionController {
     this.physics.isGrabbed = false;
 
     if (releaseData) {
-      // Transfer smoothed pointer velocity into rigid body
+      // Transfer smoothed pointer velocity into rigid body (capped so characters never rocket upward)
       this.physics.linearVelocity.copy(releaseData.releaseVelocity);
+      this.physics.linearVelocity.y = Math.min(0.2, this.physics.linearVelocity.y);
 
       // Inject angular momentum proportional to lateral fling
       this.physics.angularVelocity.set(
@@ -145,7 +146,7 @@ export class PhysicalInteractionController {
       );
     }
 
-    if (this.physics.position.y > DEFAULT_PHYSICS_SETTINGS.floorY + 0.05 || this.physics.linearVelocity.y > 0.5) {
+    if (this.physics.position.y > DEFAULT_PHYSICS_SETTINGS.floorY + 0.05 || this.physics.linearVelocity.y > 0.2) {
       this.setState('AIRBORNE');
     } else {
       this.beginSettling();
@@ -171,6 +172,16 @@ export class PhysicalInteractionController {
       case 'HELD':
       case 'MOVING': {
         this.proceduralWeight = Math.min(1.0, this.proceduralWeight + dt * 10.0);
+        const grabInfo = this.grab.getGrabInfo();
+        if (grabInfo) {
+          this.physics.updateGrabbed(grabInfo.targetPointWorld, dt);
+          const speed = this.physics.linearVelocity.length();
+          if (speed > 0.1) {
+            this.setState('MOVING');
+          } else {
+            this.setState('HELD');
+          }
+        }
         // Secondary motion driven by grab velocity and acceleration
         this.secondaryMotion.update(
           this.physics.linearVelocity,

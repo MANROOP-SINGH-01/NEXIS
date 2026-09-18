@@ -110,7 +110,13 @@ export class CharacterManager {
         return;
       }
 
-      this.meshData = allMeshes.map(m => ({
+      const coreMeshes = allMeshes.filter(m => {
+        const n = m.name.toLowerCase();
+        // Omit unskinned, co-planar accessory meshes that cause pixel-level z-fighting dithering on character heads
+        return !n.includes('cap') && !n.includes('headphones');
+      });
+
+      this.meshData = coreMeshes.map(m => ({
         name: m.name,
         geometry: m.geometry,
         material: m.material as THREE.MeshStandardMaterial
@@ -206,10 +212,11 @@ export class CharacterManager {
           if (this.physicsSystem.isCharacterPhysical(i)) {
             const ctrl = this.physicsSystem.getController(i);
             if (ctrl) {
-              const clampedX = Math.max(-4.20, Math.min(4.20, ctrl.physics.position.x));
-              const clampedZ = Math.max(-4.20, Math.min(4.20, ctrl.physics.position.z));
+              const clampedX = Math.max(-3.90, Math.min(3.90, ctrl.physics.position.x));
+              const clampedZ = Math.max(-3.90, Math.min(3.90, ctrl.physics.position.z));
+              const clampedY = Math.max(0.0, Math.min(1.35, ctrl.physics.position.y));
               this.debugPosArray[i * 4 + 0] = clampedX;
-              this.debugPosArray[i * 4 + 1] = ctrl.physics.position.y;
+              this.debugPosArray[i * 4 + 1] = clampedY;
               this.debugPosArray[i * 4 + 2] = clampedZ;
             }
           }
@@ -254,14 +261,15 @@ export class CharacterManager {
           if (this.physicsSystem.isCharacterPhysical(i)) {
             const ctrl = this.physicsSystem.getController(i);
             if (ctrl) {
-              const clampedX = Math.max(-4.20, Math.min(4.20, ctrl.physics.position.x));
-              const clampedZ = Math.max(-4.20, Math.min(4.20, ctrl.physics.position.z));
+              const clampedX = Math.max(-3.90, Math.min(3.90, ctrl.physics.position.x));
+              const clampedZ = Math.max(-3.90, Math.min(3.90, ctrl.physics.position.z));
+              const clampedY = Math.max(0.0, Math.min(1.35, ctrl.physics.position.y));
               arr[i * 4 + 0] = clampedX;
-              arr[i * 4 + 1] = ctrl.physics.position.y;
+              arr[i * 4 + 1] = clampedY;
               arr[i * 4 + 2] = clampedZ;
               if (this.debugPosArray) {
                 this.debugPosArray[i * 4 + 0] = clampedX;
-                this.debugPosArray[i * 4 + 1] = ctrl.physics.position.y;
+                this.debugPosArray[i * 4 + 1] = clampedY;
                 this.debugPosArray[i * 4 + 2] = clampedZ;
               }
               dirty = true;
@@ -651,8 +659,9 @@ export class CharacterManager {
         finalPosition.assign(skinMat.mul(vec4(positionLocal, 1.0)).xyz);
       }
 
-      const vertexScale = isVisibleNode.select(float(1), float(0));
-      return rotationMat.mul(finalPosition.mul(vertexScale)).add(instancePos);
+      const offscreenPos = vec3(0, float(-9999.0), 0);
+      const worldPos = rotationMat.mul(finalPosition).add(instancePos);
+      return isVisibleNode.select(worldPos, offscreenPos);
     })();
   }
 
@@ -708,15 +717,18 @@ export class CharacterManager {
   public setPosition(index: number, position: THREE.Vector3): void {
     if (!this.posAttribute || index < 0 || index >= this.instanceCount) return;
     const arr = this.posAttribute.array as Float32Array;
-    arr[index * 4 + 0] = position.x;
-    arr[index * 4 + 1] = position.y;
-    arr[index * 4 + 2] = position.z;
+    const cx = Math.max(-3.90, Math.min(3.90, position.x));
+    const cy = Math.max(0.0, Math.min(1.35, position.y));
+    const cz = Math.max(-3.90, Math.min(3.90, position.z));
+    arr[index * 4 + 0] = cx;
+    arr[index * 4 + 1] = cy;
+    arr[index * 4 + 2] = cz;
     this.posAttribute.needsUpdate = true;
     // Also update the CPU mirror so getCPUPosition() is immediately accurate
     if (this.debugPosArray) {
-      this.debugPosArray[index * 4 + 0] = position.x;
-      this.debugPosArray[index * 4 + 1] = position.y;
-      this.debugPosArray[index * 4 + 2] = position.z;
+      this.debugPosArray[index * 4 + 0] = cx;
+      this.debugPosArray[index * 4 + 1] = cy;
+      this.debugPosArray[index * 4 + 2] = cz;
     }
   }
 

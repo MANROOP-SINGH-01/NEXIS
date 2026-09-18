@@ -89,13 +89,13 @@ export interface ImpactInfo {
  * Keeps agents strictly contained within visible walls and floor.
  */
 export const OFFICE_BOUNDS = {
-  minX: -4.20,
-  maxX: 4.20,
-  minZ: -4.20,
-  maxZ: 4.20,
+  minX: -3.90,
+  maxX: 3.90,
+  minZ: -3.90,
+  maxZ: 3.90,
   floorY: 0.0,
-  ceilY: 5.5,
-  maxHeldY: 1.80,
+  ceilY: 1.35,
+  maxHeldY: 0.90,
 };
 
 /**
@@ -112,15 +112,15 @@ export interface CharacterPhysicsSettings {
   maxHeldY?: number;
 
   // Body follow spring (Clumsy Ninja playful lag & overshoot)
-  followStiffness: number;          // Spring constant k (e.g. 140)
-  followDamping: number;            // Damping ratio c (e.g. 18)
+  followStiffness: number;          // Spring constant k (e.g. 160)
+  followDamping: number;            // Damping ratio c (e.g. 20)
   bodyMass: number;                 // Apparent mass (kg)
   maxFollowSpeed: number;           // Velocity clamp (m/s)
 
   // Airborne & Gravity
-  gravity: number;                  // Gravity acceleration m/s^2 (-19.6)
-  airDrag: number;                  // Linear air resistance (0.982)
-  angularDrag: number;              // Rotational air resistance (0.93)
+  gravity: number;                  // Gravity acceleration m/s^2 (-30.0)
+  airDrag: number;                  // Linear air resistance (0.97)
+  angularDrag: number;              // Rotational air resistance (0.90)
 
   // Torso tilt & lean (dynamic pendulum swing)
   maxTiltPitch: number;             // Max forward/back lean (radians)
@@ -130,11 +130,11 @@ export interface CharacterPhysicsSettings {
   // Ground collision & impact
   minImpactVelocity: number;        // Threshold for triggering impact reaction (m/s)
   maxSquashCompression: number;     // Max vertical compression on hard landing
-  bounceRestitution: number;        // Elasticity of landing (0.15 - 0.25)
+  bounceRestitution: number;        // Elasticity of landing (0.15)
   settleThresholdSpeed: number;     // Speed below which settling begins
 
   // Recovery
-  recoveryDuration: number;         // Time in seconds to smoothly stand upright (0.6 - 1.0s)
+  recoveryDuration: number;         // Time in seconds to smoothly stand upright
   proceduralBlendSpeed: number;     // Blend transition speed between baked anim & physics
 }
 
@@ -147,25 +147,25 @@ export const DEFAULT_PHYSICS_SETTINGS: CharacterPhysicsSettings = {
   ceilY: OFFICE_BOUNDS.ceilY,
   maxHeldY: OFFICE_BOUNDS.maxHeldY,
 
-  followStiffness: 140.0,
-  followDamping: 18.0,
+  followStiffness: 160.0,
+  followDamping: 20.0,
   bodyMass: 1.0,
-  maxFollowSpeed: 20.0,
+  maxFollowSpeed: 14.0,
 
-  gravity: -19.6,
-  airDrag: 0.982,
-  angularDrag: 0.93,
+  gravity: -30.0,
+  airDrag: 0.97,
+  angularDrag: 0.90,
 
-  maxTiltPitch: THREE.MathUtils.degToRad(38),
-  maxTiltRoll: THREE.MathUtils.degToRad(34),
-  tiltResponsiveness: 0.26,
+  maxTiltPitch: THREE.MathUtils.degToRad(28),
+  maxTiltRoll: THREE.MathUtils.degToRad(24),
+  tiltResponsiveness: 0.22,
 
-  minImpactVelocity: 1.0,
-  maxSquashCompression: 0.20,
-  bounceRestitution: 0.22,
-  settleThresholdSpeed: 0.12,
+  minImpactVelocity: 0.8,
+  maxSquashCompression: 0.16,
+  bounceRestitution: 0.15,
+  settleThresholdSpeed: 0.10,
 
-  recoveryDuration: 0.85,
-  proceduralBlendSpeed: 8.0,
+  recoveryDuration: 0.65,
+  proceduralBlendSpeed: 9.0,
 };
 

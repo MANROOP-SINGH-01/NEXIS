@@ -49,10 +49,10 @@ export class InputManager {
     this.boundPointerUp = this.handlePointerUp.bind(this);
     this.boundPointerCancel = (e: PointerEvent) => {
       try { this.canvas.releasePointerCapture(e.pointerId); } catch {}
-      if (this.isDragging && this.draggedAgentIdx !== null) {
+      if (this.draggedAgentIdx !== null) {
         if (this.onPhysicalRelease) {
           this.onPhysicalRelease(this.draggedAgentIdx);
-        } else {
+        } else if (this.isDragging) {
           this.onDragEnd(this.draggedAgentIdx);
         }
       }
@@ -62,29 +62,29 @@ export class InputManager {
     };
 
     this.boundWindowPointerUp = () => {
-      if (this.isDragging && this.draggedAgentIdx !== null) {
+      if (this.draggedAgentIdx !== null) {
         if (this.onPhysicalRelease) {
           this.onPhysicalRelease(this.draggedAgentIdx);
-        } else {
+        } else if (this.isDragging) {
           this.onDragEnd(this.draggedAgentIdx);
         }
-        this.isDragging = false;
-        this.draggedAgentIdx = null;
-        this.canvas.style.cursor = 'auto';
       }
+      this.isDragging = false;
+      this.draggedAgentIdx = null;
+      this.canvas.style.cursor = 'auto';
     };
 
     this.boundWindowBlur = () => {
-      if (this.isDragging && this.draggedAgentIdx !== null) {
+      if (this.draggedAgentIdx !== null) {
         if (this.onPhysicalRelease) {
           this.onPhysicalRelease(this.draggedAgentIdx);
-        } else {
+        } else if (this.isDragging) {
           this.onDragEnd(this.draggedAgentIdx);
         }
-        this.isDragging = false;
-        this.draggedAgentIdx = null;
-        this.canvas.style.cursor = 'auto';
       }
+      this.isDragging = false;
+      this.draggedAgentIdx = null;
+      this.canvas.style.cursor = 'auto';
     };
 
     canvas.addEventListener('pointerdown', this.boundPointerDown);
@@ -155,10 +155,10 @@ export class InputManager {
     }
 
     // Reset dragging state when no buttons are pressed
-    if (this.isDragging && this.draggedAgentIdx !== null) {
+    if (this.draggedAgentIdx !== null) {
       if (this.onPhysicalRelease) {
         this.onPhysicalRelease(this.draggedAgentIdx);
-      } else {
+      } else if (this.isDragging) {
         this.onDragEnd(this.draggedAgentIdx);
       }
     }
@@ -293,20 +293,25 @@ export class InputManager {
       this.canvas.releasePointerCapture(event.pointerId);
     } catch {}
 
-    if (this.isDragging) {
-      if (this.draggedAgentIdx !== null) {
-        if (this.onPhysicalRelease) {
-          this.onPhysicalRelease(this.draggedAgentIdx);
-        } else {
-          this.onDragEnd(this.draggedAgentIdx);
-        }
-        this.draggedAgentIdx = null;
+    const hadDraggedIdx = this.draggedAgentIdx;
+    const wasDragging = this.isDragging;
+    this.isDragging = false;
+    this.draggedAgentIdx = null;
+    this.canvas.style.cursor = 'auto';
+
+    if (wasDragging && hadDraggedIdx !== null) {
+      if (this.onPhysicalRelease) {
+        this.onPhysicalRelease(hadDraggedIdx);
+      } else {
+        this.onDragEnd(hadDraggedIdx);
       }
-      this.isDragging = false;
-      this.canvas.style.cursor = 'auto';
       return;
     }
-    this.draggedAgentIdx = null;
+
+    if (hadDraggedIdx !== null && this.onPhysicalRelease) {
+      this.onPhysicalRelease(hadDraggedIdx);
+    }
+
     this.handleClick(event as unknown as MouseEvent);
   }
 

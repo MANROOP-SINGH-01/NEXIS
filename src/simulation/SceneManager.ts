@@ -213,10 +213,18 @@ export class SceneManager {
               } else if (state === 'RECOVERING' || state === 'SETTLING') {
                 this.controller?.play(idx, 'recovering');
               } else if (state === 'IDLE') {
+                // Synchronize character facing with landing orientation to prevent abrupt snapping
+                const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(ctrl.physics.orientation);
+                this.characterManager.setFacing(idx, forward.x, forward.z);
                 this.characterManager.setPhysicsMode(idx, AgentBehavior.IDLE);
                 this.controller?.play(idx, 'idle');
                 useUiStore.getState().setAgentStatus(idx, 'idle');
-                this.moveNpcToSpawn(idx);
+
+                // Only NPCs path back to spawn; the user/player stays where dropped!
+                const isUser = idx === getActiveAgentSet().user.index;
+                if (!isUser) {
+                  this.moveNpcToSpawn(idx);
+                }
               }
             };
           }

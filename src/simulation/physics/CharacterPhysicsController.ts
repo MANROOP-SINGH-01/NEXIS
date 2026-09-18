@@ -103,21 +103,21 @@ export class CharacterPhysicsController {
     }
 
     // Dynamic Clumsy Ninja Torso Tilt & Pendulum Swing from velocity & acceleration
-    // Moving/accelerating right (+x) leans body to the left (-roll)
-    // Moving/accelerating forward (+z) leans body backward (-pitch)
+    const horizSpeed = Math.hypot(this.linearVelocity.x, this.linearVelocity.z);
+    const tiltDampFactor = horizSpeed < 0.25 ? THREE.MathUtils.clamp(horizSpeed / 0.25, 0.0, 1.0) : 1.0;
+
     const targetPitch = THREE.MathUtils.clamp(
-      (-this.linearVelocity.z * 0.05 - this.linearAcceleration.z * 0.016),
+      (-this.linearVelocity.z * 0.05 - this.linearAcceleration.z * 0.016) * tiltDampFactor,
       -this.settings.maxTiltPitch,
       this.settings.maxTiltPitch
     );
     const targetRoll = THREE.MathUtils.clamp(
-      (this.linearVelocity.x * 0.05 + this.linearAcceleration.x * 0.016),
+      (this.linearVelocity.x * 0.05 + this.linearAcceleration.x * 0.016) * tiltDampFactor,
       -this.settings.maxTiltRoll,
       this.settings.maxTiltRoll
     );
 
     // Face movement direction if moving fast enough, otherwise keep facing yaw
-    const horizSpeed = Math.hypot(this.linearVelocity.x, this.linearVelocity.z);
     if (horizSpeed > 0.4) {
       const moveYaw = Math.atan2(this.linearVelocity.x, this.linearVelocity.z);
       this.baseFacingYaw = THREE.MathUtils.lerp(this.baseFacingYaw, moveYaw, 0.1);
@@ -132,7 +132,7 @@ export class CharacterPhysicsController {
     const uprightQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.baseFacingYaw);
     const headOffset = new THREE.Vector3(0, 1.25, 0).applyQuaternion(targetQuat);
     let slerpWeight = 0;
-    const SAFE_LIMIT = 4.65;
+    const SAFE_LIMIT = this.settings.maxX - 0.05;
 
     if (this.position.x + headOffset.x > SAFE_LIMIT && headOffset.x > 0.001) {
       slerpWeight = Math.max(slerpWeight, (this.position.x + headOffset.x - SAFE_LIMIT) / headOffset.x);
@@ -220,7 +220,7 @@ export class CharacterPhysicsController {
     // Containment guard during free-fall / bounce tumble
     const currentHeadOffset = new THREE.Vector3(0, 1.25, 0).applyQuaternion(this.orientation);
     let fallSlerp = 0;
-    const SAFE_LIMIT = 4.65;
+    const SAFE_LIMIT = this.settings.maxX - 0.05;
     if (this.position.x + currentHeadOffset.x > SAFE_LIMIT && currentHeadOffset.x > 0.001) {
       fallSlerp = Math.max(fallSlerp, (this.position.x + currentHeadOffset.x - SAFE_LIMIT) / currentHeadOffset.x);
     }

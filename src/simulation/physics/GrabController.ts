@@ -136,7 +136,7 @@ export class GrabController {
     const targetBodyPos = new THREE.Vector3().subVectors(hitIntersection, currentRotatedOffset);
 
     // Clumsy Ninja mechanic: Keep character suspended at comfortable lift height so legs dangle playfully
-    const minDangleHeight = floorY + 0.45;
+    const minDangleHeight = floorY + 0.15;
     if (targetBodyPos.y < minDangleHeight) {
       targetBodyPos.y = minDangleHeight;
     }
@@ -144,7 +144,7 @@ export class GrabController {
     // Strict Office 3D Model Bounding Box Clamp: prevent escaping outside room borders
     targetBodyPos.x = THREE.MathUtils.clamp(targetBodyPos.x, OFFICE_BOUNDS.minX, OFFICE_BOUNDS.maxX);
     targetBodyPos.z = THREE.MathUtils.clamp(targetBodyPos.z, OFFICE_BOUNDS.minZ, OFFICE_BOUNDS.maxZ);
-    targetBodyPos.y = THREE.MathUtils.clamp(targetBodyPos.y, minDangleHeight, OFFICE_BOUNDS.maxHeldY ?? 1.80);
+    targetBodyPos.y = THREE.MathUtils.clamp(targetBodyPos.y, minDangleHeight, OFFICE_BOUNDS.maxHeldY ?? 0.90);
 
     this.grabInfo.targetPointWorld.copy(targetBodyPos);
 
@@ -187,11 +187,17 @@ export class GrabController {
     const charIndex = this.grabInfo.characterIndex;
     const releaseVelocity = this.smoothedTargetVelocity.clone();
 
-    // Prevent excessive high-speed fling from tunneling through walls
-    const maxFlingSpeed = 12.0;
-    if (releaseVelocity.length() > maxFlingSpeed) {
-      releaseVelocity.normalize().multiplyScalar(maxFlingSpeed);
+    // Prevent lateral flinging through walls
+    const horizontalSpeed = Math.hypot(releaseVelocity.x, releaseVelocity.z);
+    const maxHorizontalSpeed = 3.5;
+    if (horizontalSpeed > maxHorizontalSpeed) {
+      const scale = maxHorizontalSpeed / horizontalSpeed;
+      releaseVelocity.x *= scale;
+      releaseVelocity.z *= scale;
     }
+
+    // Suppress upward fling completely: characters must never fly into the air when unheld!
+    releaseVelocity.y = Math.min(0.2, Math.max(-10.0, releaseVelocity.y));
 
     this.grabInfo = null;
     this.hasPrevTarget = false;

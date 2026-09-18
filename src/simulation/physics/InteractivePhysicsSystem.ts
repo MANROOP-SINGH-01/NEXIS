@@ -22,6 +22,8 @@ export class InteractivePhysicsSystem {
   public proceduralWeightAttribute: THREE.StorageInstancedBufferAttribute;
   public orientationAttribute: THREE.StorageInstancedBufferAttribute;
 
+  private boundGlobalRelease: () => void;
+
   constructor(
     private baseSkeleton: THREE.Skeleton,
     private camera: THREE.PerspectiveCamera,
@@ -43,6 +45,19 @@ export class InteractivePhysicsSystem {
     // Create a controller for every character instance
     for (let i = 0; i < maxInstances; i++) {
       this.controllers.set(i, new PhysicalInteractionController(i, baseSkeleton, camera));
+    }
+
+    // Fail-safe global release listener: guarantees character falls to floor whenever mouse is released anywhere
+    this.boundGlobalRelease = () => {
+      if (this.activeGrabbedIndex !== null) {
+        this.handlePointerUp();
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('pointerup', this.boundGlobalRelease, { passive: true });
+      window.addEventListener('mouseup', this.boundGlobalRelease, { passive: true });
+      window.addEventListener('blur', this.boundGlobalRelease, { passive: true });
+      window.addEventListener('pointercancel', this.boundGlobalRelease, { passive: true });
     }
   }
 
@@ -82,8 +97,10 @@ export class InteractivePhysicsSystem {
     currentWorldPosition?: THREE.Vector3,
     currentWorldOrientation?: THREE.Quaternion
   ): boolean {
-    // Only one character grabbed at a time
-    if (this.activeGrabbedIndex !== null) return false;
+    // Only one character grabbed at a time: if an active grab was somehow pending, release it immediately!
+    if (this.activeGrabbedIndex !== null) {
+      this.handlePointerUp();
+    }
 
     const controller = this.controllers.get(characterIndex);
     if (!controller) return false;
@@ -128,6 +145,14 @@ export class InteractivePhysicsSystem {
    * @param baseAnimBones Baseline skeleton bones from the base animation player
    */
   public update(delta: number, baseAnimBones?: THREE.Bone[]): void {
+    // Auto-release watchdog: Ensure orphaned or invalid grabs are dropped back to floor
+    if (this.activeGrabbedIndex !== null) {
+      const activeCtrl = this.controllers.get(this.activeGrabbedIndex);
+      if (!activeCtrl || !activeCtrl.grab.isGrabbed()) {
+        this.handlePointerUp();
+      }
+    }
+
     let needsBonesUpdate = false;
     let needsWeightUpdate = false;
     let needsOrientationUpdate = false;
@@ -192,6 +217,12 @@ export class InteractivePhysicsSystem {
   }
 
   public dispose(): void {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('pointerup', this.boundGlobalRelease);
+      window.removeEventListener('mouseup', this.boundGlobalRelease);
+      window.removeEventListener('blur', this.boundGlobalRelease);
+      window.removeEventListener('pointercancel', this.boundGlobalRelease);
+    }
     this.controllers.clear();
     this.activeGrabbedIndex = null;
     this.hoveredIndex = null;
