@@ -29,8 +29,15 @@ export const AgentActivityHUD: React.FC = () => {
           </p>
         </div>
         <button
-          onClick={() => setLowFpsFallback(false)}
-          className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-lg text-sm font-medium transition-colors"
+          onClick={() => {
+            const sm = (window as any).__sceneManager;
+            if (sm && typeof sm.resumeFromFallback === 'function') {
+              sm.resumeFromFallback();
+            } else {
+              setLowFpsFallback(false);
+            }
+          }}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition-all shadow-md shadow-blue-500/20 active:scale-95 cursor-pointer"
         >
           Resume 3D Render
         </button>

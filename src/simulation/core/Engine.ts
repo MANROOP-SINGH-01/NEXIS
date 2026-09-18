@@ -39,6 +39,13 @@ export class Engine {
     this.renderer.setSize(width, height, false);
   }
 
+  private userSuppressedLowFps: boolean = false;
+
+  public suppressLowFps(suppress: boolean = true) {
+    this.userSuppressedLowFps = suppress;
+    this.lowFpsTimer = 0;
+  }
+
   public onLowFps(callback: () => void) {
     this.lowFpsCallback = callback;
   }
@@ -47,17 +54,17 @@ export class Engine {
     const delta = this.timer.getDelta();
     this.uptime += delta;
 
-    // Only trigger low FPS fallback if framerate is truly unplayable (< 10 FPS, delta > 0.10) for > 10 seconds
-    if (this.uptime < 10.0) {
+    // Do not trigger low FPS fallback if user suppressed it, during warmup, or when tab/window is inactive/unfocused
+    const isInactive = document.hidden || (typeof document.hasFocus === 'function' && !document.hasFocus());
+
+    if (this.userSuppressedLowFps || this.uptime < 10.0 || isInactive) {
       this.lowFpsTimer = 0;
-    } else if (delta > 0.10 && !document.hidden) {
+    } else if (delta > 0.10) {
       this.lowFpsTimer += delta;
       if (this.lowFpsTimer >= 10.0) {
         if (this.lowFpsCallback) this.lowFpsCallback();
         this.lowFpsTimer = 0;
       }
-    } else if (document.hidden) {
-      this.lowFpsTimer = 0;
     } else {
       this.lowFpsTimer = Math.max(0, this.lowFpsTimer - delta * 2); // Recover faster
     }

@@ -498,40 +498,106 @@ export class SceneManager {
     useUiStore.setState({ chatMessages: [msg], isThinking: false });
   }
 
-  private onResize() { 
+  public onResize() { 
     const w = this.container.clientWidth, h = this.container.clientHeight;
     if (w === 0 || h === 0) return;
     this.stage.onResize(w, h);
     if (!useCoreStore.getState().isResizing) this.engine.onResize(w, h);
   }
 
+  public attachTo(newContainer: HTMLElement) {
+    if (!newContainer || this.isDisposed) return;
+    if (this.engine.renderer.domElement.parentElement !== newContainer) {
+      newContainer.appendChild(this.engine.renderer.domElement);
+    }
+    if (this.container !== newContainer) {
+      this.container = newContainer;
+      this.resizeObserver.disconnect();
+      this.resizeObserver.observe(newContainer);
+    }
+    this.onResize();
+  }
+
+  public resumeFromFallback() {
+    this.engine.suppressLowFps(true);
+    useUiStore.getState().setLowFpsFallback(false);
+
+    if (this.container && this.engine.renderer.domElement.parentElement !== this.container) {
+      this.container.appendChild(this.engine.renderer.domElement);
+    }
+
+    this.engine.timer.update();
+
+    if (this.stage) {
+      if (!Number.isFinite(this.stage.camera.position.x) ||
+          !Number.isFinite(this.stage.camera.position.y) ||
+          !Number.isFinite(this.stage.camera.position.z)) {
+        this.stage.camera.position.set(10, 8, 15);
+      }
+      if (!Number.isFinite(this.stage.controls.target.x) ||
+          !Number.isFinite(this.stage.controls.target.y) ||
+          !Number.isFinite(this.stage.controls.target.z)) {
+        this.stage.controls.target.set(0, 0.8, 0);
+      }
+    }
+
+    this.onResize();
+    this.engine.render(this.stage.scene, this.stage.camera);
+  }
+
   private animate() {
-    this.engine.timer.update(); const delta = this.engine.timer.getDelta();
-    this.stage.update(); this.controller?.update(delta, this.engine.renderer);
+    this.engine.timer.update();
+    const rawDelta = this.engine.timer.getDelta();
+    const delta = Math.min(Math.max(rawDelta, 0.001), 0.1);
+
+    this.stage.update();
+    this.controller?.update(delta, this.engine.renderer);
     this.controller?.syncFromGPU(this.engine.renderer).then((pos) => {
       if (!pos || !this.controller) return;
-      this.controller.updatePaths(pos); this.driverManager?.update(pos, delta);
+      this.controller.updatePaths(pos);
+      this.driverManager?.update(pos, delta);
       this.updateTransparency(pos, delta);
     });
+
     const player = getActiveAgentSet().user.index;
-    this.stage.setFollowTarget(this.controller?.getCPUPosition(this.selectedIndex ?? player) ?? null);
+    const targetPos = this.controller?.getCPUPosition(this.selectedIndex ?? player);
+    if (targetPos && Number.isFinite(targetPos.x) && Number.isFinite(targetPos.y) && Number.isFinite(targetPos.z)) {
+      this.stage.setFollowTarget(targetPos);
+    } else {
+      this.stage.setFollowTarget(null);
+    }
+
     const { selectedNpcIndex, setSelectedPosition, selectedPosition } = useUiStore.getState();
     const npcScreenPositions: Record<number, { x: number; y: number }> = {};
     const rect = this.container.getBoundingClientRect();
-    if (this.controller) {
+    if (this.controller && rect.width > 0 && rect.height > 0) {
+      let hasSignificantShift = false;
+      const prev = useUiStore.getState().npcScreenPositions;
       for (let i = 0; i < this.controller.getCount(); i++) {
         const p = this.controller.getCPUPosition(i);
-        if (p) {
-          const s = p.clone(); s.y += BUBBLE_Y_OFFSET; s.project(this.stage.camera);
-          npcScreenPositions[i] = { x: (s.x * 0.5 + 0.5) * rect.width, y: (s.y * -0.5 + 0.5) * rect.height };
+        if (p && Number.isFinite(p.x) && Number.isFinite(p.y) && Number.isFinite(p.z)) {
+          const s = p.clone();
+          s.y += BUBBLE_Y_OFFSET;
+          s.project(this.stage.camera);
+          const nx = Math.round((s.x * 0.5 + 0.5) * rect.width);
+          const ny = Math.round((s.y * -0.5 + 0.5) * rect.height);
+          npcScreenPositions[i] = { x: nx, y: ny };
+          const old = prev[i];
+          if (!old || Math.abs(old.x - nx) > 1 || Math.abs(old.y - ny) > 1) {
+            hasSignificantShift = true;
+          }
         }
       }
-      useUiStore.setState({ npcScreenPositions });
+      if (hasSignificantShift) {
+        useUiStore.setState({ npcScreenPositions });
+      }
     }
+
     if (selectedNpcIndex !== null && npcScreenPositions[selectedNpcIndex]) {
       const p = npcScreenPositions[selectedNpcIndex];
       if (Math.abs(p.x - (selectedPosition?.x ?? 0)) > 0.5 || Math.abs(p.y - (selectedPosition?.y ?? 0)) > 0.5) setSelectedPosition(p);
     } else if (selectedPosition !== null) setSelectedPosition(null);
+
     this.stage.setChatMode(useUiStore.getState().isChatting, this.controller?.getAgentState(player) === AgentBehavior.GOTO);
     this.engine.render(this.stage.scene, this.stage.camera);
   }
@@ -544,10 +610,21 @@ export class SceneManager {
       let overlap = false;
       for (let j = 0; j < count; j++) {
         if (i === j) continue;
-        if ((pos[i * 4] - pos[j * 4]) ** 2 + (pos[i * 4 + 2] - pos[j * 4 + 2]) ** 2 < 0.36) { overlap = true; break; }
+        if (Math.abs(pos[i * 4]) > 0.001 || Math.abs(pos[i * 4 + 2]) > 0.001) {
+          const dx = pos[i * 4] - pos[j * 4];
+          const dz = pos[i * 4 + 2] - pos[j * 4 + 2];
+          if (dx * dx + dz * dz < 0.36) { overlap = true; break; }
+        }
       }
-      const cur = buffer.getAlpha(i), tar = overlap ? 0.4 : 1.0;
-      if (Math.abs(cur - tar) > 0.01) buffer.setAlpha(i, THREE.MathUtils.lerp(cur, tar, Math.min(delta * 2.0, 1.0)));
+      const cur = buffer.getAlpha(i), tar = overlap ? 0.6 : 1.0;
+      if (Math.abs(cur - tar) > 0.01) {
+        const nextAlpha = THREE.MathUtils.clamp(
+          THREE.MathUtils.lerp(cur, tar, Math.min(delta * 2.0, 1.0)),
+          0.4,
+          1.0
+        );
+        buffer.setAlpha(i, nextAlpha);
+      }
     }
   }
 

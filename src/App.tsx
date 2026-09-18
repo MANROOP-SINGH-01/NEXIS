@@ -89,13 +89,19 @@ const App: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
-    if (canvasRef.current && !managerRef.current) {
-      const manager = new SceneManager(canvasRef.current);
-      managerRef.current = manager;
-      (window as any).__sceneManager = manager;
-      setSceneManager(manager);
+    if (canvasRef.current) {
+      if (!managerRef.current) {
+        const manager = new SceneManager(canvasRef.current);
+        managerRef.current = manager;
+        (window as any).__sceneManager = manager;
+        setSceneManager(manager);
+      } else {
+        managerRef.current.attachTo(canvasRef.current);
+      }
     }
+  }, [isLowFpsFallback, activeSidebarTab]);
 
+  useEffect(() => {
     return () => {
       if (managerRef.current) {
         managerRef.current.dispose();

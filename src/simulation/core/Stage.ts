@@ -89,14 +89,20 @@ export class Stage {
 
   /** Call every frame with the character's world position to follow, or null to return to origin. */
   public setFollowTarget(pos: THREE.Vector3 | null) {
-    this.followTarget = pos ? pos.clone() : null;
+    if (pos && Number.isFinite(pos.x) && Number.isFinite(pos.y) && Number.isFinite(pos.z)) {
+      this.followTarget = pos.clone();
+    } else {
+      this.followTarget = null;
+    }
   }
 
   public update() {
-    const lerpTarget = this.followTarget
+    const lerpTarget = (this.followTarget && Number.isFinite(this.followTarget.x) && Number.isFinite(this.followTarget.z))
       ? new THREE.Vector3(this.followTarget.x, 0.8, this.followTarget.z)
       : this.defaultTarget;
-    this.controls.target.lerp(lerpTarget, 0.06);
+    if (Number.isFinite(lerpTarget.x) && Number.isFinite(lerpTarget.y) && Number.isFinite(lerpTarget.z)) {
+      this.controls.target.lerp(lerpTarget, 0.06);
+    }
     this.controls.update();
   }
 
