@@ -12,72 +12,91 @@ import {
   Maximize2,
   Settings,
   BarChart3,
-  Play,
   Activity,
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Bot,
+  Layers,
   LucideIcon,
 } from 'lucide-react';
 import { ActiveSidebarTab } from '../../types';
 import { useUiStore } from '../../integration/store/uiStore';
 import { useActiveTeam } from '../../integration/store/teamStore';
 import { useCoreStore } from '../../integration/store/coreStore';
-import { useIsAdmin } from '../admin/useIsAdmin';
 import { useLocale } from '../../integration/hooks/useLocale';
-import { type StringKey } from '../../i18n';
-import { loadDemoData, clearDemoData, isDemoMode } from '../../demo/demoData';
-import {
-  activateFailureSimulation,
-  deactivateFailureSimulation,
-  getActiveScenario,
-  getScenarioLabels,
-  type FailureScenario,
-} from '../../demo/failureSimulation';
+import { isDemoMode, loadDemoData, clearDemoData } from '../../demo/demoData';
 
-interface NavItem {
-  id: ActiveSidebarTab;
-  labelKey: StringKey;
-  icon: LucideIcon;
-  section: 'core' | 'development' | 'verification';
-  badge?: string;
-  accent?: string;
+interface NavGroup {
+  name: string;
+  items: {
+    id: ActiveSidebarTab;
+    label: string;
+    icon: LucideIcon;
+    badge?: string;
+  }[];
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard', labelKey: 'dashboard', icon: LayoutDashboard, section: 'core', accent: 'text-indigo-400' },
-  { id: 'career-health', labelKey: 'careerHealth', icon: Activity, section: 'core', accent: 'text-rose-400' },
-  { id: 'skill-gaps', labelKey: 'skillGaps', icon: Target, section: 'core', accent: 'text-emerald-400' },
-  { id: 'job-matches', labelKey: 'jobMatches', icon: Briefcase, section: 'core', accent: 'text-cyan-400' },
-  
-  { id: 'recommended-programs', labelKey: 'recommendedPrograms', icon: GraduationCap, section: 'development', accent: 'text-amber-400' },
-  { id: 'new-cv', labelKey: 'newCv', icon: FileText, section: 'development', accent: 'text-purple-400' },
-  { id: 'interview-prep', labelKey: 'interviewPrep', icon: MessageSquare, section: 'development', accent: 'text-blue-400' },
-  { id: 'application-tracker', labelKey: 'applicationTracker', icon: Briefcase, section: 'development', accent: 'text-teal-400' },
-  
-  { id: 'career-passport', labelKey: 'careerPassport', icon: ShieldCheck, section: 'verification', accent: 'text-indigo-400' },
-  { id: 'my-outcome', labelKey: 'myOutcome', icon: Award, section: 'verification', accent: 'text-amber-400' },
-  { id: 'linkedin-integration', labelKey: 'linkedinIntegration', icon: Linkedin, section: 'verification', accent: 'text-sky-400' },
+const NAV_GROUPS: NavGroup[] = [
+  {
+    name: 'COMMAND',
+    items: [
+      { id: 'dashboard', label: '3D Agent Office', icon: Bot },
+      { id: 'career-health', label: 'Career Health', icon: Activity },
+    ],
+  },
+  {
+    name: 'DISCOVER',
+    items: [
+      { id: 'job-matches', label: 'Job Intelligence', icon: Briefcase },
+      { id: 'skill-gaps', label: 'Skill Intelligence', icon: Target },
+      { id: 'recommended-programs', label: 'Learning Paths', icon: GraduationCap },
+    ],
+  },
+  {
+    name: 'BUILD',
+    items: [
+      { id: 'new-cv', label: 'Resume Forge', icon: FileText },
+      { id: 'interview-prep', label: 'Interview Studio', icon: MessageSquare },
+    ],
+  },
+  {
+    name: 'TRACK',
+    items: [
+      { id: 'application-tracker', label: 'Applications', icon: Layers },
+    ],
+  },
+  {
+    name: 'VERIFY',
+    items: [
+      { id: 'career-passport', label: 'Career Passport', icon: ShieldCheck },
+      { id: 'my-outcome', label: 'Outcome Proof', icon: Award },
+      { id: 'linkedin-integration', label: 'LinkedIn Sync', icon: Linkedin },
+    ],
+  },
 ];
 
 export const AppSidebar: React.FC = () => {
   const { 
     activeSidebarTab, 
     setActiveSidebarTab, 
-    llmConfig, 
     setBYOKOpen, 
-    setDedupReviewOpen, 
     setAnalyticsDashboardOpen 
   } = useUiStore();
-  const { isAdmin } = useIsAdmin();
-  const { setViewMode } = useCoreStore();
-  const activeTeam = useActiveTeam();
-  const hasKey = Boolean(llmConfig.apiKey);
-  const { locale, setLocale, t } = useLocale();
-  const [demoActive, setDemoActive] = useState(isDemoMode());
-  const [failSim, setFailSim] = useState<FailureScenario | ''>(getActiveScenario() || '');
+  const { t } = useLocale();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [demoActive, setDemoActive] = useState(isDemoMode());
+
+  const handleToggleDemo = () => {
+    if (demoActive) {
+      clearDemoData();
+      setDemoActive(false);
+    } else {
+      loadDemoData();
+      setDemoActive(true);
+    }
+  };
 
   const handleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -89,253 +108,180 @@ export const AppSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`h-screen bg-[#0c0d14]/95 backdrop-blur-2xl border-r border-zinc-800/80 flex flex-col shrink-0 z-40 transition-all duration-300 select-none shadow-2xl ${
+      className={`h-screen bg-[#FBF8F3] border-r border-[#EADFCF] flex flex-col shrink-0 z-40 transition-all duration-300 select-none shadow-[4px_0_24px_rgba(180,150,120,0.05)] ${
         isCollapsed ? 'w-18' : 'w-[250px]'
       }`}
       role="navigation"
-      aria-label={t('mainNavigation')}
+      aria-label="Main Navigation"
     >
       {/* Brand Header */}
-      <div className="h-14 px-4 flex items-center justify-between border-b border-zinc-800/80 shrink-0">
+      <div className="h-16 px-4 flex items-center justify-between border-b border-[#EADFCF] shrink-0 bg-[#F8F3EC]">
         {!isCollapsed ? (
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-md shadow-indigo-600/30">
-              NX
+            <div className="w-8 h-8 rounded-xl bg-[#F47B20] text-white flex items-center justify-center shadow-md shadow-[#F47B20]/25">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xs font-bold tracking-widest text-zinc-100 uppercase font-['Space_Grotesk']">
+              <span className="text-sm font-extrabold tracking-tight text-[#181512] font-['Space_Grotesk']">
                 NEXIS
               </span>
-              <span className="text-[9px] font-mono text-zinc-400 tracking-wider">
-                ORCHESTRATOR
+              <span className="text-[10px] font-medium text-[#999084] tracking-wider uppercase">
+                CAREER OS
               </span>
             </div>
           </div>
         ) : (
           <div className="w-full flex justify-center">
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs">
-              NX
+            <div className="w-8 h-8 rounded-xl bg-[#F47B20] text-white flex items-center justify-center shadow-md shadow-[#F47B20]/25">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
           </div>
         )}
 
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-1 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/60 transition-colors"
+          className="p-1.5 rounded-lg text-[#999084] hover:text-[#181512] hover:bg-[#EFE7DC] transition-colors"
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+          {isCollapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
         </button>
       </div>
 
-      {/* Navigation Links */}
-      <div className="flex-1 py-4 px-2.5 flex flex-col gap-1 overflow-y-auto custom-scrollbar">
-        {/* Render Core Section */}
-        {!isCollapsed && (
-          <span className="px-2.5 pt-1 pb-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-400">
-            INTELLIGENCE
-          </span>
-        )}
-        {NAV_ITEMS.filter((i) => i.section === 'core').map((item) => {
-          const Icon = item.icon;
-          const isActive = activeSidebarTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveSidebarTab(item.id)}
-              className={`group flex items-center gap-3 w-full px-2.5 py-2 rounded-xl text-left transition-all duration-200 relative ${
-                isActive
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25 border border-indigo-500/40 font-semibold'
-                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 font-medium'
-              }`}
-              title={isCollapsed ? t(item.labelKey) : undefined}
-            >
-              <div className={`shrink-0 transition-colors ${isActive ? 'text-white' : item.accent}`}>
-                <Icon size={17} strokeWidth={isActive ? 2.5 : 2} />
-              </div>
-              {!isCollapsed && (
-                <span className="text-xs tracking-tight truncate flex-1">
-                  {t(item.labelKey)}
-                </span>
-              )}
-              {item.id === 'dashboard' && (
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
-              )}
-            </button>
-          );
-        })}
-
-        {/* Development Section */}
-        {!isCollapsed && (
-          <span className="px-2.5 pt-3 pb-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-400">
-            ACCELERATION
-          </span>
-        )}
-        {NAV_ITEMS.filter((i) => i.section === 'development').map((item) => {
-          const Icon = item.icon;
-          const isActive = activeSidebarTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveSidebarTab(item.id)}
-              className={`group flex items-center gap-3 w-full px-2.5 py-2 rounded-xl text-left transition-all duration-200 relative ${
-                isActive
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25 border border-indigo-500/40 font-semibold'
-                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 font-medium'
-              }`}
-              title={isCollapsed ? t(item.labelKey) : undefined}
-            >
-              <div className={`shrink-0 transition-colors ${isActive ? 'text-white' : item.accent}`}>
-                <Icon size={17} strokeWidth={isActive ? 2.5 : 2} />
-              </div>
-              {!isCollapsed && (
-                <span className="text-xs tracking-tight truncate flex-1">
-                  {t(item.labelKey)}
-                </span>
-              )}
-            </button>
-          );
-        })}
-
-        {/* Verification Section */}
-        {!isCollapsed && (
-          <span className="px-2.5 pt-3 pb-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-400">
-            VALIDATION
-          </span>
-        )}
-        {NAV_ITEMS.filter((i) => i.section === 'verification').map((item) => {
-          const Icon = item.icon;
-          const isActive = activeSidebarTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveSidebarTab(item.id)}
-              className={`group flex items-center gap-3 w-full px-2.5 py-2 rounded-xl text-left transition-all duration-200 relative ${
-                isActive
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25 border border-indigo-500/40 font-semibold'
-                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 font-medium'
-              }`}
-              title={isCollapsed ? t(item.labelKey) : undefined}
-            >
-              <div className={`shrink-0 transition-colors ${isActive ? 'text-white' : item.accent}`}>
-                <Icon size={17} strokeWidth={isActive ? 2.5 : 2} />
-              </div>
-              {!isCollapsed && (
-                <span className="text-xs tracking-tight truncate flex-1">
-                  {t(item.labelKey)}
-                </span>
-              )}
-            </button>
-          );
-        })}
-
-        {/* Admin Controls */}
-        {isAdmin && (
-          <div className="pt-3 mt-1 border-t border-zinc-800/60 flex flex-col gap-1">
+      {/* Navigation Cluster Groups */}
+      <div className="flex-1 py-4 px-3 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.name} className="flex flex-col gap-1">
             {!isCollapsed && (
-              <span className="px-2.5 pb-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-400">
-                ADMIN
+              <span className="px-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#999084]">
+                {group.name}
               </span>
             )}
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeSidebarTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveSidebarTab(item.id)}
+                  className={`group flex items-center gap-3 w-full px-2.5 py-2 rounded-xl text-left transition-all duration-150 cursor-pointer ${
+                    isActive
+                      ? 'bg-white text-[#181512] shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-[#EADFCF] font-bold'
+                      : 'text-[#6A6359] hover:text-[#181512] hover:bg-[#F2ECE2] font-medium border border-transparent'
+                  }`}
+                  title={isCollapsed ? item.label : undefined}
+                >
+                  <div
+                    className={`shrink-0 transition-colors ${
+                      isActive ? 'text-[#F47B20]' : 'text-[#6A6359] group-hover:text-[#181512]'
+                    }`}
+                  >
+                    <Icon size={17} strokeWidth={isActive ? 2.5 : 2} />
+                  </div>
+                  {!isCollapsed && (
+                    <span className="text-xs tracking-tight truncate flex-1">
+                      {item.label}
+                    </span>
+                  )}
+                  {!isCollapsed && item.badge && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-semibold bg-[#FFF0E4] text-[#F47B20] border border-[#FDCBA7]">
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+
+        {/* SYSTEM CLUSTER */}
+        <div className="flex flex-col gap-1 pt-2 border-t border-[#F0E6D8]">
+          {!isCollapsed && (
+            <span className="px-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#999084]">
+              SYSTEM
+            </span>
+          )}
+          <button
+            onClick={() => setAnalyticsDashboardOpen(true)}
+            className="group flex items-center gap-3 w-full px-2.5 py-2 rounded-xl text-left text-[#6A6359] hover:text-[#181512] hover:bg-[#F2ECE2] font-medium transition-colors cursor-pointer"
+            title={isCollapsed ? 'Government Analytics' : undefined}
+          >
+            <BarChart3 size={17} className="text-[#6A6359] group-hover:text-[#181512]" />
+            {!isCollapsed && (
+              <span className="text-xs tracking-tight truncate flex-1">
+                Gov & System Analytics
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setBYOKOpen(true)}
+            className="group flex items-center gap-3 w-full px-2.5 py-2 rounded-xl text-left text-[#6A6359] hover:text-[#181512] hover:bg-[#F2ECE2] font-medium transition-colors cursor-pointer"
+            title={isCollapsed ? 'AI Vault & BYOK' : undefined}
+          >
+            <KeyRound size={17} className="text-[#6A6359] group-hover:text-[#181512]" />
+            {!isCollapsed && (
+              <span className="text-xs tracking-tight truncate flex-1">
+                AI Vault & BYOK
+              </span>
+            )}
+          </button>
+          <button
+            onClick={handleToggleDemo}
+            className={`group flex items-center gap-3 w-full px-2.5 py-2 rounded-xl text-left font-medium transition-colors cursor-pointer ${
+              demoActive ? 'bg-[#FFF0E4] text-[#F47B20] border border-[#FDCBA7]' : 'text-[#6A6359] hover:text-[#181512] hover:bg-[#F2ECE2]'
+            }`}
+            title={isCollapsed ? (demoActive ? 'Reset Demo' : 'Load Demo Data') : undefined}
+          >
+            <Sparkles size={17} className={demoActive ? 'text-[#F47B20]' : 'text-[#6A6359] group-hover:text-[#181512]'} />
+            {!isCollapsed && (
+              <span className="text-xs tracking-tight truncate flex-1 font-semibold">
+                {demoActive ? 'Demo Active (Reset)' : 'Load Demo Dataset'}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Bottom Profile / Quick Action Footer */}
+      <div className="p-3 border-t border-[#EADFCF] bg-[#F8F3EC] shrink-0">
+        {!isCollapsed ? (
+          <div className="flex items-center justify-between">
             <button
-              onClick={() => setAnalyticsDashboardOpen(true)}
-              className="flex items-center gap-3 w-full px-2.5 py-1.5 rounded-lg text-left text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/60 text-xs"
-              title="Analytics Dashboard"
+              onClick={() => setActiveSidebarTab('settings')}
+              className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-[#EFE7DC] transition-colors cursor-pointer text-left"
             >
-              <BarChart3 size={16} className="text-indigo-400 shrink-0" />
-              {!isCollapsed && <span>Analytics</span>}
+              <div className="w-8 h-8 rounded-full bg-[#FFF0E4] border border-[#FDCBA7] text-[#F47B20] flex items-center justify-center text-xs font-bold shadow-xs">
+                NX
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-[#181512] leading-tight">
+                  Trainee OS
+                </span>
+                <span className="text-[10px] text-[#2E8555] font-semibold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#2E8555]" />
+                  Verified Ready
+                </span>
+              </div>
             </button>
+
             <button
-              onClick={() => setDedupReviewOpen(true)}
-              className="flex items-center gap-3 w-full px-2.5 py-1.5 rounded-lg text-left text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/60 text-xs"
-              title="Deduplication"
+              onClick={handleFullscreen}
+              className="p-1.5 rounded-lg text-[#999084] hover:text-[#181512] hover:bg-[#EFE7DC] transition-colors"
+              title="Toggle Fullscreen"
             >
-              <Settings size={16} className="text-zinc-400 shrink-0" />
-              {!isCollapsed && <span>Dedup</span>}
+              <Maximize2 size={14} />
             </button>
+          </div>
+        ) : (
+          <div className="flex justify-center">
             <button
-              onClick={() => {
-                if (demoActive) { clearDemoData(); setDemoActive(false); }
-                else { loadDemoData(); setDemoActive(true); }
-              }}
-              className={`flex items-center gap-3 w-full px-2.5 py-1.5 rounded-lg text-left text-xs ${
-                demoActive ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30' : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/60'
-              }`}
-              title="Demo Mode"
+              onClick={() => setActiveSidebarTab('settings')}
+              className="w-8 h-8 rounded-full bg-[#FFF0E4] border border-[#FDCBA7] text-[#F47B20] flex items-center justify-center text-xs font-bold shadow-xs"
+              title="Settings"
             >
-              <Play size={16} className={demoActive ? 'text-amber-400' : 'text-zinc-400'} />
-              {!isCollapsed && <span>Demo Data {demoActive ? 'ON' : ''}</span>}
+              NX
             </button>
           </div>
         )}
-      </div>
-
-      {/* Footer Profile & Utilities */}
-      <div className="p-3 border-t border-zinc-800/80 bg-zinc-950/40 space-y-2">
-        {/* Team Designer Trigger */}
-        <div
-          onClick={() => setViewMode('design')}
-          className="flex items-center gap-2.5 p-2 rounded-xl bg-zinc-900/80 border border-zinc-800 hover:border-indigo-500/40 hover:bg-zinc-800/60 transition-all cursor-pointer group"
-          title="Open Nexus Teams Designer"
-        >
-          <div
-            className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-white text-[11px] font-bold shadow-sm"
-            style={{ backgroundColor: activeTeam.color || '#6366f1' }}
-          >
-            {activeTeam.teamName.substring(0, 2).toUpperCase()}
-          </div>
-          {!isCollapsed && (
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-zinc-200 truncate group-hover:text-white">
-                {activeTeam.teamName}
-              </p>
-              <p className="text-[10px] text-zinc-400 font-mono truncate">
-                {activeTeam.teamType}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Quick Toolbar */}
-        <div className={`flex items-center text-zinc-400 ${isCollapsed ? 'justify-center' : 'justify-between px-1'}`}>
-          <button
-            onClick={() => setBYOKOpen(true)}
-            className="inline-flex items-center gap-1.5 text-[11px] font-medium text-zinc-400 hover:text-zinc-200 py-1 px-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors"
-            title="Configure API Keys (BYOK)"
-          >
-            <KeyRound size={13} className={hasKey ? 'text-emerald-400' : 'text-zinc-400'} />
-            {!isCollapsed && <span>{hasKey ? 'BYOK Ready' : 'BYOK'}</span>}
-          </button>
-
-          {!isCollapsed && (
-            <select
-              value={locale}
-              onChange={(e) => setLocale(e.target.value as any)}
-              className="text-[10px] font-mono text-zinc-400 bg-zinc-900 border border-zinc-800 rounded px-1 py-0.5 cursor-pointer hover:border-zinc-700"
-              aria-label="Select language"
-            >
-              <option value="en">EN</option>
-              <option value="hi">HI</option>
-              <option value="ta">TA</option>
-            </select>
-          )}
-
-          <button
-            onClick={() => setActiveSidebarTab('settings')}
-            className={`p-1 hover:text-zinc-100 hover:bg-zinc-800/60 rounded-lg transition-colors ${activeSidebarTab === 'settings' ? 'text-indigo-400 bg-indigo-500/10' : ''}`}
-            title="Settings & Privacy"
-          >
-            <Settings size={13} />
-          </button>
-
-          <button
-            onClick={handleFullscreen}
-            className="p-1 hover:text-zinc-100 hover:bg-zinc-800/60 rounded-lg transition-colors"
-            title="Toggle Fullscreen"
-          >
-            <Maximize2 size={13} />
-          </button>
-        </div>
       </div>
     </aside>
   );

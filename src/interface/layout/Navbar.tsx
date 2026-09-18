@@ -1,20 +1,23 @@
 import React from 'react';
 import { 
-  Command, 
   Sparkles, 
-  Bell, 
-  Activity, 
-  LogOut, 
-  User, 
-  ChevronDown,
-  Layers,
-  Search
+  Search,
+  Bell,
+  Settings,
+  LogOut,
+  LayoutDashboard,
+  Briefcase,
+  FileText,
+  Target,
+  BarChart3,
+  Bot,
+  Activity,
+  Layers
 } from 'lucide-react';
 import { useAuthStore } from '../../integration/store/authStore';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { useUiStore } from '../../integration/store/uiStore';
-import { Badge } from '../primitives/Badge';
-import { Button } from '../primitives/Button';
+import { ActiveSidebarTab } from '../../types';
 
 interface NavbarProps {
   onOpenCommandBar: () => void;
@@ -23,112 +26,147 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenCommandBar, onOpenResumeForge }) => {
   const { user, clearAuth } = useAuthStore();
-  const { activeSidebarTab, setActiveSidebarTab, setBYOKOpen } = useUiStore();
+  const { activeSidebarTab, setActiveSidebarTab, setBYOKOpen, setAnalyticsDashboardOpen } = useUiStore();
   const { agentStatuses } = useCoreStore();
 
   const workingAgentsCount = Object.values(agentStatuses || {}).filter(
     (s) => s === 'working' || s === 'talking'
   ).length;
 
+  // PulseAI Horizontal Top Pill Tabs
+  const TOP_NAV_TABS: { id: ActiveSidebarTab; label: string; icon: React.ReactNode }[] = [
+    { id: 'dashboard', label: '3D Office', icon: <Bot className="w-3.5 h-3.5" /> },
+    { id: 'career-health', label: 'Overview', icon: <Activity className="w-3.5 h-3.5" /> },
+    { id: 'job-matches', label: 'Jobs', icon: <Briefcase className="w-3.5 h-3.5" /> },
+    { id: 'new-cv', label: 'Resume', icon: <FileText className="w-3.5 h-3.5" /> },
+    { id: 'skill-gaps', label: 'Skills', icon: <Target className="w-3.5 h-3.5" /> },
+    { id: 'application-tracker', label: 'Applications', icon: <Layers className="w-3.5 h-3.5" /> },
+  ];
+
   return (
-    <header className="h-14 border-b border-zinc-800/80 bg-[#090a0f]/80 backdrop-blur-xl px-4 md:px-6 flex items-center justify-between z-30 shrink-0 select-none">
-      {/* Left: Brand / Title / Active view indicator */}
+    <header className="h-16 border-b border-[#EADFCF] bg-[#F8F3EC]/90 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between z-30 shrink-0 select-none">
+      {/* Left: Brand Identity */}
       <div className="flex items-center gap-3">
         <div 
           onClick={() => setActiveSidebarTab('dashboard')} 
           className="flex items-center gap-2.5 cursor-pointer group"
         >
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-[1px] shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/40 transition-all">
-            <div className="w-full h-full bg-[#090a0f] rounded-[11px] flex items-center justify-center">
-              <span className="font-['Space_Grotesk'] font-extrabold text-sm text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-300">
-                NX
-              </span>
-            </div>
+          {/* PulseAI Orange Rounded Icon */}
+          <div className="w-9 h-9 rounded-xl bg-[#F47B20] text-white flex items-center justify-center shadow-md shadow-[#F47B20]/25 group-hover:bg-[#E36D13] transition-all">
+            <Sparkles className="w-5 h-5 text-white" />
           </div>
-          <div className="hidden sm:flex flex-col">
-            <span className="font-['Space_Grotesk'] font-bold text-sm tracking-wider text-white flex items-center gap-1.5">
+          <div className="flex flex-col">
+            <span className="font-['Space_Grotesk'] font-extrabold text-base tracking-tight text-[#181512] flex items-center gap-1.5">
               NEXIS
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-                PRO
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-[#FFF0E4] text-[#F47B20] border border-[#FDCBA7] font-semibold">
+                AI OS
               </span>
             </span>
           </div>
         </div>
 
-        <div className="h-4 w-[1px] bg-zinc-800 mx-1 hidden md:block" />
+        <div className="h-4 w-[1px] bg-[#E5DBCF] mx-1 hidden lg:block" />
 
-        {/* Real-time Agents Pulse Status */}
-        <div className="hidden md:flex items-center gap-2">
+        {/* Live Active Agents Pill */}
+        <div className="hidden xl:flex items-center">
           {workingAgentsCount > 0 ? (
-            <Badge variant="cyan" size="sm" pulseDot>
-              <span>{workingAgentsCount} AGENTS ACTIVE</span>
-            </Badge>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FFF0E4] text-[#C45709] border border-[#FDCBA7]">
+              <span className="w-2 h-2 rounded-full bg-[#F47B20] animate-pulse" />
+              {workingAgentsCount} AGENTS ACTIVE
+            </span>
           ) : (
-            <Badge variant="neutral" size="sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5" />
-              <span>SYSTEM READY</span>
-            </Badge>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#E8F6EE] text-[#246B44] border border-[#BCE4CE]">
+              <span className="w-2 h-2 rounded-full bg-[#2E8555]" />
+              8 AGENTS READY
+            </span>
           )}
         </div>
       </div>
 
-      {/* Center: Command Palette Trigger */}
-      <div className="flex-1 max-w-md mx-4 hidden sm:block">
-        <button
-          onClick={onOpenCommandBar}
-          className="w-full flex items-center justify-between px-3.5 py-1.5 rounded-xl bg-zinc-900/90 border border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 hover:bg-zinc-800/60 transition-all text-xs cursor-pointer shadow-inner"
-        >
-          <div className="flex items-center gap-2">
-            <Search className="w-3.5 h-3.5 text-zinc-400" />
-            <span>Search agents, jobs, resume or press Cmd+K...</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700 rounded shadow-xs">
-              Ctrl+K
-            </kbd>
-          </div>
-        </button>
+      {/* Center: PulseAI Capsule Navigation Tabs */}
+      <div className="hidden md:flex items-center justify-center">
+        <div className="nx-nav-capsule">
+          {TOP_NAV_TABS.map((tab) => {
+            const isActive = activeSidebarTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveSidebarTab(tab.id)}
+                className={`nx-nav-tab flex items-center gap-1.5 cursor-pointer ${
+                  isActive ? 'active' : ''
+                }`}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Right: Actions, Notifications, Profile */}
+      {/* Right: Search Pill, Modals & Profile */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {onOpenResumeForge && (
-          <Button
-            variant="glow"
-            size="sm"
-            onClick={onOpenResumeForge}
-            leftIcon={<Sparkles className="w-3.5 h-3.5" />}
-            className="hidden lg:inline-flex"
-          >
-            Resume Forge
-          </Button>
-        )}
-
+        {/* Soft Search Input Pill (Matching PulseAI "Q Search...") */}
         <button
           onClick={onOpenCommandBar}
-          className="sm:hidden p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800"
-          aria-label="Open Command Search"
+          className="hidden sm:flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#EFE7DC] hover:bg-[#E8DFC0] border border-[#E4D9CC] text-xs text-[#6A6359] hover:text-[#181512] transition-colors cursor-pointer"
+        >
+          <Search className="w-3.5 h-3.5 text-[#999084]" />
+          <span>Search...</span>
+          <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-white text-[#6A6359] rounded border border-[#E0D5C7] shadow-xs">
+            Ctrl+K
+          </kbd>
+        </button>
+
+        {/* Mobile Search Icon Button */}
+        <button
+          onClick={onOpenCommandBar}
+          className="sm:hidden p-2 rounded-full text-[#6A6359] hover:text-[#181512] hover:bg-[#EFE7DC]"
+          aria-label="Search"
         >
           <Search className="w-4 h-4" />
         </button>
 
-        {/* User Account or Login button */}
+        {/* Government / Analytics Quick Launcher */}
+        <button
+          onClick={() => setAnalyticsDashboardOpen(true)}
+          className="p-2 rounded-full text-[#6A6359] hover:text-[#181512] hover:bg-[#EFE7DC] transition-colors"
+          title="Analytics Dashboard"
+          aria-label="Analytics Dashboard"
+        >
+          <BarChart3 className="w-4 h-4" />
+        </button>
+
+        {/* Settings Button */}
+        <button
+          onClick={() => setBYOKOpen(true)}
+          className="p-2 rounded-full text-[#6A6359] hover:text-[#181512] hover:bg-[#EFE7DC] transition-colors"
+          title="AI Keys & Settings"
+          aria-label="AI Keys & Settings"
+        >
+          <Settings className="w-4 h-4" />
+        </button>
+
+        {/* Resume Forge Button */}
+        {onOpenResumeForge && (
+          <button
+            onClick={onOpenResumeForge}
+            className="nx-btn-dark !py-1.5 !px-3.5 !text-xs hidden lg:inline-flex"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#F47B20]" />
+            <span>Resume Forge</span>
+          </button>
+        )}
+
+        {/* User Account / Profile */}
         {user ? (
-          <div className="flex items-center gap-2 pl-2 border-l border-zinc-800">
-            <div className="w-8 h-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 flex items-center justify-center text-xs font-bold uppercase shadow-sm">
+          <div className="flex items-center gap-2 pl-2 border-l border-[#E5DBCF]">
+            <div className="w-8 h-8 rounded-full bg-[#FFF0E4] border border-[#FDCBA7] text-[#F47B20] flex items-center justify-center text-xs font-bold uppercase shadow-sm">
               {user.profile?.name ? user.profile.name.slice(0, 2) : 'US'}
-            </div>
-            <div className="hidden md:flex flex-col text-left">
-              <span className="text-xs font-semibold text-zinc-200 leading-tight">
-                {user.profile?.name || 'Trainee'}
-              </span>
-              <span className="text-[10px] text-zinc-500 font-mono">
-                {user.phone || 'Connected'}
-              </span>
             </div>
             <button
               onClick={() => clearAuth()}
-              className="p-1.5 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors ml-1"
+              className="p-1.5 text-[#999084] hover:text-[#D9453B] hover:bg-[#FDEEED] rounded-full transition-colors"
               title="Sign Out"
               aria-label="Sign Out"
             >
@@ -136,20 +174,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCommandBar, onOpenResumeFo
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-2">
-            <a
-              href="/login"
-              className="text-xs font-medium text-zinc-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-zinc-800/80 transition-colors"
-            >
-              Sign In
-            </a>
-            <a
-              href="/login"
-              className="text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg shadow-sm transition-all"
-            >
-              Get Started
-            </a>
-          </div>
+          <a
+            href="/login"
+            className="nx-btn-primary !py-1.5 !px-3.5 !text-xs"
+          >
+            Sign In
+          </a>
         )}
       </div>
     </header>
