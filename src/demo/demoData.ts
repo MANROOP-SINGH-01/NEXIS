@@ -51,7 +51,7 @@ What you'll do:
 - Lead architecture decisions for new product features
 - Mentor junior engineers and establish coding standards`;
 
-const DEMO_JOBS = [
+export const DEMO_JOBS = [
   {
     id: 'demo-job-1',
     title: 'Senior Full-Stack Engineer',
@@ -63,6 +63,17 @@ const DEMO_JOBS = [
     competitionLevel: 'Medium' as const,
     discoveredAt: Date.now() - 86400000,
     source: 'company-careers' as const,
+    trustScore: 0.95,
+    trustPercent: 95,
+    trustLevel: 'HIGH',
+    isLikelyGhost: false,
+    isDirectAts: true,
+    skillScore: 92,
+    experienceScore: 90,
+    titleScore: 94,
+    projectScore: 88,
+    overallScore: 92,
+    bucket: 'APPLY_NOW' as const,
   },
   {
     id: 'demo-job-2',
@@ -75,6 +86,17 @@ const DEMO_JOBS = [
     competitionLevel: 'Low' as const,
     discoveredAt: Date.now() - 172800000,
     source: 'hidden' as const,
+    trustScore: 0.88,
+    trustPercent: 88,
+    trustLevel: 'HIGH',
+    isLikelyGhost: false,
+    isDirectAts: true,
+    skillScore: 85,
+    experienceScore: 82,
+    titleScore: 84,
+    projectScore: 86,
+    overallScore: 85,
+    bucket: 'APPLY_NOW' as const,
   },
   {
     id: 'demo-job-3',
@@ -87,6 +109,17 @@ const DEMO_JOBS = [
     competitionLevel: 'High' as const,
     discoveredAt: Date.now() - 43200000,
     source: 'linkedin' as const,
+    trustScore: 0.72,
+    trustPercent: 72,
+    trustLevel: 'MEDIUM',
+    isLikelyGhost: false,
+    isDirectAts: false,
+    skillScore: 88,
+    experienceScore: 85,
+    titleScore: 86,
+    projectScore: 84,
+    overallScore: 88,
+    bucket: 'LEARN_THEN_APPLY' as const,
   },
 ];
 
@@ -126,6 +159,7 @@ export function loadDemoData() {
   core.setCurrentResumeContent(DEMO_RESUME);
   core.setTargetJD(DEMO_JD);
   core.setDiscoveredJobs(DEMO_JOBS);
+  useUiStore.getState().setJobMatches('current', DEMO_JOBS as any);
   core.setResumeAnalysis(DEMO_ANALYSIS);
   core.setSkillVerifications({
     'react': { skill: 'React', claimed: true, verified: true, evidence: { type: 'github', url: 'https://github.com/priyasharma/dashboard', summary: 'Built React dashboard used by 50k+ users' } },

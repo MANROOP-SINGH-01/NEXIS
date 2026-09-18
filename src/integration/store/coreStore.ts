@@ -5,7 +5,10 @@ import { DEFAULT_MODELS, AVAILABLE_MODELS } from '../../core/llm/constants';
 import { calculateCost } from '../../core/llm/pricing';
 import { useTeamStore } from './teamStore';
 import { useUiStore } from './uiStore';
-import { ConsentStateMap, OutcomeCheckInRecord, TraineeProfileData } from '../../types';
+import { ConsentStateMap, OutcomeCheckInRecord, TraineeProfileData, CareerPreferences, WorkHistoryProfile, NetworkContact, ApplicationProposal, FitEvaluation, DiscoveredJob } from '../../types';
+import { evaluateJobFit } from '../../services/fitScoringService';
+import { findNetworkMatches } from '../../services/networkMatchingService';
+import { createApplicationProposal } from '../../services/atsWorkflowService';
 
 export type TaskStatus = 'scheduled' | 'on_hold' | 'in_progress' | 'done'
 
@@ -245,6 +248,24 @@ interface CoreState {
   consentState: ConsentStateMap | null
   outcomeHistory: OutcomeCheckInRecord[]
 
+  // ── Proficiently Career Model & ATS Engine ────────────────────
+  preferences: CareerPreferences
+  workHistoryProfile: WorkHistoryProfile
+  networkContacts: NetworkContact[]
+  applicationProposals: ApplicationProposal[]
+  activeProposal: ApplicationProposal | null
+  isApplicationModalOpen: boolean
+
+  // ── Actions — Proficiently Integration ────────────────────────
+  setPreferences: (preferences: Partial<CareerPreferences>) => void;
+  setWorkHistoryProfile: (profile: Partial<WorkHistoryProfile>) => void;
+  addNetworkContact: (contact: Omit<NetworkContact, 'id'>) => void;
+  setNetworkContacts: (contacts: NetworkContact[]) => void;
+  evaluateAllJobsFit: () => void;
+  createApplicationProposal: (job: DiscoveredJob) => ApplicationProposal;
+  updateApplicationProposalStage: (stage: ApplicationProposal['stage'], answers?: Record<string, string>) => void;
+  setApplicationModalOpen: (open: boolean, proposal?: ApplicationProposal | null) => void;
+
   // ── Actions — Project —————————————————————————————————────────
   setUserBrief: (brief: string) => void;
   addReferenceImage: (base64: string) => void;
@@ -386,6 +407,174 @@ export const useCoreStore = create<CoreState>()(
       nexusMirrorItems: [],
       isNexusHunterOpen: false,
 
+      // ── Proficiently Career Model State ───────────────────────────
+      preferences: {
+        targetRoles: ['Senior AI Engineer', 'Full Stack Tech Lead', 'Distributed Systems Architect'],
+        locations: ['Remote', 'Bangalore', 'Pune', 'Hybrid'],
+        workModes: ['REMOTE', 'HYBRID'],
+        minimumSalary: '25 LPA / $120,000',
+        mustHaves: ['TypeScript', 'Node.js', 'PostgreSQL', 'System Architecture'],
+        dealbreakers: ['No legacy maintenance only', 'No on-site outside preferred locations'],
+        niceToHaves: ['LLM Orchestration', 'Three.js / WebGL', 'Docker / Kubernetes', 'GraphQL'],
+      },
+      workHistoryProfile: {
+        candidateName: 'Manroop Singh',
+        overview: 'Senior Software Engineer with 6+ years building real-time systems, multi-agent AI platforms, and high-throughput backends.',
+        careerThroughline: 'Specializes in distributed state management, low-latency API architecture, and production LLM orchestration.',
+        roles: [
+          {
+            title: 'Senior AI Systems Engineer',
+            company: 'Nexis Technologies',
+            startDate: '2023',
+            endDate: 'Present',
+            companyContext: 'High-growth career intelligence and agent orchestration startup',
+            accomplishments: [
+              {
+                headline: 'Architected 8-agent real-time simulation and workflow pipeline',
+                situation: 'uncoordinated career guidance tools causing fragmented user workflows',
+                action: 'built distributed multi-agent state manager with SSE telemetry and Three.js visualization',
+                result: 'reduced user time-to-application by 65%',
+                metrics: ['65% faster application time', '100% state persistence'],
+              },
+              {
+                headline: 'Optimized PostgreSQL and vector embeddings for semantic job matching',
+                situation: 'slow query times on 100k+ job listings database',
+                action: 'implemented pgvector indexing and tiered dealbreaker fit filtering',
+                result: 'slashed P99 match evaluation latency from 1.4s to 85ms',
+                metrics: ['94% latency reduction', '85ms P99 latency'],
+              },
+            ],
+            tools: ['TypeScript', 'Node.js', 'PostgreSQL', 'Three.js', 'Zustand', 'pgvector'],
+            teamLeadership: 'Led pod of 4 engineers delivering core workflow and matching engines.',
+          },
+          {
+            title: 'Full Stack Systems Engineer',
+            company: 'Apex Cloud Solutions',
+            startDate: '2021',
+            endDate: '2023',
+            companyContext: 'Enterprise cloud infrastructure and developer observability provider',
+            accomplishments: [
+              {
+                headline: 'Engineered high-concurrency event ingestion service',
+                situation: 'spiking enterprise audit telemetry overflowing message queues',
+                action: 'designed partitioned worker queues with backpressure and circuit breakers',
+                result: 'sustained 50k events/sec with zero data loss across 18 months',
+                metrics: ['50k events/sec throughput', '0 message loss'],
+              },
+            ],
+            tools: ['Python', 'Docker', 'Redis', 'PostgreSQL', 'Kubernetes'],
+          },
+        ],
+        superpowers: ['Distributed Systems', 'Agentic Workflows', 'Performance Optimization', 'Clean Architecture'],
+        crossRolePatterns: ['Consistently cuts P99 latency by >50%', 'Builds verifiable, testable systems without hype or fake data'],
+        lastUpdated: new Date().toISOString(),
+      },
+      networkContacts: [
+        {
+          id: 'net_1',
+          name: 'Priya Sharma',
+          company: 'Stripe',
+          position: 'Staff Infrastructure Engineer',
+          linkedinUrl: 'https://linkedin.com/in/priya-sharma',
+          email: 'priya.s@stripe.com',
+          relevance: 'Former colleague at Apex Cloud Solutions; can provide warm intro to Payments Infrastructure team.',
+        },
+        {
+          id: 'net_2',
+          name: 'Rahul Varma',
+          company: 'Google',
+          position: 'Engineering Manager, Cloud AI',
+          linkedinUrl: 'https://linkedin.com/in/rahul-varma',
+          email: 'rahulv@google.com',
+          relevance: 'Collaborated on open-source vector search libraries; actively hiring for Gemini Platform.',
+        },
+        {
+          id: 'net_3',
+          name: 'Ananya Deshmukh',
+          company: 'Atlassian',
+          position: 'Senior Engineering Director',
+          linkedinUrl: 'https://linkedin.com/in/ananya-d',
+          email: 'ananya@atlassian.com',
+          relevance: 'College alumni network; strong advocate for remote engineers in APAC.',
+        },
+      ],
+      applicationProposals: [],
+      activeProposal: null,
+      isApplicationModalOpen: false,
+
+      // ── Actions — Proficiently Integration ────────────────────────
+      setPreferences: (preferences) =>
+        set((s) => ({
+          preferences: { ...s.preferences, ...preferences },
+        })),
+
+      setWorkHistoryProfile: (profile) =>
+        set((s) => ({
+          workHistoryProfile: { ...s.workHistoryProfile, ...profile, lastUpdated: new Date().toISOString() },
+        })),
+
+      addNetworkContact: (contact) =>
+        set((s) => ({
+          networkContacts: [
+            ...s.networkContacts,
+            { ...contact, id: `net_${uid()}` },
+          ],
+        })),
+
+      setNetworkContacts: (networkContacts) => set({ networkContacts }),
+
+      evaluateAllJobsFit: () =>
+        set((s) => ({
+          discoveredJobs: s.discoveredJobs.map((job) => ({
+            ...job,
+            fitEvaluation: evaluateJobFit(job, s.preferences, s.workHistoryProfile),
+            networkMatches: findNetworkMatches(job.company, s.networkContacts),
+          })),
+        })),
+
+      createApplicationProposal: (job) => {
+        const s = useCoreStore.getState();
+        const proposal = createApplicationProposal(
+          job,
+          s.workHistoryProfile,
+          'candidate@nexis.ai',
+          '+91 98765 43210',
+          s.currentResume.content || undefined
+        );
+        set((state) => ({
+          applicationProposals: [
+            ...state.applicationProposals.filter((p) => p.jobId !== job.id),
+            proposal,
+          ],
+          activeProposal: proposal,
+          isApplicationModalOpen: true,
+        }));
+        return proposal;
+      },
+
+      updateApplicationProposalStage: (stage, answers) =>
+        set((s) => {
+          if (!s.activeProposal) return {};
+          const updated: ApplicationProposal = {
+            ...s.activeProposal,
+            stage,
+            proposedAnswers: answers ? { ...s.activeProposal.proposedAnswers, ...answers } : s.activeProposal.proposedAnswers,
+            submittedAt: stage === 'submitted' ? new Date().toISOString() : s.activeProposal.submittedAt,
+          };
+          return {
+            activeProposal: updated,
+            applicationProposals: s.applicationProposals.map((p) =>
+              p.jobId === updated.jobId ? updated : p
+            ),
+          };
+        }),
+
+      setApplicationModalOpen: (open, proposal = null) =>
+        set((s) => ({
+          isApplicationModalOpen: open,
+          activeProposal: proposal !== undefined ? proposal : s.activeProposal,
+        })),
+
       setViewMode: (viewMode) => set({ viewMode }),
       setForgeMode: (forgeMode) => set({ forgeMode }),
       setSkillVerifications: (skillVerifications) => set({ skillVerifications }),
@@ -499,7 +688,15 @@ export const useCoreStore = create<CoreState>()(
       setNexusMirrorOpen: (isNexusMirrorOpen) => set({ isNexusMirrorOpen }),
       setNexusMirrorItems: (nexusMirrorItems) => set({ nexusMirrorItems }),
       setNexusHunterOpen: (isNexusHunterOpen) => set({ isNexusHunterOpen }),
-      setDiscoveredJobs: (discoveredJobs) => set({ discoveredJobs }),
+      setDiscoveredJobs: (discoveredJobs: any[]) =>
+        set((s) => {
+          const processed = discoveredJobs.map((job) => ({
+            ...job,
+            fitEvaluation: job.fitEvaluation || evaluateJobFit(job, s.preferences, s.workHistoryProfile),
+            networkMatches: job.networkMatches || findNetworkMatches(job.company, s.networkContacts),
+          }));
+          return { discoveredJobs: processed };
+        }),
 
       resetProject: () => set({
         userBrief: '',
@@ -811,6 +1008,10 @@ export const useCoreStore = create<CoreState>()(
         skillVerifications: state.skillVerifications,
         nexusActivityLog: state.nexusActivityLog,
         forgeMode: state.forgeMode,
+        preferences: state.preferences,
+        workHistoryProfile: state.workHistoryProfile,
+        networkContacts: state.networkContacts,
+        applicationProposals: state.applicationProposals,
       }),
     }
   )

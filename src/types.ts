@@ -26,6 +26,92 @@ export type ActiveSidebarTab =
   | 'settings';
 
 export type JobBucket = 'APPLY_NOW' | 'LEARN_THEN_APPLY' | 'STRETCH' | 'IGNORE';
+export type FitRating = 'HIGH' | 'MEDIUM' | 'LOW' | 'SKIP';
+export type AtsType = 'greenhouse' | 'lever' | 'workday' | 'direct' | 'other';
+
+export interface FitEvaluation {
+  rating: FitRating;
+  dealbreakersTriggered: string[];
+  mustHavesMatched: string[];
+  mustHavesMissing: string[];
+  niceToHavesMatched: string[];
+  scorePercent: number;
+  reason: string;
+}
+
+export interface CareerPreferences {
+  targetRoles: string[];
+  locations: string[];
+  workModes: ('REMOTE' | 'HYBRID' | 'ONSITE')[];
+  minimumSalary?: string | number;
+  mustHaves: string[];
+  dealbreakers: string[];
+  niceToHaves: string[];
+}
+
+export interface WorkHistoryAccomplishment {
+  headline: string;
+  situation: string;
+  action: string;
+  result: string;
+  metrics: string[];
+}
+
+export interface WorkHistoryRole {
+  title: string;
+  company: string;
+  startDate: string;
+  endDate: string;
+  companyContext: string;
+  accomplishments: WorkHistoryAccomplishment[];
+  tools: string[];
+  teamLeadership?: string;
+}
+
+export interface WorkHistoryProfile {
+  candidateName: string;
+  overview: string;
+  careerThroughline: string;
+  roles: WorkHistoryRole[];
+  superpowers: string[];
+  crossRolePatterns: string[];
+  lastUpdated?: string;
+}
+
+export interface NetworkContact {
+  id?: string;
+  name: string;
+  company: string;
+  position: string;
+  linkedinUrl?: string;
+  email?: string;
+  relevance?: string;
+}
+
+export interface ApplicationFormField {
+  name: string;
+  label: string;
+  type: 'text' | 'textarea' | 'dropdown' | 'radio' | 'checkbox' | 'file';
+  required: boolean;
+  proposedValue: string;
+  source: 'profile' | 'resume' | 'default' | 'user_input';
+  needsReview: boolean;
+}
+
+export interface ApplicationProposal {
+  jobId: string;
+  company: string;
+  role: string;
+  atsType: AtsType;
+  directFormUrl?: string;
+  autoFillFields: Record<string, string>;
+  proposedAnswers: Record<string, string>;
+  needsUserInput: ApplicationFormField[];
+  tailoredResumeText?: string;
+  coverLetterText?: string;
+  stage: 'field-approval' | 'submit-approval' | 'submitted';
+  submittedAt?: string;
+}
 
 export interface DiscoveredJob {
   id: string;
@@ -37,7 +123,7 @@ export interface DiscoveredJob {
   nexusMatchReason: string;
   competitionLevel: 'Low' | 'Medium' | 'High';
   discoveredAt: number;
-  source: 'linkedin' | 'company-careers' | 'hidden' | 'adzuna';
+  source: 'linkedin' | 'company-careers' | 'hidden' | 'adzuna' | 'hiring-cafe' | 'network-scan';
   ai_suggested?: boolean;
   // P1.9 Job Trust Score
   trustScore?: number;
@@ -52,6 +138,16 @@ export interface DiscoveredJob {
   projectScore?: number;
   overallScore?: number;
   bucket?: JobBucket;
+  location?: string;
+  description?: string;
+  salary?: string;
+  requiredSkills?: string[];
+  matchedSkills?: string[];
+  // Proficiently Integration Enhancements
+  fitEvaluation?: FitEvaluation;
+  networkMatches?: NetworkContact[];
+  atsType?: AtsType;
+  directEmployerUrl?: string;
 }
 
 export interface RecommendedProgram {
