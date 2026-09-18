@@ -19,6 +19,8 @@ export class Engine {
 
     // Use default shadow map (PCF) as VSM support in WebGPU/NodeMaterial can be sensitive
     this.renderer.shadowMap.enabled = true;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.0;
 
     container.appendChild(this.renderer.domElement);
     this.timer = new THREE.Timer();

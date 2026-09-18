@@ -581,7 +581,10 @@ export class CharacterManager {
       );
 
       const procWeight = attribute('procWeight', 'float');
-      const rotationMat = mix(defaultRotMat, quatRotMat, procWeight);
+      const rotationMat = defaultRotMat.toVar();
+      If(procWeight.greaterThan(0.5), () => {
+        rotationMat.assign(quatRotMat);
+      });
 
       const finalPosition = positionLocal.toVar();
 
@@ -620,8 +623,11 @@ export class CharacterManager {
             if (procAnimBuffer) {
               const procAddress = instanceIndex.mul(uint(this.numBones)).add(boneIdxNode.toUint());
               const procMat = procAnimBuffer.element(procAddress);
-              const blendedMat = mix(bakedMat, procMat, procWeight);
-              skinMat.addAssign(blendedMat.mul(weightNode));
+              const curMat = bakedMat.toVar();
+              If(procWeight.greaterThan(0.5), () => {
+                curMat.assign(procMat);
+              });
+              skinMat.addAssign(curMat.mul(weightNode));
             } else {
               skinMat.addAssign(bakedMat.mul(weightNode));
             }
