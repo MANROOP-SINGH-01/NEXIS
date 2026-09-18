@@ -415,11 +415,11 @@ export default function PhaseOneControlPanel() {
   }
 
   return (
-    <div className="px-4 sm:px-6 py-3.5 border-b border-zinc-800/80 bg-[#0c0d14]/90 backdrop-blur-xl shrink-0 shadow-lg relative z-20">
+    <div className="px-4 sm:px-6 py-3.5 border-b border-[#EADFCF] bg-[#F8F3EC] shrink-0 shadow-xs relative z-20">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-stretch">
         
         {/* Resume Input Area */}
-        <div className="lg:col-span-5 min-h-[96px] bg-[#12131c] border border-zinc-800 rounded-2xl p-3.5 flex flex-col justify-between shadow-inner hover:border-zinc-700/80 transition-colors">
+        <div className="lg:col-span-5 min-h-[96px] bg-white border border-[#EADFCF] rounded-2xl p-3.5 flex flex-col justify-between shadow-xs hover:border-[#D7CABB] transition-colors">
           <input
             ref={fileRef}
             type="file"
@@ -431,27 +431,27 @@ export default function PhaseOneControlPanel() {
             }}
           />
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-400">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#999084]">
               Candidate Resume
             </span>
             <button
               onClick={() => fileRef.current?.click()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/60 rounded-xl text-xs font-medium transition-all cursor-pointer shadow-xs"
+              className="nx-btn-secondary !py-1.5 !px-3 !text-xs cursor-pointer"
             >
-              <UploadCloud size={13} className="text-indigo-400" />
+              <UploadCloud size={13} className="text-[#F47B20]" />
               <span className="truncate max-w-[180px]">
                 {resumeFileName ? resumeFileName : 'Upload PDF'}
               </span>
             </button>
           </div>
-          <div className="mt-2 text-xs text-zinc-400 line-clamp-2 leading-relaxed font-mono">
+          <div className="mt-2 text-xs text-[#6A6359] line-clamp-2 leading-relaxed font-normal">
             {currentResume.content ? `${currentResume.content.slice(0, 130)}...` : 'Upload PDF or paste content to prime agent analysis pipeline.'}
           </div>
         </div>
 
         {/* Job Description Area */}
-        <div className="lg:col-span-4 min-h-[96px] bg-[#12131c] border border-zinc-800 rounded-2xl p-3.5 flex flex-col justify-between shadow-inner hover:border-zinc-700/80 transition-colors relative">
-          <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-400 mb-1">
+        <div className="lg:col-span-4 min-h-[96px] bg-white border border-[#EADFCF] rounded-2xl p-3.5 flex flex-col justify-between shadow-xs hover:border-[#D7CABB] transition-colors relative">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#999084] mb-1">
             Target Job Description
           </span>
           <textarea
@@ -461,7 +461,7 @@ export default function PhaseOneControlPanel() {
               if (!e.target.value.trim()) clearResumeAnalysis()
             }}
             placeholder="Paste target job description or requirements here..."
-            className="w-full flex-1 bg-transparent text-xs text-zinc-200 focus:outline-none placeholder-zinc-600 resize-none custom-scrollbar leading-relaxed font-mono"
+            className="w-full flex-1 bg-transparent text-xs text-[#181512] focus:outline-none placeholder-[#999084] resize-none custom-scrollbar leading-relaxed"
             rows={2}
           />
         </div>
@@ -471,7 +471,9 @@ export default function PhaseOneControlPanel() {
           <button
             onClick={handleRun}
             disabled={!canRun || loading}
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white rounded-xl text-xs font-bold font-['Space_Grotesk'] tracking-wider uppercase transition-all shadow-lg shadow-indigo-600/30 hover:shadow-indigo-500/40 disabled:shadow-none active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed group border border-indigo-500/30 disabled:border-zinc-700/50"
+            className={`w-full py-3 nx-btn-primary !text-xs uppercase tracking-wider cursor-pointer ${
+              !canRun ? 'opacity-50 cursor-not-allowed !bg-[#E5DBCF] !text-[#999084] shadow-none' : ''
+            }`}
             title={canRun ? 'Execute Multi-Agent Pipeline' : `Requires >30 chars in both Resume (now ${resumeLen}) & JD (now ${jdLen})`}
           >
             {loading ? (
@@ -481,20 +483,20 @@ export default function PhaseOneControlPanel() {
               </>
             ) : (
               <>
-                <Play size={13} className="fill-current group-hover:scale-110 transition-transform" />
+                <Play size={13} className="fill-current" />
                 <span>Run Agent Mesh</span>
               </>
             )}
           </button>
           
           {!canRun && !loading && (
-            <div className="text-[10px] font-mono text-amber-400/90 bg-amber-500/10 border border-amber-500/20 rounded-lg py-1 px-2.5 flex items-center gap-1.5 justify-center">
-              <AlertTriangle size={11} className="shrink-0 text-amber-400" />
+            <div className="text-[10px] text-[#A6690E] bg-[#FEF6E9] border border-[#F8DFAC] rounded-full py-1 px-2.5 flex items-center gap-1.5 justify-center font-medium">
+              <AlertTriangle size={11} className="shrink-0 text-[#C98218]" />
               <span>{!resumeLen ? "Upload PDF resume" : resumeLen <= 30 ? "Resume too short" : "Paste JD (>30 chars)"}</span>
             </div>
           )}
           {error && (
-            <div className="text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg px-2.5 py-1 text-center">
+            <div className="text-[10px] text-[#B83128] bg-[#FDEEED] border border-[#F7BEBA] rounded-full px-2.5 py-1 text-center font-medium">
               {error}
             </div>
           )}

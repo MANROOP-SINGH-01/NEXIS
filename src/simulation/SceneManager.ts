@@ -146,6 +146,13 @@ export class SceneManager {
             this.moveNpcToSpawn(id);
           }
         });
+
+        // ── Proficiently ATS Workflow 3D Simulation Sync ────────────
+        if (state.activeProposal && !prevState.activeProposal) {
+          this.setNpcWorking(5, true);
+        } else if (!state.activeProposal && prevState.activeProposal) {
+          this.setNpcWorking(5, false);
+        }
       })
     );
   }
