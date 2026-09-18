@@ -78,8 +78,22 @@ export class CharacterPhysicsController {
     this.position.addScaledVector(this.linearVelocity, dt);
 
     // Office boundary clamp: enforce that character remains inside the office model
-    this.position.x = THREE.MathUtils.clamp(this.position.x, this.settings.minX, this.settings.maxX);
-    this.position.z = THREE.MathUtils.clamp(this.position.z, this.settings.minZ, this.settings.maxZ);
+    if (this.position.x <= this.settings.minX) {
+      this.position.x = this.settings.minX;
+      if (this.linearVelocity.x < 0) this.linearVelocity.x = 0;
+    } else if (this.position.x >= this.settings.maxX) {
+      this.position.x = this.settings.maxX;
+      if (this.linearVelocity.x > 0) this.linearVelocity.x = 0;
+    }
+
+    if (this.position.z <= this.settings.minZ) {
+      this.position.z = this.settings.minZ;
+      if (this.linearVelocity.z < 0) this.linearVelocity.z = 0;
+    } else if (this.position.z >= this.settings.maxZ) {
+      this.position.z = this.settings.maxZ;
+      if (this.linearVelocity.z > 0) this.linearVelocity.z = 0;
+    }
+
     if (this.position.y < this.settings.floorY) {
       this.position.y = this.settings.floorY;
       if (this.linearVelocity.y < 0) this.linearVelocity.y = 0;
@@ -112,6 +126,31 @@ export class CharacterPhysicsController {
     const targetEuler = new THREE.Euler(targetPitch, this.baseFacingYaw, targetRoll, 'YXZ');
     const targetQuat = new THREE.Quaternion().setFromEuler(targetEuler);
 
+    // Wall-Aware Tilt Damping:
+    // If dynamic tilt would project the head or accessories outside the diorama border,
+    // smoothly blend targetQuat towards upright orientation preserving baseFacingYaw.
+    const uprightQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.baseFacingYaw);
+    const headOffset = new THREE.Vector3(0, 1.25, 0).applyQuaternion(targetQuat);
+    let slerpWeight = 0;
+    const SAFE_LIMIT = 4.65;
+
+    if (this.position.x + headOffset.x > SAFE_LIMIT && headOffset.x > 0.001) {
+      slerpWeight = Math.max(slerpWeight, (this.position.x + headOffset.x - SAFE_LIMIT) / headOffset.x);
+    }
+    if (this.position.x + headOffset.x < -SAFE_LIMIT && headOffset.x < -0.001) {
+      slerpWeight = Math.max(slerpWeight, (-SAFE_LIMIT - (this.position.x + headOffset.x)) / -headOffset.x);
+    }
+    if (this.position.z + headOffset.z > SAFE_LIMIT && headOffset.z > 0.001) {
+      slerpWeight = Math.max(slerpWeight, (this.position.z + headOffset.z - SAFE_LIMIT) / headOffset.z);
+    }
+    if (this.position.z + headOffset.z < -SAFE_LIMIT && headOffset.z < -0.001) {
+      slerpWeight = Math.max(slerpWeight, (-SAFE_LIMIT - (this.position.z + headOffset.z)) / -headOffset.z);
+    }
+
+    if (slerpWeight > 0) {
+      targetQuat.slerp(uprightQuat, Math.min(1.0, slerpWeight));
+    }
+
     // Smooth tilt interpolation
     this.orientation.slerp(targetQuat, Math.min(1.0, 16.0 * dt));
 
@@ -137,21 +176,21 @@ export class CharacterPhysicsController {
     if (this.position.x <= this.settings.minX) {
       this.position.x = this.settings.minX;
       this.linearVelocity.x = Math.abs(this.linearVelocity.x) * 0.45;
-      this.angularVelocity.z += 1.5;
+      this.angularVelocity.z = Math.min(this.angularVelocity.z, 0);
     } else if (this.position.x >= this.settings.maxX) {
       this.position.x = this.settings.maxX;
       this.linearVelocity.x = -Math.abs(this.linearVelocity.x) * 0.45;
-      this.angularVelocity.z -= 1.5;
+      this.angularVelocity.z = Math.max(this.angularVelocity.z, 0);
     }
 
     if (this.position.z <= this.settings.minZ) {
       this.position.z = this.settings.minZ;
       this.linearVelocity.z = Math.abs(this.linearVelocity.z) * 0.45;
-      this.angularVelocity.x -= 1.5;
+      this.angularVelocity.x = Math.max(this.angularVelocity.x, 0);
     } else if (this.position.z >= this.settings.maxZ) {
       this.position.z = this.settings.maxZ;
       this.linearVelocity.z = -Math.abs(this.linearVelocity.z) * 0.45;
-      this.angularVelocity.x += 1.5;
+      this.angularVelocity.x = Math.min(this.angularVelocity.x, 0);
     }
 
     if (this.position.y >= this.settings.ceilY) {
@@ -177,6 +216,28 @@ export class CharacterPhysicsController {
     );
     const deltaQuat = new THREE.Quaternion().setFromEuler(deltaEuler);
     this.orientation.multiply(deltaQuat);
+
+    // Containment guard during free-fall / bounce tumble
+    const currentHeadOffset = new THREE.Vector3(0, 1.25, 0).applyQuaternion(this.orientation);
+    let fallSlerp = 0;
+    const SAFE_LIMIT = 4.65;
+    if (this.position.x + currentHeadOffset.x > SAFE_LIMIT && currentHeadOffset.x > 0.001) {
+      fallSlerp = Math.max(fallSlerp, (this.position.x + currentHeadOffset.x - SAFE_LIMIT) / currentHeadOffset.x);
+    }
+    if (this.position.x + currentHeadOffset.x < -SAFE_LIMIT && currentHeadOffset.x < -0.001) {
+      fallSlerp = Math.max(fallSlerp, (-SAFE_LIMIT - (this.position.x + currentHeadOffset.x)) / -currentHeadOffset.x);
+    }
+    if (this.position.z + currentHeadOffset.z > SAFE_LIMIT && currentHeadOffset.z > 0.001) {
+      fallSlerp = Math.max(fallSlerp, (this.position.z + currentHeadOffset.z - SAFE_LIMIT) / currentHeadOffset.z);
+    }
+    if (this.position.z + currentHeadOffset.z < -SAFE_LIMIT && currentHeadOffset.z < -0.001) {
+      fallSlerp = Math.max(fallSlerp, (-SAFE_LIMIT - (this.position.z + currentHeadOffset.z)) / -currentHeadOffset.z);
+    }
+    if (fallSlerp > 0) {
+      const freeUpright = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), currentEuler.y);
+      this.orientation.slerp(freeUpright, Math.min(1.0, fallSlerp * 0.6));
+      this.angularVelocity.multiplyScalar(0.7);
+    }
 
     // Ground / floor collision detection
     if (this.position.y <= this.settings.floorY) {

@@ -89,12 +89,13 @@ export interface ImpactInfo {
  * Keeps agents strictly contained within visible walls and floor.
  */
 export const OFFICE_BOUNDS = {
-  minX: -4.75,
-  maxX: 4.75,
-  minZ: -4.75,
-  maxZ: 4.75,
+  minX: -4.20,
+  maxX: 4.20,
+  minZ: -4.20,
+  maxZ: 4.20,
   floorY: 0.0,
   ceilY: 5.5,
+  maxHeldY: 1.80,
 };
 
 /**
@@ -108,6 +109,7 @@ export interface CharacterPhysicsSettings {
   maxZ: number;
   floorY: number;
   ceilY: number;
+  maxHeldY?: number;
 
   // Body follow spring (Clumsy Ninja playful lag & overshoot)
   followStiffness: number;          // Spring constant k (e.g. 140)
@@ -143,6 +145,7 @@ export const DEFAULT_PHYSICS_SETTINGS: CharacterPhysicsSettings = {
   maxZ: OFFICE_BOUNDS.maxZ,
   floorY: OFFICE_BOUNDS.floorY,
   ceilY: OFFICE_BOUNDS.ceilY,
+  maxHeldY: OFFICE_BOUNDS.maxHeldY,
 
   followStiffness: 140.0,
   followDamping: 18.0,

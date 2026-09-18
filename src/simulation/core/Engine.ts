@@ -6,6 +6,7 @@ export class Engine {
   public timer: THREE.Timer;
   private lowFpsCallback: (() => void) | null = null;
   private lowFpsTimer: number = 0;
+  private uptime: number = 0;
 
   constructor(container: HTMLElement) {
     this.renderer = new THREE.WebGPURenderer({ antialias: true });
@@ -44,13 +45,19 @@ export class Engine {
 
   public render(scene: THREE.Scene, camera: THREE.PerspectiveCamera) {
     const delta = this.timer.getDelta();
-    // Use smoothed delta to check if we're consistently under 30FPS (delta > 0.033)
-    if (delta > 0.0333) {
+    this.uptime += delta;
+
+    // Only trigger low FPS fallback if framerate is truly unplayable (< 10 FPS, delta > 0.10) for > 10 seconds
+    if (this.uptime < 10.0) {
+      this.lowFpsTimer = 0;
+    } else if (delta > 0.10 && !document.hidden) {
       this.lowFpsTimer += delta;
-      if (this.lowFpsTimer >= 3.0) {
+      if (this.lowFpsTimer >= 10.0) {
         if (this.lowFpsCallback) this.lowFpsCallback();
         this.lowFpsTimer = 0;
       }
+    } else if (document.hidden) {
+      this.lowFpsTimer = 0;
     } else {
       this.lowFpsTimer = Math.max(0, this.lowFpsTimer - delta * 2); // Recover faster
     }

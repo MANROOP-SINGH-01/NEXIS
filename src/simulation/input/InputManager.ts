@@ -13,6 +13,8 @@ export class InputManager {
   private boundPointerMove: (e: PointerEvent) => void;
   private boundPointerUp: (e: PointerEvent) => void;
   private boundPointerCancel: (e: PointerEvent) => void;
+  private boundWindowPointerUp: (e: PointerEvent) => void;
+  private boundWindowBlur: () => void;
   private dragStartX = 0;
   private dragStartY = 0;
   private isDragging = false;
@@ -59,10 +61,38 @@ export class InputManager {
       this.canvas.style.cursor = 'auto';
     };
 
+    this.boundWindowPointerUp = () => {
+      if (this.isDragging && this.draggedAgentIdx !== null) {
+        if (this.onPhysicalRelease) {
+          this.onPhysicalRelease(this.draggedAgentIdx);
+        } else {
+          this.onDragEnd(this.draggedAgentIdx);
+        }
+        this.isDragging = false;
+        this.draggedAgentIdx = null;
+        this.canvas.style.cursor = 'auto';
+      }
+    };
+
+    this.boundWindowBlur = () => {
+      if (this.isDragging && this.draggedAgentIdx !== null) {
+        if (this.onPhysicalRelease) {
+          this.onPhysicalRelease(this.draggedAgentIdx);
+        } else {
+          this.onDragEnd(this.draggedAgentIdx);
+        }
+        this.isDragging = false;
+        this.draggedAgentIdx = null;
+        this.canvas.style.cursor = 'auto';
+      }
+    };
+
     canvas.addEventListener('pointerdown', this.boundPointerDown);
     canvas.addEventListener('pointermove', this.boundPointerMove);
     canvas.addEventListener('pointerup', this.boundPointerUp);
     canvas.addEventListener('pointercancel', this.boundPointerCancel);
+    window.addEventListener('pointerup', this.boundWindowPointerUp);
+    window.addEventListener('blur', this.boundWindowBlur);
   }
 
   private handlePointerDown(event: PointerEvent) {
@@ -356,5 +386,7 @@ export class InputManager {
     this.canvas.removeEventListener('pointermove', this.boundPointerMove);
     this.canvas.removeEventListener('pointerup', this.boundPointerUp);
     this.canvas.removeEventListener('pointercancel', this.boundPointerCancel);
+    window.removeEventListener('pointerup', this.boundWindowPointerUp);
+    window.removeEventListener('blur', this.boundWindowBlur);
   }
 }

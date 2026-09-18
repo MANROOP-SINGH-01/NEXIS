@@ -206,9 +206,11 @@ export class CharacterManager {
           if (this.physicsSystem.isCharacterPhysical(i)) {
             const ctrl = this.physicsSystem.getController(i);
             if (ctrl) {
-              this.debugPosArray[i * 4 + 0] = ctrl.physics.position.x;
+              const clampedX = Math.max(-4.20, Math.min(4.20, ctrl.physics.position.x));
+              const clampedZ = Math.max(-4.20, Math.min(4.20, ctrl.physics.position.z));
+              this.debugPosArray[i * 4 + 0] = clampedX;
               this.debugPosArray[i * 4 + 1] = ctrl.physics.position.y;
-              this.debugPosArray[i * 4 + 2] = ctrl.physics.position.z;
+              this.debugPosArray[i * 4 + 2] = clampedZ;
             }
           }
         }
@@ -252,13 +254,15 @@ export class CharacterManager {
           if (this.physicsSystem.isCharacterPhysical(i)) {
             const ctrl = this.physicsSystem.getController(i);
             if (ctrl) {
-              arr[i * 4 + 0] = ctrl.physics.position.x;
+              const clampedX = Math.max(-4.20, Math.min(4.20, ctrl.physics.position.x));
+              const clampedZ = Math.max(-4.20, Math.min(4.20, ctrl.physics.position.z));
+              arr[i * 4 + 0] = clampedX;
               arr[i * 4 + 1] = ctrl.physics.position.y;
-              arr[i * 4 + 2] = ctrl.physics.position.z;
+              arr[i * 4 + 2] = clampedZ;
               if (this.debugPosArray) {
-                this.debugPosArray[i * 4 + 0] = ctrl.physics.position.x;
+                this.debugPosArray[i * 4 + 0] = clampedX;
                 this.debugPosArray[i * 4 + 1] = ctrl.physics.position.y;
-                this.debugPosArray[i * 4 + 2] = ctrl.physics.position.z;
+                this.debugPosArray[i * 4 + 2] = clampedZ;
               }
               dirty = true;
             }
@@ -415,10 +419,15 @@ export class CharacterManager {
         If(dist.greaterThan(float(0.2)), () => {
           const gotoVel = toTarget.normalize().mul(this.uSpeed.mul(3.0));
           velElement.assign(vec4(gotoVel, 0.0));
-          posElement.assign(vec4(pos.add(gotoVel), 1.0));
+          const nextPos = pos.add(gotoVel);
+          const clampedX = nextPos.x.clamp(float(-4.20), float(4.20));
+          const clampedZ = nextPos.z.clamp(float(-4.20), float(4.20));
+          posElement.assign(vec4(clampedX, nextPos.y, clampedZ, 1.0));
         }).Else(() => {
           // Snap X,Z to exact waypoint — CPU will transition to IDLE this frame
-          posElement.assign(vec4(agentData.x, pos.y, agentData.z, 1.0));
+          const clampedWpX = agentData.x.clamp(float(-4.20), float(4.20));
+          const clampedWpZ = agentData.z.clamp(float(-4.20), float(4.20));
+          posElement.assign(vec4(clampedWpX, pos.y, clampedWpZ, 1.0));
         });
 
       }).Else(() => {

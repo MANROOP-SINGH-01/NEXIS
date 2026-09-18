@@ -183,11 +183,8 @@ const App: React.FC = () => {
                 visibility: viewMode === 'design' ? 'hidden' : 'visible',
               }}
             >
-              {isLowFpsFallback ? (
-                <AgentActivityHUD />
-              ) : (
-                <SimulationView canvasRef={canvasRef} isFullscreen={isFullscreen} setIsFullscreen={setIsFullscreen} />
-              )}
+              <SimulationView canvasRef={canvasRef} isFullscreen={isFullscreen} setIsFullscreen={setIsFullscreen} />
+              {isLowFpsFallback && <AgentActivityHUD />}
             </div>
           </div>
 
