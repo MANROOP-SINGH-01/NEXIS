@@ -25,6 +25,14 @@ import { USER_COLOR } from '../theme/brand';
 import { useIsAdmin } from './admin/useIsAdmin';
 import { useLocale } from '../integration/hooks/useLocale';
 import { type StringKey } from '../i18n';
+import { loadDemoData, clearDemoData, isDemoMode } from '../demo/demoData';
+import {
+  activateFailureSimulation,
+  deactivateFailureSimulation,
+  getActiveScenario,
+  getScenarioLabels,
+  type FailureScenario,
+} from '../demo/failureSimulation';
 
 interface NavItem {
   id: ActiveSidebarTab;
@@ -53,6 +61,8 @@ export const Sidebar: React.FC = () => {
   const activeTeam = useActiveTeam();
   const hasKey = Boolean(llmConfig.apiKey);
   const { locale, setLocale, t } = useLocale();
+  const [demoActive, setDemoActive] = useState(isDemoMode());
+  const [failSim, setFailSim] = useState<FailureScenario | ''>(getActiveScenario() || '');
 
   const handleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -141,6 +151,42 @@ export const Sidebar: React.FC = () => {
               </div>
               <span className="truncate group-hover:text-zinc-900">Dedup</span>
             </button>
+            <button
+              onClick={() => {
+                if (demoActive) { clearDemoData(); setDemoActive(false); }
+                else { loadDemoData(); setDemoActive(true); }
+              }}
+              className={`group flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-left transition-all cursor-pointer text-sm font-medium ${
+                demoActive ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'hover:bg-zinc-100/80 text-zinc-600'
+              }`}
+              aria-label="Demo Mode"
+            >
+              <div className={`shrink-0 ${demoActive ? 'text-amber-500' : 'text-zinc-400 group-hover:text-zinc-900'}`}>
+                <Play size={18} strokeWidth={2} />
+              </div>
+              <span className="truncate">Demo Mode</span>
+              {demoActive && <span className="ml-auto text-[9px] font-bold uppercase text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded">ON</span>}
+            </button>
+            {/* Demo Failure Simulation */}
+            <div className="px-3 pt-1">
+              <select
+                value={failSim}
+                onChange={(e) => {
+                  const v = e.target.value as FailureScenario | '';
+                  if (v) { activateFailureSimulation(v); setFailSim(v); }
+                  else { deactivateFailureSimulation(); setFailSim(''); }
+                }}
+                className={`w-full text-[10px] font-semibold rounded-lg px-2 py-1.5 border cursor-pointer transition-colors ${
+                  failSim ? 'bg-red-50 text-red-700 border-red-200' : 'bg-zinc-50 text-zinc-500 border-zinc-200 hover:border-zinc-400'
+                }`}
+                aria-label="Failure Simulation"
+              >
+                <option value="">Failure Sim: OFF</option>
+                {Object.entries(getScenarioLabels()).map(([k, v]) => (
+                  <option key={k} value={k}>{v}</option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
       </div>

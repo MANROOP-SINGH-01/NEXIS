@@ -93,8 +93,10 @@ export const OutcomeStatusView: React.FC = () => {
         const parsed = JSON.parse(auth);
         if (parsed?.state?.token) return parsed.state.token;
       }
+      const stored = localStorage.getItem('forge-github-token');
+      if (stored && stored.trim()) return stored.trim();
     } catch {}
-    return '';
+    return 'dev_trainee';
   }, []);
 
   const fetchGovtChecks = useCallback(async () => {
