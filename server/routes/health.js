@@ -6,13 +6,23 @@
  */
 
 import { Router } from 'express'
+import prisma from '../lib/prisma.js'
 import { isFreeLLMAPIAvailable, generate } from '../services/llmService.js'
+import { FREELLMAPI_BASE_URL } from '../config.js'
 
 const router = Router()
 
-import { FREELLMAPI_BASE_URL } from '../config.js'
-
 router.get('/health', async (_req, res) => {
+  let dbStatus = 'unavailable'
+  try {
+    const count = await prisma.skill.count()
+    if (typeof count === 'number') {
+      dbStatus = 'connected'
+    }
+  } catch (err) {
+    dbStatus = 'unavailable'
+  }
+
   let llmStatus = 'unavailable'
   try {
     const check = await fetch(`${FREELLMAPI_BASE_URL}/models`, {
@@ -26,7 +36,7 @@ router.get('/health', async (_req, res) => {
     // Network error or timeout means unavailable
   }
 
-  res.json({ status: 'ok', llmRouter: llmStatus })
+  res.json({ status: 'ok', database: dbStatus, llmRouter: llmStatus })
 })
 
 router.get('/diagnostic/freellm', async (req, res) => {
