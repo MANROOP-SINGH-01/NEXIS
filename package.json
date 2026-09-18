@@ -20,6 +20,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
+    "test": "playwright test tests/unit",
+    "test:e2e": "playwright test tests/e2e",
     "db:deploy": "prisma migrate deploy",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
