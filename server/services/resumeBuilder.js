@@ -174,6 +174,7 @@ export function normalizeAnalysisShape(rawAnalysis, fallbackAnalysis) {
     dimensions.seniorityFit * 0.10
   )
   const overallScore = toPercent(rawAnalysis?.overallScore, computedOverall)
+  const interview = rawAnalysis?.interviewReadiness || {}
 
   return {
     atsCompatibility: ats,

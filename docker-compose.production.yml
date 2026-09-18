@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  nexis-backend:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      # Persist SQLite database and other data
+      - nexis-data:/app/data
+      # Share the built dist/ folder with Caddy
+      - nexis-dist:/app/dist
+    ports:
+      # Expose locally to the host just in case, but Caddy will route to it internally
+      - "127.0.0.1:8787:8787"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - NODE_ENV=production
+      - FREELLMAPI_BASE_URL=http://host.docker.internal:31415/v1
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Mount the Caddyfile
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      # Mount the dist folder from the backend container to serve statically
+      - nexis-dist:/srv/dist
+      # Persist Caddy data (certificates)
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - nexis-backend
+
+volumes:
+  nexis-data:
+  nexis-dist:
+  caddy_data:
+  caddy_config:

@@ -12,10 +12,13 @@ export class InputManager {
   private boundPointerDown: (e: PointerEvent) => void;
   private boundPointerMove: (e: PointerEvent) => void;
   private boundPointerUp: (e: PointerEvent) => void;
+  private boundPointerCancel: (e: PointerEvent) => void;
   private dragStartX = 0;
   private dragStartY = 0;
   private isDragging = false;
   private draggedAgentIdx: number | null = null;
+  private lastAgentHitPoint: THREE.Vector3 | null = null;
+  private lastPointerTime = 0;
 
   public selectedIndex: number | null = null;
 
@@ -34,14 +37,32 @@ export class InputManager {
     private onDragEnd: (index: number) => void,
     private raycastObject?: THREE.Object3D,
     private isPointValid?: (point: THREE.Vector3) => boolean,
+    private onPhysicalGrab?: (index: number, pointerNDC: THREE.Vector2, hitPointWorld?: THREE.Vector3) => void,
+    private onPhysicalMove?: (pointerNDC: THREE.Vector2, delta: number) => void,
+    private onPhysicalRelease?: (index: number) => void,
   ) {
 
     this.boundPointerDown = this.handlePointerDown.bind(this);
     this.boundPointerMove = this.handlePointerMove.bind(this);
     this.boundPointerUp = this.handlePointerUp.bind(this);
+    this.boundPointerCancel = (e: PointerEvent) => {
+      try { this.canvas.releasePointerCapture(e.pointerId); } catch {}
+      if (this.isDragging && this.draggedAgentIdx !== null) {
+        if (this.onPhysicalRelease) {
+          this.onPhysicalRelease(this.draggedAgentIdx);
+        } else {
+          this.onDragEnd(this.draggedAgentIdx);
+        }
+      }
+      this.isDragging = false;
+      this.draggedAgentIdx = null;
+      this.canvas.style.cursor = 'auto';
+    };
+
     canvas.addEventListener('pointerdown', this.boundPointerDown);
     canvas.addEventListener('pointermove', this.boundPointerMove);
     canvas.addEventListener('pointerup', this.boundPointerUp);
+    canvas.addEventListener('pointercancel', this.boundPointerCancel);
   }
 
   private handlePointerDown(event: PointerEvent) {
@@ -55,6 +76,13 @@ export class InputManager {
     this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     this.draggedAgentIdx = this.getAgentAtPointer();
+
+    if (this.draggedAgentIdx !== null) {
+      try {
+        this.canvas.setPointerCapture(event.pointerId);
+      } catch {}
+      this.lastPointerTime = performance.now();
+    }
   }
 
   private handlePointerMove(event: PointerEvent) {
@@ -68,12 +96,27 @@ export class InputManager {
         const dx = event.clientX - this.dragStartX;
         const dy = event.clientY - this.dragStartY;
         if ((dx * dx + dy * dy) > DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX) {
-          this.isDragging = true;
+          if (!this.isDragging) {
+            this.isDragging = true;
+            this.lastPointerTime = performance.now();
+            if (this.draggedAgentIdx !== null && this.onPhysicalGrab) {
+              this.onPhysicalGrab(this.draggedAgentIdx, this.pointer, this.lastAgentHitPoint ?? undefined);
+            }
+          }
           
           if (this.draggedAgentIdx !== null) {
-            const floorPos = this.getWorldClickPosition();
-            if (floorPos) {
-              this.onDrag(this.draggedAgentIdx, floorPos);
+            this.canvas.style.cursor = 'grabbing';
+            const now = performance.now();
+            const delta = Math.max(0.001, Math.min(0.05, (now - this.lastPointerTime) / 1000));
+            this.lastPointerTime = now;
+
+            if (this.onPhysicalMove) {
+              this.onPhysicalMove(this.pointer, delta);
+            } else {
+              const floorPos = this.getWorldClickPosition();
+              if (floorPos) {
+                this.onDrag(this.draggedAgentIdx, floorPos);
+              }
             }
           }
         }
@@ -83,7 +126,11 @@ export class InputManager {
 
     // Reset dragging state when no buttons are pressed
     if (this.isDragging && this.draggedAgentIdx !== null) {
-       this.onDragEnd(this.draggedAgentIdx);
+      if (this.onPhysicalRelease) {
+        this.onPhysicalRelease(this.draggedAgentIdx);
+      } else {
+        this.onDragEnd(this.draggedAgentIdx);
+      }
     }
     this.isDragging = false;
     this.draggedAgentIdx = null;
@@ -169,6 +216,13 @@ export class InputManager {
         closestIdx = i;
       }
     }
+
+    if (closestIdx !== null && closestT < Infinity) {
+      this.lastAgentHitPoint = ray.origin.clone().addScaledVector(ray.direction, closestT);
+    } else {
+      this.lastAgentHitPoint = null;
+    }
+
     return closestIdx;
   }
 
@@ -205,11 +259,21 @@ export class InputManager {
 
   private handlePointerUp(event: PointerEvent) {
     if (event.button !== 0) return;
+    try {
+      this.canvas.releasePointerCapture(event.pointerId);
+    } catch {}
+
     if (this.isDragging) {
       if (this.draggedAgentIdx !== null) {
-        this.onDragEnd(this.draggedAgentIdx);
+        if (this.onPhysicalRelease) {
+          this.onPhysicalRelease(this.draggedAgentIdx);
+        } else {
+          this.onDragEnd(this.draggedAgentIdx);
+        }
         this.draggedAgentIdx = null;
       }
+      this.isDragging = false;
+      this.canvas.style.cursor = 'auto';
       return;
     }
     this.draggedAgentIdx = null;
@@ -291,5 +355,6 @@ export class InputManager {
     this.canvas.removeEventListener('pointerdown', this.boundPointerDown);
     this.canvas.removeEventListener('pointermove', this.boundPointerMove);
     this.canvas.removeEventListener('pointerup', this.boundPointerUp);
+    this.canvas.removeEventListener('pointercancel', this.boundPointerCancel);
   }
 }

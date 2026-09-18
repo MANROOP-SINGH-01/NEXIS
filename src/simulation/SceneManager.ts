@@ -98,7 +98,7 @@ export class SceneManager {
     this.container = container;
     this.engine = new Engine(container);
     this.stage = new Stage(this.engine.renderer.domElement);
-    this.characterManager = new CharacterManager(this.stage.scene);
+    this.characterManager = new CharacterManager(this.stage.scene, this.stage.camera);
     this.navMesh = new NavMeshManager();
     this.poiManager = new PoiManager();
     this.characterManager.setPoiManager(this.poiManager);
@@ -176,7 +176,10 @@ export class SceneManager {
       () => this.controller!.getCPUPositions(), () => this.controller!.getCount(),
       (idx) => { if (useUiStore.getState().isChatting) useUiStore.getState().setChatting(false); this.selectedIndex = idx !== activeSet.user.index ? idx : null; useUiStore.getState().setSelectedNpc(this.selectedIndex); },
       (x, z) => this.driverManager?.getPlayerDriver().onFloorClick(x, z),
-      (idx, pos) => useUiStore.getState().setHoveredNpc(idx, pos),
+      (idx, pos) => {
+        useUiStore.getState().setHoveredNpc(idx, pos);
+        this.characterManager.getPhysicsSystem()?.setHoveredIndex(idx);
+      },
       () => this.poiManager.getAllPois(),
       (id, label, pos) => useUiStore.getState().setHoveredPoi(id, label, pos),
       (id) => this.driverManager?.getPlayerDriver().onPoiClick(id),
@@ -188,7 +191,49 @@ export class SceneManager {
         useUiStore.getState().setAgentStatus(idx, 'idle');
         this.moveNpcToSpawn(idx); // agent paths back to default position on release
       },
-      this.worldManager.getOffice() ?? undefined, (p) => this.navMesh.isPointOnNavMesh(p)
+      this.worldManager.getOffice() ?? undefined, (p) => this.navMesh.isPointOnNavMesh(p),
+      // ── Physical Clumsy Ninja-style Grab, Drag & Release Callbacks ─────────
+      (idx, pointerNDC, hitPointWorld) => {
+        this.stage.controls.enabled = false;
+        this.controller?.play(idx, 'grabbed');
+        this.characterManager.setPhysicsMode(idx, AgentBehavior.PHYSICAL);
+        useUiStore.getState().setAgentStatus(idx, 'dragged');
+
+        const phys = this.characterManager.getPhysicsSystem();
+        if (phys) {
+          phys.handlePointerDown(idx, pointerNDC, hitPointWorld);
+          const ctrl = phys.getController(idx);
+          if (ctrl) {
+            ctrl.onStateChange = (state) => {
+              if (state === 'AIRBORNE') {
+                this.controller?.play(idx, 'airborne');
+              } else if (state === 'IMPACT') {
+                this.controller?.play(idx, 'impact');
+              } else if (state === 'RECOVERING' || state === 'SETTLING') {
+                this.controller?.play(idx, 'recovering');
+              } else if (state === 'IDLE') {
+                this.characterManager.setPhysicsMode(idx, AgentBehavior.IDLE);
+                this.controller?.play(idx, 'idle');
+                useUiStore.getState().setAgentStatus(idx, 'idle');
+                this.moveNpcToSpawn(idx);
+              }
+            };
+          }
+        }
+      },
+      (pointerNDC, delta) => {
+        const phys = this.characterManager.getPhysicsSystem();
+        if (phys) {
+          phys.handlePointerMove(pointerNDC, delta);
+        }
+      },
+      (idx) => {
+        this.stage.controls.enabled = true;
+        const phys = this.characterManager.getPhysicsSystem();
+        if (phys) {
+          phys.handlePointerUp();
+        }
+      }
     );
 
     this.engine.renderer.setAnimationLoop(this.animate.bind(this));

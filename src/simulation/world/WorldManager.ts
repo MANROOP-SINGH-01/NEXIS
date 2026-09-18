@@ -50,12 +50,52 @@ export class WorldManager {
 
             // Check if mesh name starts with "colored" to apply thematic color
             const isColoredMesh = name.startsWith('colored');
+            const isPC = name.includes('pc') || name.includes('laptop');
+            const isDesk = name.includes('desk') || name.includes('table') || name.includes('counter');
+            const isFloor = name.includes('floor');
+            const isLamp = name.includes('flexo');
+            const isPlant = name.includes('plant');
+            const isSeating = name.includes('chair') || name.includes('sofa');
+
+            let roughness = 0.58;
+            let metalness = 0.15;
+            let emissive: THREE.Color | undefined = undefined;
+            let emissiveIntensity = 0.0;
+
+            if (isPC) {
+              // Sleek workstation chassis with subtle terminal screen glow
+              roughness = 0.28;
+              metalness = 0.75;
+              emissive = new THREE.Color(0x0284c7);
+              emissiveIntensity = 0.45;
+            } else if (isLamp) {
+              // Architectural desk flexo lamp with warm glow
+              roughness = 0.32;
+              metalness = 0.6;
+              emissive = new THREE.Color(0xfef08a);
+              emissiveIntensity = 0.55;
+            } else if (isDesk) {
+              // Modern satin studio desk
+              roughness = 0.52;
+              metalness = 0.05;
+            } else if (isFloor) {
+              // Clean architectural studio floor with gentle specular reflection
+              roughness = 0.55;
+              metalness = 0.02;
+            } else if (isPlant) {
+              roughness = 0.52;
+              metalness = 0.05;
+            } else if (isSeating) {
+              roughness = 0.82;
+              metalness = 0.02;
+            }
 
             mesh.material = new THREE.MeshStandardNodeMaterial({
               color: isColoredMesh ? themeColor : oldMat.color,
               map: oldMat.map,
-              roughness: 1,
-              metalness: 0.35,
+              roughness,
+              metalness,
+              ...(emissive ? { emissive, emissiveIntensity } : {}),
             });
           }
         }

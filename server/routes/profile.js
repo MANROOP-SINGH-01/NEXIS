@@ -107,4 +107,64 @@ router.get('/profile/completeness', requireAuth, async (req, res) => {
   });
 });
 
+// DELETE /api/profile - Unified account & personal data deletion (Right-to-be-Forgotten / DPDP)
+router.delete('/profile', requireAuth, async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        trainee: true,
+        candidateProfile: true,
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User account not found.' });
+    }
+
+    // Run cascading deletions inside transaction
+    await prisma.$transaction(async (tx) => {
+      // 1. If candidateProfile exists, delete dependent records
+      if (user.candidateProfile) {
+        const cpId = user.candidateProfile.id;
+        await tx.jobApplication.deleteMany({ where: { candidateId: cpId } });
+        await tx.careerAction.deleteMany({ where: { candidateId: cpId } });
+        await tx.careerReadinessSnapshot.deleteMany({ where: { candidateId: cpId } });
+        await tx.interviewSession.deleteMany({ where: { candidateId: cpId } });
+        await tx.skillEvidence.deleteMany({ where: { candidateId: cpId } });
+        await tx.careerPassportItem.deleteMany({ where: { candidateId: cpId } });
+        await tx.candidateProfile.delete({ where: { id: cpId } });
+      }
+
+      // 2. User skills, sessions, event logs
+      await tx.userSkill.deleteMany({ where: { userId } });
+      await tx.session.deleteMany({ where: { userId } });
+      await tx.agentEventLog.deleteMany({ where: { userId } });
+
+      // 3. If trainee is linked, delete trainee and its records
+      if (user.traineeId) {
+        await tx.consentRecord.deleteMany({ where: { traineeId: user.traineeId } });
+        await tx.enrolment.deleteMany({ where: { traineeId: user.traineeId } });
+        await tx.outcomeCheckIn.deleteMany({ where: { traineeId: user.traineeId } });
+        await tx.employerVerification.deleteMany({ where: { traineeId: user.traineeId } });
+        await tx.govtCrossCheckResult.deleteMany({ where: { traineeId: user.traineeId } });
+        await tx.trainee.delete({ where: { id: user.traineeId } });
+      }
+
+      // 4. Delete user record
+      await tx.user.delete({ where: { id: userId } });
+    });
+
+    res.clearCookie('sessionToken');
+    res.json({
+      success: true,
+      message: 'Your account and all associated personal data have been completely deleted in compliance with the DPDP Act.'
+    });
+  } catch (err) {
+    console.error('[profile/delete] error:', err);
+    res.status(500).json({ error: 'Failed to erase user profile and data.' });
+  }
+});
+
 export default router;

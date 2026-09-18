@@ -34,3 +34,5 @@ offline-snapshots/
 
 graphify-out/
 .playwright-mcp/
+test-results/
+playwright-report/

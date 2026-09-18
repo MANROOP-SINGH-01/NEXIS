@@ -47,7 +47,7 @@ async function safeReadJson(response) {
   }
 }
 
-export async function callGeminiText({ apiKey = GEMINI_API_KEY, prompt, systemInstruction, modelCandidates = GEMINI_MODELS }) {
+export async function callGeminiText({ apiKey = GEMINI_API_KEY, prompt, systemInstruction, jsonMode = false, timeout = 30000, modelCandidates = GEMINI_MODELS }) {
   const key = (apiKey || GEMINI_API_KEY || '').trim()
   let lastError = null
 
@@ -58,10 +58,14 @@ export async function callGeminiText({ apiKey = GEMINI_API_KEY, prompt, systemIn
         response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: AbortSignal.timeout(timeout),
           body: JSON.stringify({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
             ...(systemInstruction && String(systemInstruction).trim() ? {
               systemInstruction: { parts: [{ text: String(systemInstruction).trim() }] }
+            } : {}),
+            ...(jsonMode ? {
+              generationConfig: { responseMimeType: 'application/json' }
             } : {})
           }),
         })

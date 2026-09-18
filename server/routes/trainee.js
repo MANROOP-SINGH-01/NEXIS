@@ -195,38 +195,77 @@ router.get('/trainee/profile', async (req, res) => {
   }
 })
 
-// ── DELETE /api/trainee/profile ───────────────────────────────────────────────
-// Deletes the caller's Trainee record and cascades to Enrolments and Consents.
-// Auth: Authorization: Bearer <github_token>
-router.delete('/trainee/profile', async (req, res) => {
-  let caller
-  try {
-    caller = await resolveGithubIdentity(req)
-  } catch (authErr) {
-    res.status(authErr.statusCode || 401).json({ error: authErr.message })
-    return
+import { validateSession } from '../services/authService.js'
+
+async function resolveCallerTrainee(req) {
+  const authHeader = req.headers.authorization || ''
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : (req.cookies?.sessionToken || '')
+
+  if (token) {
+    const user = await validateSession(token)
+    if (user) {
+      if (user.traineeId) {
+        const trainee = await prisma.trainee.findUnique({ where: { id: user.traineeId } })
+        if (trainee) return { trainee, user, source: 'user-session' }
+      }
+      const trainee = await prisma.trainee.findFirst({
+        where: { OR: [{ phoneNumber: user.phone }, { user: { id: user.id } }] }
+      })
+      if (trainee) return { trainee, user, source: 'user-session' }
+    }
   }
 
   try {
-    const trainee = await prisma.trainee.findUnique({
-      where: { githubId: caller.githubId },
-    })
-
-    if (!trainee || trainee.phoneNumber.startsWith('temp_')) {
-      res.status(404).json({ error: 'No profile found to delete' })
-      return
+    const caller = await resolveGithubIdentity(req)
+    if (caller && caller.githubId) {
+      const trainee = await prisma.trainee.findUnique({
+        where: { githubId: caller.githubId },
+      })
+      if (trainee) return { trainee, source: 'github-oauth' }
     }
+  } catch {}
 
-    // Cascade delete manually just in case schema doesn't have onDelete: Cascade
+  const err = new Error('Authentication required. Please log in.')
+  err.statusCode = 401
+  throw err
+}
+
+// ── DELETE /api/trainee/profile ───────────────────────────────────────────────
+// Deletes the caller's Trainee record and cascades to Enrolments and Consents.
+// Auth: User session token OR GitHub OAuth token
+router.delete('/trainee/profile', async (req, res) => {
+  let resolved
+  try {
+    resolved = await resolveCallerTrainee(req)
+  } catch (authErr) {
+    return res.status(authErr.statusCode || 401).json({ error: authErr.message })
+  }
+
+  const { trainee, user } = resolved
+
+  try {
+    // Cascade delete manually to guarantee complete removal of all personal data
     await prisma.$transaction([
-      prisma.consent.deleteMany({ where: { traineeId: trainee.id } }),
+      prisma.consentRecord.deleteMany({ where: { traineeId: trainee.id } }),
       prisma.enrolment.deleteMany({ where: { traineeId: trainee.id } }),
       prisma.outcomeCheckIn.deleteMany({ where: { traineeId: trainee.id } }),
-      prisma.govtCrossCheck.deleteMany({ where: { traineeId: trainee.id } }),
+      prisma.employerVerification.deleteMany({ where: { traineeId: trainee.id } }),
+      prisma.govtCrossCheckResult.deleteMany({ where: { traineeId: trainee.id } }),
       prisma.trainee.delete({ where: { id: trainee.id } })
     ])
 
-    res.json({ success: true, message: 'Your data has been completely erased.' })
+    if (user) {
+      await prisma.auditEvent.create({
+        data: {
+          userId: user.id,
+          action: 'TRAINEE_DATA_DELETED',
+          actorRole: user.role,
+          details: JSON.stringify({ traineeId: trainee.id }),
+        }
+      }).catch(() => {})
+    }
+
+    res.json({ success: true, message: 'Your data has been completely erased in compliance with DPDP Act.' })
   } catch (err) {
     console.error('[trainee/profile DELETE] error:', err)
     res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to erase data' })

@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import {
   atan,
   attribute, cos, float, Fn, If, instanceIndex, mat3,
-  mat4, positionLocal, sin, storage, texture, uint, uniform, uv, vec3,
+  mat4, mix, positionLocal, sin, storage, texture, uint, uniform, uv, vec3,
   vec4
 } from 'three/tsl';
 import * as THREE from 'three/webgpu';
@@ -14,6 +14,7 @@ import { AgentBehavior, AnimationName, ExpressionKey } from '../../types';
 import { AgentStateBuffer } from '../behavior/AgentStateBuffer';
 import { ExpressionBuffer } from '../behavior/ExpressionBuffer';
 import { DRACO_LIB_PATH } from '../constants';
+import { InteractivePhysicsSystem } from '../physics/InteractivePhysicsSystem';
 import { PoiManager } from '../world/PoiManager';
 
 export class CharacterManager {
@@ -54,13 +55,31 @@ export class CharacterManager {
   private metaBuffer: THREE.StorageBufferAttribute | null = null;
   private numBones = 0;
   private headBoneIndex = -1;
+  private baseSkeleton: THREE.Skeleton | null = null;
+
+  // Interactive Character Physics System
+  private camera: THREE.PerspectiveCamera | null = null;
+  private physicsSystem: InteractivePhysicsSystem | null = null;
 
   // Uniforms
   private uSpeed = uniform(0.015);
 
   public isLoaded = false;
 
-  constructor(private scene: THREE.Scene) { }
+  constructor(private scene: THREE.Scene, camera?: THREE.PerspectiveCamera) {
+    if (camera) this.camera = camera;
+  }
+
+  public setCamera(camera: THREE.PerspectiveCamera) {
+    this.camera = camera;
+    if (this.baseSkeleton && !this.physicsSystem) {
+      this.physicsSystem = new InteractivePhysicsSystem(this.baseSkeleton, this.camera, this.instanceCount);
+    }
+  }
+
+  public getPhysicsSystem(): InteractivePhysicsSystem | null {
+    return this.physicsSystem;
+  }
 
   public setPoiManager(poiManager: PoiManager) {
     this.poiManager = poiManager;
@@ -99,9 +118,14 @@ export class CharacterManager {
 
       const firstSkinnedMesh = skinnedMeshes[0];
       if (firstSkinnedMesh) {
+        this.baseSkeleton = firstSkinnedMesh.skeleton;
         this.numBones = firstSkinnedMesh.skeleton.bones.length;
         const headBone = firstSkinnedMesh.skeleton.bones.find(b => b.name.toLowerCase() === 'head');
         this.headBoneIndex = headBone ? firstSkinnedMesh.skeleton.bones.indexOf(headBone) : -1;
+
+        if (this.camera && !this.physicsSystem) {
+          this.physicsSystem = new InteractivePhysicsSystem(this.baseSkeleton, this.camera, this.instanceCount);
+        }
       }
 
       const animations = gltf.animations;
@@ -157,6 +181,10 @@ export class CharacterManager {
   public setInstanceCount(count: number) {
     if (this.instanceCount === count) return;
     this.instanceCount = count;
+    if (this.baseSkeleton && this.camera) {
+      this.physicsSystem?.dispose();
+      this.physicsSystem = new InteractivePhysicsSystem(this.baseSkeleton, this.camera, this.instanceCount);
+    }
     if (this.isLoaded) {
       this.cleanupInstances();
       this.initInstances();
@@ -173,7 +201,18 @@ export class CharacterManager {
     try {
       const buffer = await renderer.getArrayBufferAsync(this.posAttribute);
       this.debugPosArray = new Float32Array(buffer);
-      // Keep the CPU-side attribute array in sync so setPosition doesn't upload stale data
+      if (this.physicsSystem) {
+        for (let i = 0; i < this.instanceCount; i++) {
+          if (this.physicsSystem.isCharacterPhysical(i)) {
+            const ctrl = this.physicsSystem.getController(i);
+            if (ctrl) {
+              this.debugPosArray[i * 4 + 0] = ctrl.physics.position.x;
+              this.debugPosArray[i * 4 + 1] = ctrl.physics.position.y;
+              this.debugPosArray[i * 4 + 2] = ctrl.physics.position.z;
+            }
+          }
+        }
+      }
       (this.posAttribute.array as Float32Array).set(this.debugPosArray);
     } catch {
       // WebGPU readback not available – fall back to stale data
@@ -188,6 +227,35 @@ export class CharacterManager {
     if (this.expressionBuffer) {
       this.expressionBuffer.update(delta);
     }
+
+    if (this.physicsSystem) {
+      this.physicsSystem.update(delta);
+
+      if (this.posAttribute) {
+        const arr = this.posAttribute.array as Float32Array;
+        let dirty = false;
+        for (let i = 0; i < this.instanceCount; i++) {
+          if (this.physicsSystem.isCharacterPhysical(i)) {
+            const ctrl = this.physicsSystem.getController(i);
+            if (ctrl) {
+              arr[i * 4 + 0] = ctrl.physics.position.x;
+              arr[i * 4 + 1] = ctrl.physics.position.y;
+              arr[i * 4 + 2] = ctrl.physics.position.z;
+              if (this.debugPosArray) {
+                this.debugPosArray[i * 4 + 0] = ctrl.physics.position.x;
+                this.debugPosArray[i * 4 + 1] = ctrl.physics.position.y;
+                this.debugPosArray[i * 4 + 2] = ctrl.physics.position.z;
+              }
+              dirty = true;
+            }
+          }
+        }
+        if (dirty) {
+          this.posAttribute.needsUpdate = true;
+        }
+      }
+    }
+
     if (this.computeNode) {
       renderer.compute(this.computeNode);
     }
@@ -292,6 +360,13 @@ export class CharacterManager {
       }
     }
 
+    if (this.physicsSystem) {
+      for (let i = 0; i < this.instanceCount; i++) {
+        const initPos = new THREE.Vector3(posArray[i * 4 + 0], posArray[i * 4 + 1], posArray[i * 4 + 2]);
+        this.physicsSystem.syncExternalPosition(i, initPos);
+      }
+    }
+
     this.expressionBuffer = new ExpressionBuffer(this.instanceCount);
 
     this.initComputeNode();
@@ -307,16 +382,19 @@ export class CharacterManager {
       const posElement = this.positionStorage.element(index);
       const velElement = this.velocityStorage.element(index);
       const agentData = agentStorage.element(index.mul(2));   // Buffer 0: (wpX, anim, wpZ, state)
-      const agentState = agentData.w;                         // float: 0=IDLE 1=GOTO 2=SEATED
+      const agentState = agentData.w;                         // float: 0=IDLE 1=GOTO 2=SEATED 3=PHYSICAL
 
       const pos = posElement.xyz.toVar();
 
       // ── Physical Logic ──────────────────────────────────────
 
-      // GOTO = 1  |  IDLE = 0  |  SEATED = 2 (treated as IDLE on GPU)
+      // GOTO = 1  |  IDLE = 0  |  SEATED = 2 (treated as IDLE on GPU)  |  PHYSICAL = 3
       const isGoto = agentState.greaterThan(float(0.5)).and(agentState.lessThan(float(1.5)));
+      const isPhysical = agentState.greaterThan(float(2.5));
 
-      If(isGoto, () => {
+      If(isPhysical, () => {
+        // CPU physics has full authority over position & velocity — do not overwrite
+      }).ElseIf(isGoto, () => {
         const waypointXZ = vec3(agentData.x, float(0), agentData.z);
         const toTarget = waypointXZ.sub(pos);
         const dist = toTarget.length();
@@ -361,9 +439,16 @@ export class CharacterManager {
       instancedGeometry.setAttribute('instanceColor', this.colorAttribute);
       if (this.accessoryAttribute) instancedGeometry.setAttribute('accessoryType', this.accessoryAttribute);
 
+      if (this.physicsSystem) {
+        instancedGeometry.setAttribute('procWeight', this.physicsSystem.proceduralWeightAttribute);
+        instancedGeometry.setAttribute('instanceOrientation', this.physicsSystem.orientationAttribute);
+      }
+
       const material = new THREE.MeshStandardNodeMaterial();
-      material.roughness = 1;
-      material.metalness = 0.25;
+      const isAccessory = name.toLowerCase().includes('headphones') || name.toLowerCase().includes('cap');
+      const isBody = name.toLowerCase().includes('body');
+      material.roughness = isBody ? 0.40 : (isAccessory ? 0.30 : 0.85);
+      material.metalness = isAccessory ? 0.65 : 0.08;
 
       const instanceColor = attribute('instanceColor', 'vec3');
       const map = (baseMaterial as any).map;
@@ -386,9 +471,6 @@ export class CharacterManager {
 
       // Solo coloreamos el mesh cuyo nombre sea 'body' o accesorios
       material.transparent = true;
-
-      const isAccessory = isHeadphones || isCap;
-      const isBody = name.toLowerCase().includes('body');
 
       if (isHeadphones) {
         material.opacityNode = accessoryType.equal(float(1)).select(instanceAlpha, float(0));
@@ -471,17 +553,44 @@ export class CharacterManager {
       });
 
       const angle = atan(facing.z, facing.x).negate().add(float(Math.PI / 2));
-      const rotationMat = mat3(
+      const defaultRotMat = mat3(
         vec3(cos(angle), float(0), sin(angle).negate()),
         vec3(float(0), float(1), float(0)),
         vec3(sin(angle), float(0), cos(angle))
       );
+
+      // Quat rotation node from instanceOrientation attribute
+      const q = attribute('instanceOrientation', 'vec4');
+      const x2 = q.x.add(q.x);
+      const y2 = q.y.add(q.y);
+      const z2 = q.z.add(q.z);
+      const xx = q.x.mul(x2);
+      const xy = q.x.mul(y2);
+      const xz = q.x.mul(z2);
+      const yy = q.y.mul(y2);
+      const yz = q.y.mul(z2);
+      const zz = q.z.mul(z2);
+      const wx = q.w.mul(x2);
+      const wy = q.w.mul(y2);
+      const wz = q.w.mul(z2);
+
+      const quatRotMat = mat3(
+        vec3(float(1.0).sub(yy.add(zz)), xy.add(wz), xz.sub(wy)),
+        vec3(xy.sub(wz), float(1.0).sub(xx.add(zz)), yz.add(wx)),
+        vec3(xz.add(wy), yz.sub(wx), float(1.0).sub(xx.add(yy)))
+      );
+
+      const procWeight = attribute('procWeight', 'float');
+      const rotationMat = mix(defaultRotMat, quatRotMat, procWeight);
 
       const finalPosition = positionLocal.toVar();
 
       if (this.bakedAnimationsBuffer && this.metaBuffer) {
         const animBuffer = storage(this.bakedAnimationsBuffer, 'mat4', this.bakedAnimationsBuffer.count);
         const metaStorage = storage(this.metaBuffer, 'vec4', this.metaBuffer.count);
+        const procAnimBuffer = this.physicsSystem
+          ? storage(this.physicsSystem.proceduralBonesAttribute, 'mat4', this.physicsSystem.proceduralBonesAttribute.count)
+          : null;
 
         const animIndex = agentData.y.toUint();
 
@@ -505,8 +614,17 @@ export class CharacterManager {
 
         const addInfluence = (boneIdxNode: any, weightNode: any) => {
           If(weightNode.greaterThan(0), () => {
-            const address = animOffset.add(safeFrame.mul(uint(this.numBones))).add(boneIdxNode.toUint());
-            skinMat.addAssign(animBuffer.element(address).mul(weightNode));
+            const bakedAddress = animOffset.add(safeFrame.mul(uint(this.numBones))).add(boneIdxNode.toUint());
+            const bakedMat = animBuffer.element(bakedAddress);
+
+            if (procAnimBuffer) {
+              const procAddress = instanceIndex.mul(uint(this.numBones)).add(boneIdxNode.toUint());
+              const procMat = procAnimBuffer.element(procAddress);
+              const blendedMat = mix(bakedMat, procMat, procWeight);
+              skinMat.addAssign(blendedMat.mul(weightNode));
+            } else {
+              skinMat.addAssign(bakedMat.mul(weightNode));
+            }
           });
         };
 

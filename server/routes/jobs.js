@@ -142,7 +142,9 @@ router.post('/jobs/discover', requireAuth, aiLimiter, async (req, res) => {
         const multiSignal = calculateMultiSignalMatch({
           jobTitle: it?.job_title || targetRole,
           jobDescription: it?.nexus_match_reason || rawResults[idx]?.description || '',
+          jobLocation: rawResults[idx]?.location || it?.location || '',
           candidateSkills: skillProfile?.candidate_skills || [],
+          candidateLocation: req.body?.location || '',
           userTargetRole: targetRole,
           hasEvidence: Boolean(skillProfile?.candidate_skills?.some((s) => s.demonstrated)),
         })
@@ -164,11 +166,12 @@ router.post('/jobs/discover', requireAuth, aiLimiter, async (req, res) => {
           isLikelyGhost: trust.isLikelyGhost,
           isDirectAts: trust.isDirectAts,
           trustFactors: trust.factors,
-          // P1.5 Multi-Signal Scoring & Buckets
+          // P1.5 5-Factor Multi-Signal Scoring & Buckets
           skillScore: multiSignal.skillScore,
           experienceScore: multiSignal.experienceScore,
           titleScore: multiSignal.titleScore,
           projectScore: multiSignal.projectScore,
+          locationScore: multiSignal.locationScore,
           overallScore: multiSignal.overallScore,
           bucket: multiSignal.bucket,
         }

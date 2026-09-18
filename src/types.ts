@@ -162,9 +162,10 @@ export enum AnimationName {
 
 /** Stored as a float in the GPU agent buffer (.w component). */
 export enum AgentBehavior {
-  IDLE   = 0, // position locked, velocity zero, facing follows waypoint field (if non-zero)
-  GOTO   = 1, // moves toward target waypoint (.x/.z of agent buffer)
-  SEATED = 2, // position locked, velocity zero — character is seated, treated like IDLE on GPU
+  IDLE     = 0, // position locked, velocity zero, facing follows waypoint field (if non-zero)
+  GOTO     = 1, // moves toward target waypoint (.x/.z of agent buffer)
+  SEATED   = 2, // position locked, velocity zero — character is seated, treated like IDLE on GPU
+  PHYSICAL = 3, // Full CPU physics authority: Grabbed, airborne, or recovering
 }
 
 // ── Character State Machine ───────────────────────────────────
@@ -190,7 +191,11 @@ export type CharacterStateKey =
   | 'wave_loop' // looping version of wave, no auto-transition
   | 'success'
   | 'error'
-  | 'dragged';
+  | 'dragged'
+  | 'grabbed'
+  | 'airborne'
+  | 'impact'
+  | 'recovering';
 
 /**
  * Declarative definition of a character state.

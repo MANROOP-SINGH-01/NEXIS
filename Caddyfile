@@ -1,0 +1,27 @@
+# Caddyfile
+# Ensure to replace YOUR_DOMAIN.com with the actual domain for Auto-HTTPS
+
+# Example for a domain:
+# nexis.yourdomain.com {
+
+# For local production testing (if no domain yet), Caddy can use localhost or just act on a public IP:
+:80 {
+    # Serve the static frontend assets
+    root * /srv/dist
+    
+    # Try to serve a static file; if it doesn't exist, fall through to the API or index.html
+    try_files {path} /index.html
+    file_server
+
+    # Reverse proxy API requests to the Node.js backend
+    handle /api/* {
+        reverse_proxy nexis-backend:8787
+    }
+
+    # Security headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer-when-downgrade
+    }
+}

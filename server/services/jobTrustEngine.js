@@ -140,11 +140,14 @@ export function calculateJobTrustScore(job = {}) {
 }
 
 /**
- * Computes multi-signal matching score across 4 dimensions:
- * 1. Skill Score (40%)
- * 2. Experience Fit Score (25%)
+ * Computes multi-signal matching score across 5 deterministic dimensions:
+ * 1. Skill Score (35%)
+ * 2. Experience Fit Score (20%)
  * 3. Title Alignment Score (20%)
  * 4. Project/Evidence Relevance Score (15%)
+ * 5. Location Alignment Score (10%)
+ *
+ * Total Weights: 0.35 + 0.20 + 0.20 + 0.15 + 0.10 = 1.00 (100%)
  *
  * And assigns candidate to an actionable bucket:
  * APPLY_NOW (>= 75) | LEARN_THEN_APPLY (55-74) | STRETCH (35-54) | IGNORE (< 35)
@@ -152,16 +155,20 @@ export function calculateJobTrustScore(job = {}) {
 export function calculateMultiSignalMatch({
   jobTitle = '',
   jobDescription = '',
+  jobLocation = '',
   candidateSkills = [],
   candidateExperienceYears = 2,
   userTargetRole = '',
+  candidateLocation = '',
   hasEvidence = false,
 }) {
   const lowerTitle = jobTitle.toLowerCase();
   const lowerDesc = jobDescription.toLowerCase();
   const lowerTarget = userTargetRole.toLowerCase();
+  const lowerJobLoc = String(jobLocation || '').toLowerCase();
+  const lowerCandLoc = String(candidateLocation || '').toLowerCase();
 
-  // 1. Skill Score (40% weight)
+  // 1. Skill Score (35% weight)
   let matchedSkillCount = 0;
   const totalSkills = Math.max(1, candidateSkills.length);
 
@@ -189,7 +196,7 @@ export function calculateMultiSignalMatch({
     titleScore = 60;
   }
 
-  // 3. Experience Score (25% weight)
+  // 3. Experience Score (20% weight)
   let experienceScore = 70;
   const isSenior = lowerTitle.includes('senior') || lowerTitle.includes('lead') || lowerTitle.includes('principal');
   const isJunior = lowerTitle.includes('junior') || lowerTitle.includes('associate') || lowerTitle.includes('intern');
@@ -205,12 +212,30 @@ export function calculateMultiSignalMatch({
   // 4. Project / Evidence Relevance Score (15% weight)
   const projectScore = hasEvidence ? 85 : 55;
 
-  // Weighted Composite
+  // 5. Location Match Score (10% weight)
+  let locationScore = 80; // Baseline for unspecified / flexible locations
+  if (lowerJobLoc.includes('remote') || lowerJobLoc.includes('anywhere') || lowerCandLoc.includes('remote')) {
+    locationScore = 95;
+  } else if (lowerCandLoc && lowerJobLoc) {
+    if (lowerJobLoc.includes(lowerCandLoc) || lowerCandLoc.includes(lowerJobLoc)) {
+      locationScore = 95;
+    } else if (
+      (lowerJobLoc.includes('india') && lowerCandLoc.includes('india')) ||
+      (lowerJobLoc.includes('bengaluru') || lowerJobLoc.includes('bangalore') || lowerJobLoc.includes('hyderabad') || lowerJobLoc.includes('pune') || lowerJobLoc.includes('delhi'))
+    ) {
+      locationScore = 75;
+    } else {
+      locationScore = 35;
+    }
+  }
+
+  // Weighted Composite: 35% Skill, 20% Exp, 20% Title, 15% Project, 10% Location
   const overallScore = Math.round(
-    0.40 * skillScore +
-    0.25 * experienceScore +
+    0.35 * skillScore +
+    0.20 * experienceScore +
     0.20 * titleScore +
-    0.15 * projectScore
+    0.15 * projectScore +
+    0.10 * locationScore
   );
 
   // Bucket Assignment
@@ -228,6 +253,7 @@ export function calculateMultiSignalMatch({
     experienceScore,
     titleScore,
     projectScore,
+    locationScore,
     overallScore,
     bucket,
   };

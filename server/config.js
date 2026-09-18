@@ -45,5 +45,8 @@ export const SARVAM_MODEL = process.env.SARVAM_MODEL || 'sarvam-105b'
 // â”€â”€ Gemini Model Candidates (tried in order) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const GEMINI_MODELS = [
   process.env.GEMINI_MODEL || 'gemini-3.6-flash',
+  'gemini-flash-latest',
   'gemini-3.1-pro-preview',
+  'gemini-pro-latest',
+  'gemini-2.5-flash-lite',
 ]

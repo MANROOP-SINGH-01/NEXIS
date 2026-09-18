@@ -1,0 +1,50 @@
+{
+  "results": {
+    "health": {
+      "status": 200,
+      "data": {
+        "status": "ok",
+        "database": "connected",
+        "llmRouter": "unavailable"
+      }
+    },
+    "registration": {
+      "status": 201,
+      "success": true,
+      "userId": "cmu6gdv4o0000l1chbtrizte3"
+    },
+    "login": {
+      "status": 200,
+      "success": true
+    },
+    "authMe": {
+      "status": 200,
+      "success": true
+    },
+    "adzunaJobs": {
+      "status": 200,
+      "count": 10,
+      "provider": "adzuna",
+      "sampleCompany": "ABB",
+      "sampleTitle": "Software Engineer"
+    },
+    "resumeExtraction": {
+      "status": 200,
+      "extractedPages": 1,
+      "charLength": 579
+    },
+    "freeLlmApi": {
+      "status": 503,
+      "data": {
+        "ok": false,
+        "error": "FreeLLMAPI is not configured"
+      }
+    },
+    "revocation": {
+      "logoutStatus": 200,
+      "postLogoutAuthMeStatus": 401,
+      "revokedSuccessfully": true
+    }
+  },
+  "createdUserId": "cmu6gdv4o0000l1chbtrizte3"
+}

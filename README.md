@@ -49,11 +49,11 @@
 | **State Management** | Zustand (`coreStore`, `teamStore`, `uiStore`) |
 | **UI & Visual Canvas** | Lucide React, React Flow (`@xyflow/react`), Recharts, React Markdown, remark-gfm |
 | **Backend API** | Express.js 5.x (Node.js) |
-| **AI Providers** | Google Gemini API (`@google/genai`), Sarvam AI API |
-| **Search Integration** | Serper.dev API & Autonomous Gemini Synthesis |
+| **AI Providers** | Google Gemini API (`gemini-2.0-flash`), FreeLLMAPI Router Fallback, Sarvam AI |
+| **Search & Jobs** | Adzuna Job Aggregator API (Primary), Serper.dev (Fallback) |
 | **Document Processing** | PDFKit (Backend generation), jsPDF (Client export), `pdf-parse` (Extraction) |
-| **Auth & Deployment** | GitHub OAuth, LinkedIn OIDC, SMS OTP (MSG91 / Dev Console) |
-| **Data Persistence** | Prisma ORM v5 (SQLite `file:./dev.db` dev default, PostgreSQL for prod) |
+| **Auth & Deployment** | Scrypt Session Auth, GitHub OAuth, LinkedIn OIDC, SMS OTP (MSG91 / Dev Console) |
+| **Data Persistence** | Prisma ORM v5 (PostgreSQL on Supabase with connection pooling + direct URL) |
 
 ---
 

@@ -9,10 +9,57 @@
 import { Router } from 'express'
 import prisma from '../lib/prisma.js'
 import { resolveGithubIdentity } from '../utils/auth.js'
+import { validateSession } from '../services/authService.js'
 import { sendCheckinMessage } from '../services/notificationService.js'
 import { requireAdmin } from '../utils/adminAuth.js'
 
 const router = Router()
+
+/**
+ * Dual-path identity resolver:
+ * 1. User session token (phone+password login)
+ * 2. GitHub OAuth token (legacy path)
+ */
+async function resolveCallerTrainee(req) {
+  const authHeader = req.headers.authorization || ''
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : ''
+
+  if (token) {
+    const user = await validateSession(token)
+    if (user) {
+      if (user.traineeId) {
+        const trainee = await prisma.trainee.findUnique({ where: { id: user.traineeId } })
+        if (trainee) return trainee
+      }
+      let trainee = await prisma.trainee.findUnique({ where: { phoneNumber: user.phone } })
+      if (trainee) return trainee
+
+      trainee = await prisma.trainee.create({
+        data: {
+          name: user.candidateProfile?.name || 'Trainee',
+          phoneNumber: user.phone,
+          user: { connect: { id: user.id } },
+        },
+      })
+      return trainee
+    }
+  }
+
+  const caller = await resolveGithubIdentity(req)
+  let trainee = await prisma.trainee.findUnique({
+    where: { githubId: caller.githubId },
+  })
+  if (!trainee) {
+    trainee = await prisma.trainee.create({
+      data: {
+        githubId: caller.githubId,
+        name: caller.login || 'Trainee',
+        phoneNumber: `temp_${caller.githubId}`,
+      },
+    })
+  }
+  return trainee
+}
 
 // ── Allowed value sets (enforced here, not in DB) ─────────────────────────────
 
@@ -37,12 +84,12 @@ const TOLERANCE_DAYS = 3
 
 // ── POST /api/trainee/status-update ──────────────────────────────────────────
 // Self-report endpoint — trainee reports their employment status at any time.
-// Auth: Authorization: Bearer <github_token>
+// Auth: Bearer <session_token> OR Bearer <github_token>
 // Body: { employmentStatus, employerName?, wageBand?, notes?, roleRelevance?, selfEmploymentType?, apprenticeshipEmployer?, nonPlacementReason? }
 router.post('/trainee/status-update', async (req, res) => {
-  let caller
+  let trainee
   try {
-    caller = await resolveGithubIdentity(req)
+    trainee = await resolveCallerTrainee(req)
   } catch (authErr) {
     res.status(authErr.statusCode || 401).json({ error: authErr.message })
     return
@@ -92,15 +139,6 @@ router.post('/trainee/status-update', async (req, res) => {
   }
 
   try {
-    const trainee = await prisma.trainee.findUnique({
-      where: { githubId: caller.githubId },
-    })
-    if (!trainee) {
-      res.status(404).json({
-        error: 'No trainee profile found. POST /api/trainee/profile first.',
-      })
-      return
-    }
 
     const checkIn = await prisma.outcomeCheckIn.create({
       data: {

@@ -42,24 +42,44 @@ export class Stage {
   }
 
   private setupLights() {
-    // Keep ambient low so directional shadows have visible contrast
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1 * Math.PI);
+    // 1. Soft neutral ambient light for baseline visibility without washing out contrast
+    const ambientLight = new THREE.AmbientLight(0xf1f5f9, 0.55 * Math.PI);
     this.scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.5 * Math.PI);
-    dirLight.position.set(10, 20, 10);
-    dirLight.castShadow = true;
-    dirLight.shadow.camera.near = 0.1;
-    dirLight.shadow.camera.far = 100;
-    dirLight.shadow.camera.top = 10;
-    dirLight.shadow.camera.bottom = -10;
-    dirLight.shadow.camera.right = 10;
-    dirLight.shadow.camera.left = -10;
-    dirLight.shadow.mapSize.set(2048, 2048);
-    dirLight.shadow.bias = -0.0001;
-    dirLight.shadow.radius = 2;
-    dirLight.shadow.autoUpdate = true;
-    this.scene.add(dirLight);
+    // 2. Primary Warm Key Light with crisp directional shadows
+    const keyLight = new THREE.DirectionalLight(0xfff7ed, 1.8 * Math.PI);
+    keyLight.position.set(12, 22, 12);
+    keyLight.castShadow = true;
+    keyLight.shadow.camera.near = 0.1;
+    keyLight.shadow.camera.far = 100;
+    keyLight.shadow.camera.top = 10;
+    keyLight.shadow.camera.bottom = -10;
+    keyLight.shadow.camera.right = 10;
+    keyLight.shadow.camera.left = -10;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    keyLight.shadow.bias = -0.0001;
+    keyLight.shadow.radius = 2;
+    keyLight.shadow.autoUpdate = true;
+    this.scene.add(keyLight);
+
+    // 3. Cool Ambient Fill Light (prevents harsh black shadow contrast)
+    const fillLight = new THREE.DirectionalLight(0xdbeafe, 0.65 * Math.PI);
+    fillLight.position.set(-14, 15, -10);
+    this.scene.add(fillLight);
+
+    // 4. Studio Rim/Silhouette Light (highlights character shoulders, hair, and edges)
+    const rimLight = new THREE.DirectionalLight(0x818cf8, 1.1 * Math.PI);
+    rimLight.position.set(-10, 14, 16);
+    this.scene.add(rimLight);
+
+    // 5. Practical Desk Workspace Accent Lights (subtle monitor & lamp glow)
+    const deskGlow1 = new THREE.PointLight(0x38bdf8, 0.8, 6, 2);
+    deskGlow1.position.set(-2, 2.2, 0.5);
+    this.scene.add(deskGlow1);
+
+    const deskGlow2 = new THREE.PointLight(0xfef08a, 0.7, 6, 2);
+    deskGlow2.position.set(2.5, 2.2, -1.5);
+    this.scene.add(deskGlow2);
   }
 
   public onResize(width: number, height: number) {

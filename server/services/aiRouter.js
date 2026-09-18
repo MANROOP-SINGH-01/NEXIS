@@ -33,12 +33,12 @@ function getModelForTask(task) {
 
 // Map task types to legacy fallbacks if FreeLLMAPI is unavailable
 async function legacyFallbackChat(task, payload) {
-  const { messages, systemInstruction, jsonMode, fallbackKeys } = payload;
+  const { messages, systemInstruction, jsonMode, timeout, fallbackKeys } = payload;
   const geminiKey = fallbackKeys?.gemini;
   
   // Collapse messages into a single prompt for legacy Gemini API
   const prompt = messages.map(m => `${m.role}: ${m.content}`).join('\n');
-  return await callGeminiText({ apiKey: geminiKey, prompt, systemInstruction });
+  return await callGeminiText({ apiKey: geminiKey, prompt, systemInstruction, jsonMode, timeout });
 }
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -53,10 +53,16 @@ export async function chat({ task = 'GENERAL_CHAT', messages, systemInstruction,
   for (let i = 0; i < attempts; i++) {
     try {
       if (isFreeLLMAPIAvailable()) {
-        const result = await freeLlmChat({ messages, systemInstruction, model, jsonMode, timeout });
-        return result;
+        try {
+          const result = await freeLlmChat({ messages, systemInstruction, model, jsonMode, timeout });
+          return result;
+        } catch (freeLlmErr) {
+          console.warn(`[aiRouter] FreeLLMAPI error (${freeLlmErr.message}), falling back to Gemini...`);
+          const result = await legacyFallbackChat(task, { messages, systemInstruction, jsonMode, timeout, fallbackKeys });
+          return result;
+        }
       } else {
-        const result = await legacyFallbackChat(task, { messages, systemInstruction, jsonMode, fallbackKeys });
+        const result = await legacyFallbackChat(task, { messages, systemInstruction, jsonMode, timeout, fallbackKeys });
         return result;
       }
     } catch (error) {
