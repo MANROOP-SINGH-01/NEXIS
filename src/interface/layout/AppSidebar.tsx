@@ -75,6 +75,12 @@ const NAV_GROUPS: NavGroup[] = [
       { id: 'linkedin-integration', label: 'LinkedIn Sync', icon: Linkedin },
     ],
   },
+  {
+    name: 'SYSTEM',
+    items: [
+      { id: 'settings', label: 'Settings & Privacy', icon: Settings },
+    ],
+  },
 ];
 
 export const AppSidebar: React.FC = () => {
