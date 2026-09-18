@@ -70,42 +70,66 @@ We systematically mapped and integrated the strongest patterns from `proficientl
 
 ---
 
-## 4. Rebuilt Views & Components
+## 4. Rebuilt Views & Components Map
 
-| View / Component | File | Key Features & Visual Transformation |
-| :--- | :--- | :--- |
-| **Application Topbar** | `src/interface/layout/Navbar.tsx` | Vivid orange mark, "8 AGENTS READY" live status badge, horizontal pill tabs, quick search capsule (`Ctrl+K`), quick action buttons. |
-| **Cluster Sidebar** | `src/interface/layout/AppSidebar.tsx` | Organized into 6 functional clusters (COMMAND, DISCOVER, BUILD, TRACK, VERIFY, SYSTEM), collapsible rail, and demo toggle. |
-| **PulseAI Overview** | `src/interface/PulseOverviewView.tsx` | Full reproduction of reference dashboard: Career Velocity (+12.5% teal hatch), Dealbreaker Rate (-2.1% orange hatch), Total Match Requests bar chart with highlighted Jan bar + spline, Token Velocity chart, and 12-month Role Match Trajectory heatmap. |
-| **Job Intelligence Radar**| `src/interface/JobMatchesView.tsx` | Warm ivory cards with multi-signal score breakdown, trust verification badges (`95% Trust`, `Direct ATS`), bucket filters, warm referral outreach, and "Prep ATS" triggers. |
-| **Resume Forge & ATS** | `src/interface/NewCVView.tsx` | Crisp white paper resume canvas, anti-slop readability audit banner, and Grounded Cover Letter modal. |
-| **Application Tracker** | `src/interface/ApplicationTrackerView.tsx` | 5-stage Kanban pipeline (Saved, Applied, Assessment, Interview, Offer) with responsive warm ivory dropzones and live stage updates. |
-| **Skill Gaps Analysis** | `src/interface/SkillGapsView.tsx` | O*NET industry standard benchmark vs JD ATS Scan, circular match ring (`82% MATCH`), verified skills list, and targeted Indian Govt certifications (SWAYAM / NPTEL / Skill India). |
-| **3D Agent Office** | `src/interface/PhaseOneControlPanel.tsx` & Three.js Canvas | Streamlined top control bar with white rounded inputs and orange run button; persistent 3D WebGL context with 6 collaborative digital workers. |
+| Cluster | View / Component | File | Key Features & Visual Transformation |
+| :--- | :--- | :--- | :--- |
+| **SHELL** | **Application Topbar** | `src/interface/layout/Navbar.tsx` | Vivid orange mark, "8 AGENTS READY" live status badge, horizontal pill tabs, quick search capsule (`Ctrl+K`), quick action buttons. |
+| **SHELL** | **Cluster Sidebar** | `src/interface/layout/AppSidebar.tsx` | 6 functional clusters (COMMAND, DISCOVER, BUILD, TRACK, VERIFY, SYSTEM), collapsible rail, and 1-click Demo Dataset toggle. |
+| **COMMAND** | **3D Agent Office** | `src/interface/PhaseOneControlPanel.tsx` & Three.js Canvas | Streamlined top control bar with white rounded inputs and orange run button; persistent 3D WebGL context with 6 collaborative digital workers. |
+| **COMMAND** | **PulseAI Overview & Health** | `src/interface/PulseOverviewView.tsx` | Full reproduction of reference dashboard: Career Velocity (+12.5% teal hatch), Dealbreaker Rate (-2.1% orange hatch), Total Match Requests bar chart with highlighted Jan bar + spline, Token Velocity chart, and 12-month Role Match Trajectory heatmap. |
+| **DISCOVER** | **Job Intelligence Radar** | `src/interface/JobMatchesView.tsx` | Warm ivory cards with multi-signal score breakdown, trust verification badges (`95% Trust`, `Direct ATS`), bucket filters, warm referral outreach, and "Prep ATS" triggers. |
+| **DISCOVER** | **Skill Intelligence** | `src/interface/SkillGapsView.tsx` | O*NET industry standard benchmark vs JD ATS Scan, circular match ring (`82% MATCH`), verified skills list, and targeted Indian Govt certifications (SWAYAM / NPTEL / Skill India). |
+| **DISCOVER** | **Learning Paths** | `src/interface/RecommendedProgramsView.tsx` | Verified Indian Government training portals (SWAYAM, NPTEL, Skill India), free accredited certifications, prioritized by role criticality. |
+| **BUILD** | **Resume Forge & ATS** | `src/interface/NewCVView.tsx` | Crisp white paper resume canvas, anti-slop readability audit banner, and Grounded Cover Letter modal. |
+| **BUILD** | **Interview Studio** | `src/interface/InterviewPrepView.tsx` | Cognitive interview simulator with live AI brief, primary edge lead-in, critical focus vectors, pressure point prep, and Nexus-Mirror integration. |
+| **TRACK** | **Applications Pipeline** | `src/interface/ApplicationTrackerView.tsx` | 5-stage Kanban pipeline (Saved, Applied, Assessment, Interview, Offer) with responsive warm ivory dropzones and live stage updates. |
+| **VERIFY** | **Career Passport** | `src/interface/CareerPassportView.tsx` | Cryptographic proof-of-skill records, GitHub AST code evidence, accredited credentials, and automated Nexus-Verifier scan triggers. |
+| **VERIFY** | **Outcome Proof & Milestones**| `src/interface/OutcomeStatusView.tsx` | DPDP-compliant self-reported employment milestones, 1-click employer HR attestation verification requests, and national registry corroboration (e-Shram / UDYAM). |
+| **VERIFY** | **LinkedIn Integration** | `src/interface/LinkedInIntegrationView.tsx` | Profile URL verification, PDF export ingestion with Nexus-Writer, STAR bullet point extraction, and proof-of-work ledger appending. |
+| **SYSTEM** | **Settings & Privacy** | `src/interface/pages/SettingsPage.tsx` | DPDP consent governance, machine-readable data export, BYOK AI key vault, and connected platform telemetry. |
 
 ---
 
 ## 5. Verification & Empirical Evidence
 
 ### A. TypeScript Typecheck
-- Command: `npx tsc --noEmit`
-- Result: **0 errors**. Fully type-safe across all integration stores and components.
+- **Command**: `npx tsc --noEmit`
+- **Result**: **0 errors**. Fully type-safe across all integration stores and components.
 
 ### B. Production Build
-- Command: `npm run build`
-- Result: **Successful production bundle** created in `dist/` (`✓ built in 23.23s`).
+- **Command**: `npm run build`
+- **Result**: **Successful production bundle** created in `dist/` (`✓ built in 17.56s`).
 
 ### C. Live Browser Verification
-- Verified active dev server on `http://localhost:3000/app` across all major routes:
-  1. **3D Agent Office**: Active Three.js stage with 6 agents at workstations.
-  2. **Analytics Overview**: PulseAI layout with interactive splines, tooltips, and comparison chips.
-  3. **Job Intelligence**: Warm cards with multi-signal scores and 2-phase ATS modal test.
-  4. **Resume Forge**: White paper resume preview with anti-slop audit banner and cover letter generator.
-  5. **Application Tracker**: Full Kanban board with live drag/stage progression.
-  6. **Skill Gaps Analysis**: O*NET benchmark with 82% coverage ring and SWAYAM course recommendations.
+Verified active dev server on `http://localhost:3000/app` across all routes via Chrome DevTools:
+1. **3D Agent Office**: Active Three.js stage with 6 agents at workstations rendering at 1457x677 with live SSE activity indicators.
+2. **Analytics Overview**: Full PulseAI layout with interactive splines, tooltips, hatched comparison chips, and 12-month heatmap matrix.
+3. **Job Intelligence Radar**: Warm cards with multi-signal scores (95% trust, Direct ATS) and 2-phase ATS modal test.
+4. **Skill Intelligence**: O*NET benchmark with 82% coverage ring and SWAYAM course recommendations.
+5. **Learning Paths**: 8 accredited government programs (NPTEL, SWAYAM, Skill India, AWS, edX, GitHub Skills Lab) with direct URLs and free access tags.
+6. **Resume Forge**: White paper resume preview with anti-slop audit banner (Flesch >90 scoring) and grounded cover letter generator.
+7. **Interview Studio**: Cognitive interview simulator with technical, behavioral, and system design vectors, and Nexus-Mirror real-time voice launch.
+8. **Applications Tracker**: 5-stage Kanban board with live drag/stage progression and candidate notes.
+9. **Career Passport**: 4 verified AST code evidence items from GitHub, 2 accredited credentials, and 93.2% mean AST confidence.
+10. **Outcome Proof**: Self-reported placement milestones with 1-click employer HR email attestation and e-Shram cross-checks.
+11. **LinkedIn Sync**: Verified handle identity, 3 STAR bullets extracted, and Proof-of-Work ledger appending.
+12. **Settings & Privacy**: DPDP Act consent switches, BYOK Gemini API key vault, machine-readable JSON data archive export, and GDPR/DPDP purge controls.
 
 ---
 
-## 6. Conclusion
+## 6. Git Commits Log (`frontend/nexis-proficiently-integration`)
 
-The NEXIS platform now combines the visual polish of a modern high-end SaaS product with deep, empirical career intelligence capabilities. All user workflows are responsive, accessible, and grounded in authentic candidate data.
+1. `8aae4ea` `docs(audit)`: Complete frontend audit, design system spec, IA document, and Proficiently integration plan.
+2. `b523441` `feat(models)`: Core types, fit scoring, 2-phase ATS workflow, anti-slop resume standards, and warm referral outreach services.
+3. `dc09d56` `feat(design-system)`: Warm PulseAI design tokens (`src/index.css`) and reusable Nexus UI primitives (`src/interface/nexus/`).
+4. `03fdce3` `feat(navigation)`: Modernized application topbar (`Navbar.tsx`) with search capsule & 8-agent live badge, and 6-cluster sidebar (`AppSidebar.tsx`).
+5. `54411cc` `feat(views)`: Rebuilt PulseAI Overview, Job Intelligence, 2-Phase ATS Modal, Resume Forge, Application Tracker, and Skill Gaps.
+6. `c2c3237` `feat(simulation)`: Preserved WebGL 3D character office stage and styled PhaseOne control panel.
+7. `309a795` `feat(views)`: Upgraded secondary cluster views to warm PulseAI design system (Learning Paths, Interview Studio, Passport, Outcomes, LinkedIn, Settings).
+
+---
+
+## 7. Conclusion & Architectural Integrity
+
+The NEXIS platform now represents a cohesive, institutional-grade **Career Intelligence Operating System**. All legacy dark neon styling has been eradicated from user-facing screens in favor of the warm, editorial, data-dense PulseAI design language. Every backend route, Prisma model, and WebGL character animation remains fully intact and operational.
