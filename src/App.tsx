@@ -19,6 +19,7 @@ import { OutputReviewModal } from './interface/OutputReviewModal';
 import NexusMirrorModal from './interface/NexusMirrorModal';
 import PhaseOneControlPanel from './interface/PhaseOneControlPanel';
 import ResumeForgeModal from './interface/ResumeForgeModal';
+import { ApplicationPreparationModal } from './interface/ApplicationPreparationModal';
 import SimulationView from './interface/SimulationView';
 import SkillGapsView from './interface/SkillGapsView';
 import JobMatchesView from './interface/JobMatchesView';
@@ -42,6 +43,7 @@ import { AgentActivityHUD } from './interface/AgentActivityHUD';
 import EmployerVerificationPage from './interface/employer/EmployerVerificationPage';
 import ProviderViewPage from './interface/provider/ProviderViewPage';
 import EmptySectionView from './interface/EmptySectionView';
+import { PulseOverviewView } from './interface/PulseOverviewView';
 
 const Workspace: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -152,7 +154,7 @@ const Workspace: React.FC = () => {
           {activeSidebarTab === 'new-cv' && <NewCVView />}
           {activeSidebarTab === 'my-outcome' && <OutcomeStatusView />}
           {activeSidebarTab === 'linkedin-integration' && <LinkedInIntegrationView />}
-          {activeSidebarTab === 'career-health' && <CareerHealthDashboard />}
+          {activeSidebarTab === 'career-health' && <PulseOverviewView />}
           {activeSidebarTab === 'application-tracker' && <ApplicationTrackerView />}
           {activeSidebarTab === 'career-passport' && <CareerPassportView />}
           {activeSidebarTab === 'settings' && <SettingsPage />}
@@ -196,6 +198,7 @@ const Workspace: React.FC = () => {
         {isResumeForgeOpen && <ResumeForgeModal onClose={() => setResumeForgeOpen(false)} />}
         {isNexusHunterOpen && <NexusHunterModal onClose={() => setNexusHunterOpen(false)} />}
         {isNexusMirrorOpen && <NexusMirrorModal onClose={() => setNexusMirrorOpen(false)} />}
+        <ApplicationPreparationModal />
 
         {/* Admin Panels */}
         {isDedupReviewOpen && (
