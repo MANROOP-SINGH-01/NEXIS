@@ -17,6 +17,8 @@ if (typeof globalThis.Path2D === 'undefined') {
   globalThis.Path2D = class Path2D {};
 }
 
+import 'pdfjs-dist/legacy/build/pdf.worker.mjs'
+
 import app from '../server/index.js'
 
 export default app
