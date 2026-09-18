@@ -1,14 +1,15 @@
 import * as THREE from 'three/webgpu';
-import { GrabInfo } from './PhysicsTypes';
+import { GrabInfo, OFFICE_BOUNDS } from './PhysicsTypes';
 
 /**
  * Handles 3D pointer grab detection, camera-plane coordinate projection,
- * and exact local-offset preservation.
+ * office boundary containment, and exact local-offset preservation.
  */
 export class GrabController {
   private raycaster = new THREE.Raycaster();
   private grabInfo: GrabInfo | null = null;
   private currentPointer = new THREE.Vector2();
+  private initialOrientation = new THREE.Quaternion();
 
   // Smoothed velocity & acceleration tracking of the grab target
   private smoothedTargetVelocity = new THREE.Vector3();
@@ -53,6 +54,7 @@ export class GrabController {
     boneIndex: number = -1
   ): GrabInfo {
     this.currentPointer.copy(pointerNDC);
+    this.initialOrientation.copy(bodyOrientation);
     this.raycaster.setFromCamera(pointerNDC, this.camera);
 
     let hitPoint: THREE.Vector3;
@@ -102,7 +104,8 @@ export class GrabController {
   }
 
   /**
-   * Updates the 3D target point based on pointer movement.
+   * Updates the 3D target point based on pointer movement, clamping strictly
+   * within the office 3D model boundaries.
    */
   public updateGrabTarget(
     pointerNDC: THREE.Vector2,
@@ -124,16 +127,24 @@ export class GrabController {
       hitIntersection.copy(ray.origin).addScaledVector(ray.direction, this.grabInfo.grabDistance);
     }
 
-    // Current rotated offset: Offset_world = Q_body * Offset_local
-    const currentRotatedOffset = this.grabInfo.grabOffsetLocal.clone().applyQuaternion(bodyOrientation);
+    // Extract horizontal facing yaw so dynamic pitch/roll tilt does not feedback-shake the target point
+    const euler = new THREE.Euler().setFromQuaternion(bodyOrientation, 'YXZ');
+    const yawQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), euler.y);
+    const currentRotatedOffset = this.grabInfo.grabOffsetLocal.clone().applyQuaternion(yawQuat);
 
     // Body target position = PointerWorld - Offset_world
     const targetBodyPos = new THREE.Vector3().subVectors(hitIntersection, currentRotatedOffset);
 
-    // Clamp against floor penetration
-    if (targetBodyPos.y < floorY) {
-      targetBodyPos.y = floorY;
+    // Clumsy Ninja mechanic: Keep character suspended at comfortable lift height so legs dangle playfully
+    const minDangleHeight = floorY + 0.45;
+    if (targetBodyPos.y < minDangleHeight) {
+      targetBodyPos.y = minDangleHeight;
     }
+
+    // Strict Office 3D Model Bounding Box Clamp: prevent escaping outside room borders
+    targetBodyPos.x = THREE.MathUtils.clamp(targetBodyPos.x, OFFICE_BOUNDS.minX, OFFICE_BOUNDS.maxX);
+    targetBodyPos.z = THREE.MathUtils.clamp(targetBodyPos.z, OFFICE_BOUNDS.minZ, OFFICE_BOUNDS.maxZ);
+    targetBodyPos.y = THREE.MathUtils.clamp(targetBodyPos.y, minDangleHeight, OFFICE_BOUNDS.ceilY);
 
     this.grabInfo.targetPointWorld.copy(targetBodyPos);
 

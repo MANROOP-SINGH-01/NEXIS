@@ -229,6 +229,20 @@ export class CharacterManager {
     }
 
     if (this.physicsSystem) {
+      // Continuously sync idle/un-grabbed positions from CPU pos array so physics controller position is never stale
+      if (this.debugPosArray) {
+        for (let i = 0; i < this.instanceCount; i++) {
+          if (!this.physicsSystem.isCharacterPhysical(i)) {
+            const p = new THREE.Vector3(
+              this.debugPosArray[i * 4 + 0],
+              this.debugPosArray[i * 4 + 1],
+              this.debugPosArray[i * 4 + 2]
+            );
+            this.physicsSystem.syncExternalPosition(i, p);
+          }
+        }
+      }
+
       this.physicsSystem.update(delta);
 
       if (this.posAttribute) {
@@ -582,7 +596,7 @@ export class CharacterManager {
 
       const procWeight = attribute('procWeight', 'float');
       const rotationMat = defaultRotMat.toVar();
-      If(procWeight.greaterThan(0.5), () => {
+      If(procWeight.greaterThan(0.01), () => {
         rotationMat.assign(quatRotMat);
       });
 
@@ -591,9 +605,6 @@ export class CharacterManager {
       if (this.bakedAnimationsBuffer && this.metaBuffer) {
         const animBuffer = storage(this.bakedAnimationsBuffer, 'mat4', this.bakedAnimationsBuffer.count);
         const metaStorage = storage(this.metaBuffer, 'vec4', this.metaBuffer.count);
-        const procAnimBuffer = this.physicsSystem
-          ? storage(this.physicsSystem.proceduralBonesAttribute, 'mat4', this.physicsSystem.proceduralBonesAttribute.count)
-          : null;
 
         const animIndex = agentData.y.toUint();
 
@@ -619,18 +630,7 @@ export class CharacterManager {
           If(weightNode.greaterThan(0), () => {
             const bakedAddress = animOffset.add(safeFrame.mul(uint(this.numBones))).add(boneIdxNode.toUint());
             const bakedMat = animBuffer.element(bakedAddress);
-
-            if (procAnimBuffer) {
-              const procAddress = instanceIndex.mul(uint(this.numBones)).add(boneIdxNode.toUint());
-              const procMat = procAnimBuffer.element(procAddress);
-              const curMat = bakedMat.toVar();
-              If(procWeight.greaterThan(0.5), () => {
-                curMat.assign(procMat);
-              });
-              skinMat.addAssign(curMat.mul(weightNode));
-            } else {
-              skinMat.addAssign(bakedMat.mul(weightNode));
-            }
+            skinMat.addAssign(bakedMat.mul(weightNode));
           });
         };
 

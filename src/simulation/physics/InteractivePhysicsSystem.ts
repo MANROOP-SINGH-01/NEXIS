@@ -78,13 +78,19 @@ export class InteractivePhysicsSystem {
     characterIndex: number,
     pointerNDC: THREE.Vector2,
     hitPointWorld?: THREE.Vector3,
-    boneIndex: number = -1
+    boneIndex: number = -1,
+    currentWorldPosition?: THREE.Vector3,
+    currentWorldOrientation?: THREE.Quaternion
   ): boolean {
     // Only one character grabbed at a time
     if (this.activeGrabbedIndex !== null) return false;
 
     const controller = this.controllers.get(characterIndex);
     if (!controller) return false;
+
+    if (currentWorldPosition) {
+      controller.physics.reset(currentWorldPosition, currentWorldOrientation);
+    }
 
     this.activeGrabbedIndex = characterIndex;
     controller.startGrab(pointerNDC, hitPointWorld, boneIndex);

@@ -201,7 +201,8 @@ export class SceneManager {
 
         const phys = this.characterManager.getPhysicsSystem();
         if (phys) {
-          phys.handlePointerDown(idx, pointerNDC, hitPointWorld);
+          const livePos = this.controller?.getCPUPosition(idx);
+          phys.handlePointerDown(idx, pointerNDC, hitPointWorld, -1, livePos ?? undefined);
           const ctrl = phys.getController(idx);
           if (ctrl) {
             ctrl.onStateChange = (state) => {
@@ -483,7 +484,7 @@ export class SceneManager {
 
   public moveNpcToSpawn(index: number, onArrival?: () => void): void {
     if (!this.controller) return;
-    const poi = this.poiManager.getPoi(`spawn-${index}`);
+    const poi = this.poiManager.getPoi(`spawn-${index}`) || this.poiManager.getPoi(`idle-spawn-${index}`);
     if (poi) this.controller.moveTo(index, poi.position, 'idle', onArrival, undefined, poi.quaternion);
     else if (onArrival) onArrival();
   }

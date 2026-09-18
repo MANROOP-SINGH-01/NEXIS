@@ -77,22 +77,27 @@ export class CharacterPhysicsController {
 
     this.position.addScaledVector(this.linearVelocity, dt);
 
-    // Floor clamp
+    // Office boundary clamp: enforce that character remains inside the office model
+    this.position.x = THREE.MathUtils.clamp(this.position.x, this.settings.minX, this.settings.maxX);
+    this.position.z = THREE.MathUtils.clamp(this.position.z, this.settings.minZ, this.settings.maxZ);
     if (this.position.y < this.settings.floorY) {
       this.position.y = this.settings.floorY;
       if (this.linearVelocity.y < 0) this.linearVelocity.y = 0;
+    } else if (this.position.y > this.settings.ceilY) {
+      this.position.y = this.settings.ceilY;
+      if (this.linearVelocity.y > 0) this.linearVelocity.y = 0;
     }
 
-    // Dynamic Torso Tilt from acceleration
+    // Dynamic Clumsy Ninja Torso Tilt & Pendulum Swing from velocity & acceleration
     // Moving/accelerating right (+x) leans body to the left (-roll)
     // Moving/accelerating forward (+z) leans body backward (-pitch)
     const targetPitch = THREE.MathUtils.clamp(
-      -this.linearAcceleration.z * 0.016,
+      (-this.linearVelocity.z * 0.05 - this.linearAcceleration.z * 0.016),
       -this.settings.maxTiltPitch,
       this.settings.maxTiltPitch
     );
     const targetRoll = THREE.MathUtils.clamp(
-      this.linearAcceleration.x * 0.016,
+      (this.linearVelocity.x * 0.05 + this.linearAcceleration.x * 0.016),
       -this.settings.maxTiltRoll,
       this.settings.maxTiltRoll
     );
@@ -127,6 +132,32 @@ export class CharacterPhysicsController {
     this.linearVelocity.multiplyScalar(Math.pow(this.settings.airDrag, dt * 60));
 
     this.position.addScaledVector(this.linearVelocity, dt);
+
+    // Office Wall Bounds Collision with energetic Clumsy Ninja elastic rebound
+    if (this.position.x <= this.settings.minX) {
+      this.position.x = this.settings.minX;
+      this.linearVelocity.x = Math.abs(this.linearVelocity.x) * 0.45;
+      this.angularVelocity.z += 1.5;
+    } else if (this.position.x >= this.settings.maxX) {
+      this.position.x = this.settings.maxX;
+      this.linearVelocity.x = -Math.abs(this.linearVelocity.x) * 0.45;
+      this.angularVelocity.z -= 1.5;
+    }
+
+    if (this.position.z <= this.settings.minZ) {
+      this.position.z = this.settings.minZ;
+      this.linearVelocity.z = Math.abs(this.linearVelocity.z) * 0.45;
+      this.angularVelocity.x -= 1.5;
+    } else if (this.position.z >= this.settings.maxZ) {
+      this.position.z = this.settings.maxZ;
+      this.linearVelocity.z = -Math.abs(this.linearVelocity.z) * 0.45;
+      this.angularVelocity.x += 1.5;
+    }
+
+    if (this.position.y >= this.settings.ceilY) {
+      this.position.y = this.settings.ceilY;
+      this.linearVelocity.y = -Math.abs(this.linearVelocity.y) * 0.35;
+    }
 
     // Angular momentum update
     this.angularVelocity.multiplyScalar(Math.pow(this.settings.angularDrag, dt * 60));

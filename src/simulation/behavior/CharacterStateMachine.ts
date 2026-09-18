@@ -27,11 +27,11 @@ export const STATE_MAP: Record<CharacterStateKey, CharacterStateDef> = {
   happy_loop:  { animation: AnimationName.HAPPY,   expression: 'happy',         loop: true,  interruptible: true },
   success:     { animation: AnimationName.HAPPY,   expression: 'happy',         loop: false, nextState: 'idle', interruptible: true },
   error:       { animation: AnimationName.SAD,     expression: 'sad',           loop: false, nextState: 'idle', interruptible: true },
-  dragged:     { animation: AnimationName.PICK,    expression: 'surprised',     loop: true,  interruptible: true },
-  grabbed:     { animation: AnimationName.IDLE,    expression: 'surprised',     loop: true,  interruptible: true },
-  airborne:    { animation: AnimationName.IDLE,    expression: 'surprised',     loop: true,  interruptible: true },
-  impact:      { animation: AnimationName.IDLE,    expression: 'surprised',     loop: false, nextState: 'recovering', interruptible: true },
-  recovering:  { animation: AnimationName.IDLE,    expression: 'idle',          loop: true,  interruptible: true },
+  dragged:     { animation: AnimationName.PICK,        expression: 'surprised', loop: true,  interruptible: true },
+  grabbed:     { animation: AnimationName.PICK,        expression: 'surprised', loop: true,  interruptible: true },
+  airborne:    { animation: AnimationName.PICK,        expression: 'surprised', loop: true,  interruptible: true },
+  impact:      { animation: AnimationName.SAD,         expression: 'surprised', loop: false, nextState: 'recovering', interruptible: true },
+  recovering:  { animation: AnimationName.LOOK_AROUND, expression: 'surprised', loop: true,  interruptible: true },
 };
 
 // ── STATE MACHINE ────────────────────────────────────────────

@@ -85,27 +85,47 @@ export interface ImpactInfo {
 }
 
 /**
+ * Strict bounding box constraints for the 3D office model interior.
+ * Keeps agents strictly contained within visible walls and floor.
+ */
+export const OFFICE_BOUNDS = {
+  minX: -4.75,
+  maxX: 4.75,
+  minZ: -4.75,
+  maxZ: 4.75,
+  floorY: 0.0,
+  ceilY: 5.5,
+};
+
+/**
  * Overall physics and interaction tuning configuration.
  */
 export interface CharacterPhysicsSettings {
-  // Body follow spring
-  followStiffness: number;          // Spring constant k (e.g. 180)
-  followDamping: number;            // Damping ratio c (e.g. 22, near critical)
+  // Office model boundaries
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+  floorY: number;
+  ceilY: number;
+
+  // Body follow spring (Clumsy Ninja playful lag & overshoot)
+  followStiffness: number;          // Spring constant k (e.g. 140)
+  followDamping: number;            // Damping ratio c (e.g. 18)
   bodyMass: number;                 // Apparent mass (kg)
   maxFollowSpeed: number;           // Velocity clamp (m/s)
 
   // Airborne & Gravity
-  gravity: number;                  // Gravity acceleration m/s^2 (-18.0)
-  airDrag: number;                  // Linear air resistance (0.98)
-  angularDrag: number;              // Rotational air resistance (0.92)
+  gravity: number;                  // Gravity acceleration m/s^2 (-19.6)
+  airDrag: number;                  // Linear air resistance (0.982)
+  angularDrag: number;              // Rotational air resistance (0.93)
 
-  // Torso tilt & lean
+  // Torso tilt & lean (dynamic pendulum swing)
   maxTiltPitch: number;             // Max forward/back lean (radians)
   maxTiltRoll: number;              // Max sideways lean (radians)
   tiltResponsiveness: number;       // How fast torso responds to acceleration
 
   // Ground collision & impact
-  floorY: number;                   // Floor elevation (0.0)
   minImpactVelocity: number;        // Threshold for triggering impact reaction (m/s)
   maxSquashCompression: number;     // Max vertical compression on hard landing
   bounceRestitution: number;        // Elasticity of landing (0.15 - 0.25)
@@ -117,25 +137,32 @@ export interface CharacterPhysicsSettings {
 }
 
 export const DEFAULT_PHYSICS_SETTINGS: CharacterPhysicsSettings = {
-  followStiffness: 190.0,
-  followDamping: 24.0,
+  minX: OFFICE_BOUNDS.minX,
+  maxX: OFFICE_BOUNDS.maxX,
+  minZ: OFFICE_BOUNDS.minZ,
+  maxZ: OFFICE_BOUNDS.maxZ,
+  floorY: OFFICE_BOUNDS.floorY,
+  ceilY: OFFICE_BOUNDS.ceilY,
+
+  followStiffness: 140.0,
+  followDamping: 18.0,
   bodyMass: 1.0,
-  maxFollowSpeed: 28.0,
+  maxFollowSpeed: 20.0,
 
   gravity: -19.6,
   airDrag: 0.982,
   angularDrag: 0.93,
 
-  maxTiltPitch: THREE.MathUtils.degToRad(32),
-  maxTiltRoll: THREE.MathUtils.degToRad(28),
-  tiltResponsiveness: 0.22,
+  maxTiltPitch: THREE.MathUtils.degToRad(38),
+  maxTiltRoll: THREE.MathUtils.degToRad(34),
+  tiltResponsiveness: 0.26,
 
-  floorY: 0.0,
-  minImpactVelocity: 1.2,
-  maxSquashCompression: 0.18,
-  bounceRestitution: 0.20,
+  minImpactVelocity: 1.0,
+  maxSquashCompression: 0.20,
+  bounceRestitution: 0.22,
   settleThresholdSpeed: 0.12,
 
-  recoveryDuration: 0.75,
+  recoveryDuration: 0.85,
   proceduralBlendSpeed: 8.0,
 };
+

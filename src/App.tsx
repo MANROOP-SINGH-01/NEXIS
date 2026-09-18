@@ -92,6 +92,7 @@ const App: React.FC = () => {
     if (canvasRef.current && !managerRef.current) {
       const manager = new SceneManager(canvasRef.current);
       managerRef.current = manager;
+      (window as any).__sceneManager = manager;
       setSceneManager(manager);
     }
 
