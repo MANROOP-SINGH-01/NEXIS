@@ -1,4 +1,4 @@
-import { AlertTriangle, FileText, Loader2, Play } from 'lucide-react'
+import { AlertTriangle, FileText, Loader2, Play, Sparkles, UploadCloud } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useCoreStore } from '../integration/store/coreStore'
 import { useUiStore } from '../integration/store/uiStore'
@@ -195,7 +195,7 @@ export default function PhaseOneControlPanel() {
         }
       } catch { }
 
-      // 2. Client-side fallback if server is unreachable or returned 405
+      // 2. Client-side fallback if server is unreachable
       if (!extractedText.trim()) {
         try {
           const buffer = await file.arrayBuffer()
@@ -385,7 +385,7 @@ export default function PhaseOneControlPanel() {
 
       appendAgentHistory(1, 'assistant', ['Nexus Director: Resume package optimized. Review suggested final draft and proceed to submission staging.'])
       
-      // Automatically navigate to Skill Gaps so user sees outputs immediately
+      // Navigate to Skill Gaps so user sees outputs immediately
       setActiveSidebarTab('skill-gaps')
     } catch (err) {
       const strategist = buildFallbackStrategist(currentResume.content, currentResume.targetJD)
@@ -405,7 +405,6 @@ export default function PhaseOneControlPanel() {
         result: err instanceof Error ? err.message : 'Pipeline completed in resilience mode',
         impact: 'warning',
       })
-      // Switch to results tab so outputs are immediately visible
       setActiveSidebarTab('skill-gaps')
     } finally {
       taskIds.forEach((id) => updateTaskStatus(id, 'done'))
@@ -416,11 +415,11 @@ export default function PhaseOneControlPanel() {
   }
 
   return (
-    <div className="px-6 py-4 border-b border-zinc-200/60 bg-white/60 backdrop-blur-md shrink-0 shadow-sm relative z-20">
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
+    <div className="px-4 sm:px-6 py-3.5 border-b border-zinc-800/80 bg-[#0c0d14]/90 backdrop-blur-xl shrink-0 shadow-lg relative z-20">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-stretch">
         
         {/* Resume Input Area */}
-        <div className="md:col-span-5 min-h-28 bg-white border border-zinc-200/80 rounded-2xl p-4 flex flex-col justify-between shadow-[var(--shadow-subtle)] hover:border-zinc-300 transition-colors">
+        <div className="lg:col-span-5 min-h-[96px] bg-[#12131c] border border-zinc-800 rounded-2xl p-3.5 flex flex-col justify-between shadow-inner hover:border-zinc-700/80 transition-colors">
           <input
             ref={fileRef}
             type="file"
@@ -431,68 +430,71 @@ export default function PhaseOneControlPanel() {
               if (file) void handlePdfUpload(file)
             }}
           />
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">Resume Input</div>
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-400">
+              Candidate Resume
+            </span>
             <button
               onClick={() => fileRef.current?.click()}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border border-zinc-200/50 rounded-xl text-xs font-semibold transition-colors cursor-pointer w-fit shadow-sm"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/60 rounded-xl text-xs font-medium transition-all cursor-pointer shadow-xs"
             >
-              <FileText size={14} className="text-zinc-500" />
-              <span className="truncate max-w-[220px]">
-                {resumeFileName ? `Loaded: ${resumeFileName}` : 'Upload PDF Resume'}
+              <UploadCloud size={13} className="text-indigo-400" />
+              <span className="truncate max-w-[180px]">
+                {resumeFileName ? resumeFileName : 'Upload PDF'}
               </span>
             </button>
           </div>
-          <div className="mt-3 text-[11px] text-zinc-500 line-clamp-2 leading-relaxed">
-            {currentResume.content ? `${currentResume.content.slice(0, 140)}...` : 'Extracted text preview appears here after PDF upload.'}
+          <div className="mt-2 text-xs text-zinc-400 line-clamp-2 leading-relaxed font-mono">
+            {currentResume.content ? `${currentResume.content.slice(0, 130)}...` : 'Upload PDF or paste content to prime agent analysis pipeline.'}
           </div>
         </div>
 
         {/* Job Description Area */}
-        <div className="md:col-span-4 min-h-28 bg-white border border-zinc-200/80 rounded-2xl shadow-[var(--shadow-subtle)] hover:border-zinc-300 transition-colors relative flex flex-col">
-          <div className="absolute top-4 left-4 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 pointer-events-none">
+        <div className="lg:col-span-4 min-h-[96px] bg-[#12131c] border border-zinc-800 rounded-2xl p-3.5 flex flex-col justify-between shadow-inner hover:border-zinc-700/80 transition-colors relative">
+          <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-400 mb-1">
             Target Job Description
-          </div>
+          </span>
           <textarea
             value={currentResume.targetJD}
             onChange={(e) => {
               setTargetJD(e.target.value)
               if (!e.target.value.trim()) clearResumeAnalysis()
             }}
-            placeholder="Paste Job Description here..."
-            className="w-full h-full min-h-28 bg-transparent pt-9 pb-4 px-4 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 rounded-2xl resize-none custom-scrollbar placeholder:text-zinc-300"
+            placeholder="Paste target job description or requirements here..."
+            className="w-full flex-1 bg-transparent text-xs text-zinc-200 focus:outline-none placeholder-zinc-600 resize-none custom-scrollbar leading-relaxed font-mono"
+            rows={2}
           />
         </div>
 
         {/* Execution Area */}
-        <div className="md:col-span-3 flex flex-col gap-2 justify-center pl-2">
+        <div className="lg:col-span-3 flex flex-col gap-1.5 justify-center">
           <button
             onClick={handleRun}
             disabled={!canRun || loading}
-            className="h-full min-h-16 bg-zinc-950 hover:bg-zinc-900 disabled:bg-zinc-200 disabled:text-zinc-400 text-white rounded-2xl text-xs font-bold uppercase tracking-[0.2em] transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed group border border-zinc-800 disabled:border-zinc-200"
-            title={canRun ? 'Execute Analysis & Tailoring Pipeline' : `Requires >30 chars in both Resume (now ${resumeLen}) & JD (now ${jdLen})`}
+            className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white rounded-xl text-xs font-bold font-['Space_Grotesk'] tracking-wider uppercase transition-all shadow-lg shadow-indigo-600/30 hover:shadow-indigo-500/40 disabled:shadow-none active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed group border border-indigo-500/30 disabled:border-zinc-700/50"
+            title={canRun ? 'Execute Multi-Agent Pipeline' : `Requires >30 chars in both Resume (now ${resumeLen}) & JD (now ${jdLen})`}
           >
             {loading ? (
               <>
-                <Loader2 size={16} className="animate-spin text-zinc-400" />
-                <span>Tailoring...</span>
+                <Loader2 size={15} className="animate-spin text-white" />
+                <span>Agents Orchestrating...</span>
               </>
             ) : (
               <>
-                <Play size={14} className="fill-current transition-transform group-hover:translate-x-1" />
-                <span>RUN PIPELINE</span>
+                <Play size={13} className="fill-current group-hover:scale-110 transition-transform" />
+                <span>Run Agent Mesh</span>
               </>
             )}
           </button>
           
           {!canRun && !loading && (
-            <div className="text-[10px] font-medium text-amber-700 bg-amber-50/50 border border-amber-200/50 rounded-xl py-2 px-3 flex items-center gap-2 justify-center">
-              <AlertTriangle size={12} className="shrink-0 text-amber-500" />
-              <span>{!resumeLen ? "Upload PDF" : resumeLen <= 30 ? `Resume too short` : `Paste JD (>30 chars)`}</span>
+            <div className="text-[10px] font-mono text-amber-400/90 bg-amber-500/10 border border-amber-500/20 rounded-lg py-1 px-2.5 flex items-center gap-1.5 justify-center">
+              <AlertTriangle size={11} className="shrink-0 text-amber-400" />
+              <span>{!resumeLen ? "Upload PDF resume" : resumeLen <= 30 ? "Resume too short" : "Paste JD (>30 chars)"}</span>
             </div>
           )}
           {error && (
-            <div className="text-[10px] font-medium text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2 text-center">
+            <div className="text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg px-2.5 py-1 text-center">
               {error}
             </div>
           )}

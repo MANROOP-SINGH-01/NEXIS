@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { ShieldCheck, ShieldAlert, Loader2, ArrowRight, CheckCircle2, Lock, X } from 'lucide-react';
 import { ConsentScope } from '../../types';
-import { USER_COLOR, USER_COLOR_LIGHT } from '../../theme/brand';
+import { Button } from '../primitives/Button';
+import { Card } from '../primitives/Card';
+import { Badge } from '../primitives/Badge';
 import { useLocale } from '../../integration/hooks/useLocale';
 
 interface ConsentScreenProps {
@@ -21,28 +23,28 @@ const SCOPES_CONFIG: ScopeDefinition[] = [
   {
     scope: 'JOB_SEARCH_DATA',
     title: 'Job Search & Opportunity Matching',
-    description: 'Allows us to process your verified skills, course history, and career goals to surface targeted blue-ocean job openings.',
+    description: 'Allows processing your verified skills, course history, and career telemetry to surface high-fit blue-ocean job openings.',
     dataAccess: 'Visible to: Nexus-Hunter & AI job matching engines',
     defaultGranted: true,
   },
   {
     scope: 'EMPLOYER_SHARING',
     title: 'Employer Profile Sharing',
-    description: 'Allows sharing your anonymized candidate summary and verified competencies with hiring partners for placement interviews.',
-    dataAccess: 'Visible to: Verified corporate and MSME hiring partners',
+    description: 'Allows sharing your verified candidate summary and competencies with vetted hiring partners for direct interview scheduling.',
+    dataAccess: 'Visible to: Verified corporate and hiring partners',
     defaultGranted: true,
   },
   {
     scope: 'ANALYTICS',
-    title: 'Skill Analytics & Curriculum Feedback',
-    description: 'Allows using aggregated, de-identified training metrics to evaluate course efficacy and improve vocational programs.',
+    title: 'Skill Analytics & Feedback Loop',
+    description: 'Allows using aggregated, de-identified training metrics to evaluate course efficacy and improve curriculum roadmaps.',
     dataAccess: 'Visible to: Vocational program directors & training institutes',
     defaultGranted: true,
   },
   {
     scope: 'GOVT_CROSS_CHECK',
     title: 'Government Registry & Certificate Verification',
-    description: 'Allows government authorities to verify your training certification and enrolment credentials against national registries.',
+    description: 'Allows authorities to verify your training certification and enrolment credentials against national registries.',
     dataAccess: 'Visible to: Ministry auditing bodies (PMKVY / NCVET / DDU-GKY)',
     defaultGranted: false,
   },
@@ -50,14 +52,11 @@ const SCOPES_CONFIG: ScopeDefinition[] = [
 
 export const ConsentScreen: React.FC<ConsentScreenProps> = ({ onConsentsSaved, onDismiss }) => {
   const [isDismissed, setIsDismissed] = useState(false);
-  const [consents, setConsents] = useState<Record<ConsentScope, boolean>>(() => {
-    const initial: Record<ConsentScope, boolean> = {
-      JOB_SEARCH_DATA: true,
-      EMPLOYER_SHARING: true,
-      ANALYTICS: true,
-      GOVT_CROSS_CHECK: false,
-    };
-    return initial;
+  const [consents, setConsents] = useState<Record<ConsentScope, boolean>>({
+    JOB_SEARCH_DATA: true,
+    EMPLOYER_SHARING: true,
+    ANALYTICS: true,
+    GOVT_CROSS_CHECK: false,
   });
 
   const { t } = useLocale();
@@ -101,49 +100,39 @@ export const ConsentScreen: React.FC<ConsentScreenProps> = ({ onConsentsSaved, o
 
   const grantedCount = Object.values(consents).filter(Boolean).length;
 
-  if (isDismissed) {
-    return null;
-  }
+  if (isDismissed) return null;
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 md:p-6 pointer-events-auto overflow-hidden">
       {/* Frosted Glass Backdrop */}
       <div 
         onClick={handleDismiss}
-        className="absolute inset-0 bg-slate-900/60 animate-in fade-in duration-500 cursor-pointer" 
+        className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-300 cursor-pointer" 
       />
 
-      {/* Modal Card */}
-      <div className="relative w-full max-w-2xl bg-white rounded-lg shadow-[0_32px_64px_-12px_rgba(0,0,0,0.12)] p-6 md:p-8 border border-zinc-100 animate-in fade-in slide-in-from-bottom-4 duration-500 max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Modal Header */}
+      {/* Modal Dialog */}
+      <div className="relative w-full max-w-2xl bg-[#12131c] rounded-2xl shadow-2xl shadow-black/80 p-6 md:p-8 border border-zinc-800 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-hidden flex flex-col z-10">
+        {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-5 shrink-0">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 mb-2">
-              <ShieldCheck size={13} className="text-emerald-600" />
-              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700">
-                DPDP Act 2023 Aligned
-              </span>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono mb-2">
+              <ShieldCheck size={13} />
+              <span>DPDP ACT 2023 COMPLIANT</span>
             </div>
-            <h2 className="text-2xl font-black text-darkDelegation tracking-tight leading-tight">
-              {t('consentTitle')}
+            <h2 className="text-2xl font-bold font-['Space_Grotesk'] text-white tracking-tight leading-tight">
+              {t('consentTitle') || 'Candidate Data Privacy & Consent'}
             </h2>
-            <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
-              {t('consentSubtitle')}
+            <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+              {t('consentSubtitle') || 'Configure how your telemetry, skill records, and career data are processed.'}
             </p>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center hidden sm:flex"
-              style={{ backgroundColor: USER_COLOR_LIGHT }}
-            >
-              <Lock size={22} style={{ color: USER_COLOR }} />
-            </div>
             <button
               type="button"
               onClick={handleDismiss}
-              className="w-9 h-9 rounded-md flex items-center justify-center text-zinc-400 hover:text-zinc-800 hover:bg-zinc-100 transition-colors cursor-pointer"
-              title="Dismiss modal and explore dashboard"
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+              title="Dismiss"
               aria-label="Close"
             >
               <X size={18} />
@@ -153,52 +142,51 @@ export const ConsentScreen: React.FC<ConsentScreenProps> = ({ onConsentsSaved, o
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-4 p-3.5 bg-red-50 text-red-700 text-xs rounded-md border border-red-100 font-medium flex items-center justify-between gap-2 shrink-0">
+          <div className="mb-4 p-3 bg-rose-500/10 text-rose-300 text-xs rounded-xl border border-rose-500/20 flex items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-2">
-              <ShieldAlert size={16} className="shrink-0 text-red-500" />
+              <ShieldAlert size={16} className="shrink-0 text-rose-400" />
               <span>{error}</span>
             </div>
             <button
               type="button"
               onClick={handleDismiss}
-              className="text-[11px] font-bold underline text-red-700 hover:text-red-900 cursor-pointer shrink-0"
-              title="Proceed to application"
+              className="text-[11px] font-semibold underline text-rose-300 hover:text-white cursor-pointer shrink-0"
             >
               Continue Anyway
             </button>
           </div>
         )}
 
-        {/* Independent Scopes List (Scrollable) */}
+        {/* Scopes List */}
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto pr-1 space-y-3">
+          <div className="flex-1 overflow-y-auto pr-1 space-y-3 custom-scrollbar">
             {SCOPES_CONFIG.map((item) => {
               const isChecked = !!consents[item.scope];
               return (
                 <div
                   key={item.scope}
                   onClick={() => handleToggle(item.scope)}
-                  className={`p-4 rounded-lg border transition-all cursor-pointer select-none ${
+                  className={`p-4 rounded-xl border transition-all cursor-pointer select-none ${
                     isChecked
-                      ? 'bg-zinc-50/70 border-zinc-300 shadow-xs'
-                      : 'bg-white border-zinc-200/80 opacity-75 hover:opacity-100 hover:border-zinc-300'
+                      ? 'bg-zinc-900/90 border-indigo-500/40 shadow-sm'
+                      : 'bg-zinc-950/60 border-zinc-800/80 opacity-70 hover:opacity-100 hover:border-zinc-700'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-black text-zinc-900 tracking-tight">
+                        <span className="text-xs font-semibold text-zinc-100">
                           {item.title}
                         </span>
-                        <span className="text-[9px] font-mono font-bold text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded">
+                        <span className="text-[9px] font-mono text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700/60">
                           {item.scope}
                         </span>
                       </div>
-                      <p className="text-[11px] text-zinc-600 leading-relaxed font-normal">
+                      <p className="text-[11px] text-zinc-400 leading-relaxed font-normal">
                         {item.description}
                       </p>
-                      <div className="mt-2 text-[10px] font-semibold text-zinc-400 flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-zinc-300" />
+                      <div className="mt-2 text-[10px] font-mono text-zinc-500 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
                         <span>{item.dataAccess}</span>
                       </div>
                     </div>
@@ -206,12 +194,12 @@ export const ConsentScreen: React.FC<ConsentScreenProps> = ({ onConsentsSaved, o
                     {/* Toggle Switch */}
                     <div className="shrink-0 pt-0.5">
                       <div
-                        className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-200 ease-in-out ${
-                          isChecked ? 'bg-darkDelegation' : 'bg-zinc-200'
+                        className={`w-10 h-5 flex items-center rounded-full p-0.5 transition-colors duration-200 ${
+                          isChecked ? 'bg-indigo-600' : 'bg-zinc-800'
                         }`}
                       >
                         <div
-                          className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${
+                          className={`bg-white w-4 h-4 rounded-full shadow-sm transform transition-transform duration-200 ${
                             isChecked ? 'translate-x-5' : 'translate-x-0'
                           }`}
                         />
@@ -223,10 +211,10 @@ export const ConsentScreen: React.FC<ConsentScreenProps> = ({ onConsentsSaved, o
             })}
           </div>
 
-          {/* Modal Footer */}
-          <div className="pt-5 mt-3 border-t border-zinc-100 flex items-center justify-between gap-3 shrink-0">
-            <div className="flex items-center gap-2 text-xs font-bold text-zinc-500">
-              <CheckCircle2 size={15} className="text-darkDelegation" />
+          {/* Footer */}
+          <div className="pt-4 mt-3 border-t border-zinc-800/80 flex items-center justify-between gap-3 shrink-0">
+            <div className="flex items-center gap-2 text-xs text-zinc-400">
+              <CheckCircle2 size={15} className="text-emerald-400" />
               <span>
                 {grantedCount} of {SCOPES_CONFIG.length} scopes granted
               </span>
@@ -236,27 +224,19 @@ export const ConsentScreen: React.FC<ConsentScreenProps> = ({ onConsentsSaved, o
               <button
                 type="button"
                 onClick={handleDismiss}
-                className="px-4 py-2.5 rounded-md text-xs font-bold text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 transition-all cursor-pointer"
+                className="px-3 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
               >
                 Skip for now
               </button>
-              <button
+              <Button
                 type="submit"
-                disabled={submitting}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-darkDelegation text-white rounded-md text-xs font-black uppercase tracking-wider hover:bg-black transition-all active:scale-95 disabled:opacity-50 cursor-pointer shadow-sm"
+                variant="glow"
+                size="sm"
+                isLoading={submitting}
+                rightIcon={<ArrowRight size={14} />}
               >
-                {submitting ? (
-                  <>
-                    <Loader2 size={14} className="animate-spin" />
-                    Recording Consent...
-                  </>
-                ) : (
-                  <>
-                    Confirm & Continue
-                    <ArrowRight size={14} />
-                  </>
-                )}
-              </button>
+                Confirm & Continue
+              </Button>
             </div>
           </div>
         </form>

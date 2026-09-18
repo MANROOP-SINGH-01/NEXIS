@@ -83,6 +83,12 @@ const SECTION_CONFIG: Record<
     icon: Award,
     badge: 'Verified Identity',
   },
+  'settings': {
+    title: 'Platform Settings & Privacy',
+    description: 'Manage your AI models, DPDP privacy controls, user profile, and connected integrations.',
+    icon: Wrench,
+    badge: 'Preferences',
+  },
 };
 
 export const EmptySectionView: React.FC<EmptySectionViewProps> = ({ tab }) => {

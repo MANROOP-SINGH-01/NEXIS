@@ -1,29 +1,75 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import 'tailwindcss';
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-display: 'Space Grotesk', 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
   
-  /* Modern Premium Light Theme Colors */
-  --color-surface-50: #fafafa;
-  --color-surface-100: #f4f4f5;
-  --color-surface-200: #e4e4e7;
-  --color-surface-300: #d4d4d8;
-  --color-surface-800: #27272a;
-  --color-surface-900: #18181b;
-  --color-surface-950: #09090b;
+  /* NEXIS Core Dark Surfaces */
+  --color-surface-bg: #090a0f;
+  --color-surface-card: #12131c;
+  --color-surface-elevated: #1a1b28;
+  --color-surface-hover: #222336;
+  --color-surface-border: #26283b;
+  --color-surface-border-subtle: rgba(255, 255, 255, 0.08);
 
-  --color-primary-500: #000000;
-  --color-primary-600: #18181b;
-  
-  --color-accent-500: #2563eb; /* A sophisticated blue */
-  --color-accent-600: #1d4ed8;
+  /* Primary Accent: Electric Indigo */
+  --color-primary: #6366f1;
+  --color-primary-hover: #4f46e5;
+  --color-primary-glow: rgba(99, 102, 241, 0.4);
+  --color-primary-light: #eef2ff;
 
-  --color-text-primary: #09090b;
-  --color-text-secondary: #52525b;
-  --color-text-tertiary: #a1a1aa;
+  /* Accent Inflections */
+  --color-accent-coral: #ff6b6b;
+  --color-accent-amber: #f59e0b;
+  --color-accent-mint: #10b981;
+  --color-accent-cyan: #06b6d4;
+  --color-accent-purple: #8b5cf6;
+
+  /* Typography */
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #94a3b8;
+  --color-text-tertiary: #64748b;
+  --color-text-muted: #475569;
+
+  /* Backward Compatibility Mappings */
+  --color-surface-50: #090a0f;
+  --color-surface-100: #12131c;
+  --color-surface-200: #1a1b28;
+  --color-surface-300: #26283b;
+  --color-surface-800: #cbd5e1;
+  --color-surface-900: #e2e8f0;
+  --color-surface-950: #f8fafc;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-accent-500: #6366f1;
+  --color-accent-600: #4f46e5;
+}
+
+/* Optional Light Mode overrides */
+.light {
+  color-scheme: light;
+  --color-surface-bg: #f8fafc;
+  --color-surface-card: #ffffff;
+  --color-surface-elevated: #f1f5f9;
+  --color-surface-hover: #e2e8f0;
+  --color-surface-border: #e2e8f0;
+  --color-surface-border-subtle: rgba(0, 0, 0, 0.06);
+
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #64748b;
+  --color-text-muted: #94a3b8;
+
+  --color-surface-50: #f8fafc;
+  --color-surface-100: #ffffff;
+  --color-surface-200: #f1f5f9;
+  --color-surface-300: #e2e8f0;
+  --color-surface-800: #334155;
+  --color-surface-900: #1e293b;
+  --color-surface-950: #0f172a;
 }
 
 html,
@@ -33,7 +79,7 @@ body,
   height: 100%;
   margin: 0;
   font-family: var(--font-sans);
-  background-color: var(--color-surface-50);
+  background-color: var(--color-surface-bg);
   color: var(--color-text-primary);
   user-select: text;
   -webkit-font-smoothing: antialiased;
@@ -42,7 +88,7 @@ body,
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 
 button, a {
@@ -53,53 +99,89 @@ button, a {
 @theme {
   --font-sans: var(--font-sans);
   --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
 
-  --color-darkDelegation: var(--color-surface-950);
-  --color-govNavy: var(--color-accent-600);
-  --color-govBlue: var(--color-accent-500);
+  --color-darkDelegation: var(--color-surface-card);
+  --color-govNavy: var(--color-primary);
+  --color-govBlue: var(--color-primary);
 
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
   --radius-xl: 1rem;
   --radius-2xl: 1.25rem;
   --radius-3xl: 1.5rem;
   
-  --shadow-subtle: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-elevation: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
-}
-
-/* Base styles for Markdown content */
-.markdown-content p {
-  @apply mb-4 leading-relaxed text-zinc-600;
-}
-.markdown-content ul,
-.markdown-content ol {
-  @apply mb-4 ml-6 space-y-2;
-}
-.markdown-content ul {
-  @apply list-disc;
-}
-.markdown-content ol {
-  @apply list-decimal;
-}
-.markdown-content li {
-  @apply text-zinc-600;
-}
-.markdown-content strong {
-  @apply font-semibold text-zinc-900;
-}
-.markdown-content em {
-  @apply italic;
+  --shadow-subtle: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  --shadow-elevation: 0 10px 30px -5px rgba(0, 0, 0, 0.5), 0 4px 10px -2px rgba(0, 0, 0, 0.4);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 0 25px -4px rgba(99, 102, 241, 0.45);
+  --shadow-glow-cyan: 0 0 25px -4px rgba(6, 182, 212, 0.45);
 }
 
 /* Glassmorphism utilities */
 .glass-panel {
-  @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-[var(--shadow-glass)];
-}
-.glass-panel-dark {
-  @apply bg-zinc-900/80 backdrop-blur-xl border border-white/10 shadow-[var(--shadow-glass)];
+  background: rgba(18, 19, 28, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 }
 
-/* Smooth scrollbar */
+.glass-panel-elevated {
+  background: rgba(26, 27, 40, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+}
+
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* NEXIS Micro-Animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s infinite ease-in-out;
+}
+
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: floatSlow 5s infinite ease-in-out;
+}
+
+/* Grid pattern background */
+.bg-grid-pattern {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.bg-radial-gradient {
+  background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -108,9 +190,38 @@ button, a {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: var(--color-surface-300);
-  border-radius: 20px;
+  background-color: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-surface-800);
+  background-color: rgba(99, 102, 241, 0.5);
+}
+
+/* Base styles for Markdown content */
+.markdown-content p {
+  margin-bottom: 1rem;
+  line-height: 1.625;
+  color: var(--color-text-secondary);
+}
+.markdown-content ul,
+.markdown-content ol {
+  margin-bottom: 1rem;
+  margin-left: 1.5rem;
+}
+.markdown-content ul {
+  list-style-type: disc;
+}
+.markdown-content ol {
+  list-style-type: decimal;
+}
+.markdown-content li {
+  color: var(--color-text-secondary);
+  margin-bottom: 0.35rem;
+}
+.markdown-content strong {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+.markdown-content em {
+  font-style: italic;
 }

@@ -69,11 +69,11 @@ function MatchRing({ pct }: { pct: number }) {
   const r = 44;
   const circ = 2 * Math.PI * r;
   const dash = (pct / 100) * circ;
-  const color = pct >= 75 ? '#10b981' : pct >= 50 ? '#3b82f6' : '#f59e0b';
+  const color = pct >= 75 ? '#10b981' : pct >= 50 ? '#6366f1' : '#f59e0b';
   return (
     <div className="relative flex items-center justify-center" style={{ width: 120, height: 120 }}>
       <svg width={120} height={120} viewBox="0 0 120 120" className="-rotate-90">
-        <circle cx={60} cy={60} r={r} fill="none" stroke="#f4f4f5" strokeWidth={8} />
+        <circle cx={60} cy={60} r={r} fill="none" stroke="#26283b" strokeWidth={8} />
         <circle
           cx={60} cy={60} r={r} fill="none" stroke={color} strokeWidth={8}
           strokeDasharray={String(dash) + ' ' + String(circ - dash)}
@@ -82,8 +82,8 @@ function MatchRing({ pct }: { pct: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-display font-bold text-zinc-950 leading-none tracking-tight">{pct}%</span>
-        <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mt-1">Match</span>
+        <span className="text-3xl font-bold font-['Space_Grotesk'] text-white leading-none tracking-tight">{pct}%</span>
+        <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mt-1">Match</span>
       </div>
     </div>
   );
@@ -95,48 +95,48 @@ interface PillStyle { bg: string; text: string; icon: React.ReactNode; border: s
 function SkillPill({ skill, variant, provenance }: { skill: string; variant: PillVariant; provenance?: Provenance }) {
   const styles: Record<PillVariant, PillStyle> = {
     matched: {
-      bg: '#ecfdf5', text: '#059669', border: '#a7f3d0',
-      icon: <CheckCircle2 size={13} strokeWidth={2.5} className="text-emerald-500" />,
+      bg: 'rgba(16, 185, 129, 0.12)', text: '#34d399', border: 'rgba(16, 185, 129, 0.3)',
+      icon: <CheckCircle2 size={13} strokeWidth={2.5} className="text-emerald-400" />,
     },
     'gap-required': {
-      bg: '#fff7ed', text: '#ea580c', border: '#fed7aa',
-      icon: <XCircle size={13} strokeWidth={2.5} className="text-orange-500" />,
+      bg: 'rgba(239, 68, 68, 0.12)', text: '#f87171', border: 'rgba(239, 68, 68, 0.3)',
+      icon: <XCircle size={13} strokeWidth={2.5} className="text-rose-400" />,
     },
     'gap-nice': {
-      bg: '#fefce8', text: '#ca8a04', border: '#fde68a',
-      icon: <AlertCircle size={13} strokeWidth={2.5} className="text-yellow-500" />,
+      bg: 'rgba(245, 158, 11, 0.12)', text: '#fbbf24', border: 'rgba(245, 158, 11, 0.3)',
+      icon: <AlertCircle size={13} strokeWidth={2.5} className="text-amber-400" />,
     },
     demonstrated: {
-      bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe',
-      icon: <Sparkles size={13} strokeWidth={2.5} className="text-blue-500" />,
+      bg: 'rgba(99, 102, 241, 0.12)', text: '#a5b4fc', border: 'rgba(99, 102, 241, 0.3)',
+      icon: <Sparkles size={13} strokeWidth={2.5} className="text-indigo-400" />,
     },
     listed: {
-      bg: '#f4f4f5', text: '#52525b', border: '#e4e4e7',
+      bg: 'rgba(255, 255, 255, 0.05)', text: '#cbd5e1', border: 'rgba(255, 255, 255, 0.12)',
       icon: <ChevronRight size={13} strokeWidth={2.5} className="text-zinc-400" />,
     },
   };
   const s = styles[variant];
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold select-none shadow-sm transition-transform hover:scale-105 cursor-default"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-medium select-none shadow-sm transition-transform hover:scale-105 cursor-default"
       style={{ background: s.bg, color: s.text, border: '1px solid ' + s.border }}
     >
       {s.icon}
       <span>{skill}</span>
       {provenance && (
         <span
-          className={`text-[8px] px-1 py-0.5 rounded font-bold uppercase tracking-wider ${
+          className={`text-[8px] px-1.5 py-0.5 rounded font-mono font-bold uppercase tracking-wider ${
             provenance === 'VERIFIED'
-              ? 'bg-emerald-200/60 text-emerald-900'
+              ? 'bg-emerald-500/20 text-emerald-300'
               : provenance === 'DECLARED'
-              ? 'bg-blue-200/60 text-blue-900'
+              ? 'bg-indigo-500/20 text-indigo-300'
               : provenance === 'INFERRED'
-              ? 'bg-purple-200/60 text-purple-900'
-              : 'bg-amber-200/60 text-amber-900'
+              ? 'bg-purple-500/20 text-purple-300'
+              : 'bg-amber-500/20 text-amber-300'
           }`}
           title={`Provenance: ${provenance}`}
         >
-          {provenance === 'VERIFIED' ? 'Verified' : provenance === 'DECLARED' ? 'Declared' : provenance === 'INFERRED' ? 'Inferred' : 'Unsupported'}
+          {provenance === 'VERIFIED' ? 'Verified' : provenance === 'DECLARED' ? 'Declared' : provenance === 'INFERRED' ? 'Inferred' : 'Self-claim'}
         </span>
       )}
     </span>
@@ -147,14 +147,14 @@ function DimensionBar({ label, value, weight }: { label: string; value: number; 
   return (
     <div className="flex flex-col gap-1">
       <div className="flex justify-between items-center text-xs">
-        <span className="text-zinc-600 font-medium">
-          {label} <span className="text-[10px] text-zinc-400 font-normal">({weight})</span>
+        <span className="text-zinc-300 font-medium">
+          {label} <span className="text-[10px] text-zinc-500 font-mono">({weight})</span>
         </span>
-        <span className="font-bold text-zinc-900">{value}%</span>
+        <span className="font-bold text-white font-mono">{value}%</span>
       </div>
-      <div className="w-full bg-zinc-100 h-1.5 rounded-full overflow-hidden border border-zinc-200/40">
+      <div className="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden border border-zinc-700/40">
         <div
-          className="h-full bg-zinc-900 rounded-full transition-all duration-500"
+          className="h-full bg-indigo-500 rounded-full transition-all duration-500"
           style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
         />
       </div>
@@ -164,8 +164,8 @@ function DimensionBar({ label, value, weight }: { label: string; value: number; 
 
 function Section({ title, children, className = "" }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-white rounded-3xl border border-zinc-200/60 shadow-[var(--shadow-subtle)] p-6 md:p-8 hover:shadow-md transition-shadow duration-300 ${className}`}>
-      <h3 className="text-sm font-display font-semibold tracking-tight text-zinc-950 mb-5">{title}</h3>
+    <div className={`bg-[#12131c] rounded-2xl border border-zinc-800 shadow-xl p-5 md:p-6 hover:border-zinc-700 transition-colors ${className}`}>
+      <h3 className="text-sm font-bold font-['Space_Grotesk'] tracking-tight text-white mb-4">{title}</h3>
       {children}
     </div>
   );
@@ -173,9 +173,9 @@ function Section({ title, children, className = "" }: { title: string; children:
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-2 border-b border-zinc-100 last:border-0">
-      <span className="text-xs text-zinc-500 font-medium">{label}</span>
-      <span className="text-xs font-bold text-zinc-900 bg-zinc-100/80 px-2 py-1 rounded-md">{value}</span>
+    <div className="flex items-center justify-between gap-4 py-2 border-b border-zinc-800/80 last:border-0 font-mono">
+      <span className="text-xs text-zinc-400">{label}</span>
+      <span className="text-xs font-bold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md">{value}</span>
     </div>
   );
 }
@@ -362,28 +362,30 @@ export const SkillGapsView: React.FC = () => {
   }, [currentResume.targetJD]);
 
   return (
-    <div className="flex-1 h-full overflow-y-auto px-4 py-8 sm:p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto custom-scrollbar">
+    <div className="flex-1 h-full overflow-y-auto px-4 py-6 sm:p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto custom-scrollbar bg-[#090a0f]">
 
       {/* Header with Mode Toggle */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-zinc-950 flex items-center justify-center shrink-0 shadow-lg shadow-zinc-900/10">
-            <Target size={22} strokeWidth={2} className="text-white" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-1">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 text-indigo-400">
+            <Target size={20} />
           </div>
           <div>
-            <h1 className="text-2xl font-display font-bold text-zinc-950 tracking-tight leading-tight">Skill Gaps Analysis</h1>
-            <p className="text-xs text-zinc-500 font-medium mt-1 flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold font-['Space_Grotesk'] text-white tracking-tight leading-tight">
+              Skill Gaps Analysis
+            </h1>
+            <p className="text-xs text-zinc-400 font-mono mt-0.5 flex items-center gap-2">
               {viewMode === 'onet' ? (
                 <>
-                  <Compass size={14} className="text-blue-500" />
+                  <Compass size={13} className="text-indigo-400" />
                   <span>O*NET Industry Standard Taxonomy</span>
-                  <span className="w-1 h-1 rounded-full bg-zinc-300" />
-                  <span className="font-semibold text-zinc-700">{onetGaps?.role?.title || 'Loading Role...'}</span>
+                  <span className="w-1 h-1 rounded-full bg-zinc-600" />
+                  <span className="font-semibold text-zinc-200">{onetGaps?.role?.title || 'Loading Role...'}</span>
                 </>
               ) : (
                 <>
                   <span>{seniority}</span>
-                  <span className="w-1 h-1 rounded-full bg-zinc-300" />
+                  <span className="w-1 h-1 rounded-full bg-zinc-600" />
                   <span>{roleTitle}</span>
                 </>
               )}
@@ -393,13 +395,13 @@ export const SkillGapsView: React.FC = () => {
 
         {/* View Mode Switcher + Action Button */}
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="bg-zinc-100 p-1 rounded-xl flex items-center border border-zinc-200/80 shadow-inner">
+          <div className="bg-zinc-900 p-1 rounded-xl flex items-center border border-zinc-800 shadow-inner">
             <button
               onClick={() => setViewMode('onet')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all flex items-center gap-1.5 ${
                 viewMode === 'onet'
-                  ? 'bg-white text-zinc-950 shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-900'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
               }`}
             >
               <Compass size={13} />
@@ -407,10 +409,10 @@ export const SkillGapsView: React.FC = () => {
             </button>
             <button
               onClick={() => setViewMode('custom_jd')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all flex items-center gap-1.5 ${
                 viewMode === 'custom_jd'
-                  ? 'bg-white text-zinc-950 shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-900'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
               }`}
             >
               <Layers size={13} />
@@ -421,7 +423,7 @@ export const SkillGapsView: React.FC = () => {
           {viewMode === 'onet' ? (
             <button
               onClick={() => setIsAddingSkill(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-zinc-950 text-white hover:bg-zinc-800 transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-mono font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-md shadow-indigo-600/30"
             >
               <Plus size={14} />
               Verify / Add Skill

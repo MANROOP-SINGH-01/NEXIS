@@ -7,6 +7,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useCoreStore } from './integration/store/coreStore';
 import { useUiStore } from './integration/store/uiStore';
 import { useTraineeProfile } from './integration/hooks/useTraineeProfile';
+import { RouterProvider, useRouter } from './router';
+import { Shell } from './interface/layout/Shell';
+import { LandingPage } from './interface/pages/LandingPage';
+import { LoginPage } from './interface/auth/LoginPage';
+import { SettingsPage } from './interface/pages/SettingsPage';
 import { FinalOutputModal } from './interface/FinalOutputModal';
 import BYOKModal from './interface/BYOKModal';
 import NexusHunterModal from './interface/NexusHunterModal';
@@ -15,8 +20,6 @@ import NexusMirrorModal from './interface/NexusMirrorModal';
 import PhaseOneControlPanel from './interface/PhaseOneControlPanel';
 import ResumeForgeModal from './interface/ResumeForgeModal';
 import SimulationView from './interface/SimulationView';
-import Sidebar from './interface/Sidebar';
-import EmptySectionView from './interface/EmptySectionView';
 import SkillGapsView from './interface/SkillGapsView';
 import JobMatchesView from './interface/JobMatchesView';
 import RecommendedProgramsView from './interface/RecommendedProgramsView';
@@ -38,25 +41,14 @@ import { AnalyticsDashboard } from './interface/admin/AnalyticsDashboard';
 import { AgentActivityHUD } from './interface/AgentActivityHUD';
 import EmployerVerificationPage from './interface/employer/EmployerVerificationPage';
 import ProviderViewPage from './interface/provider/ProviderViewPage';
+import EmptySectionView from './interface/EmptySectionView';
 
-const App: React.FC = () => {
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-
-  // Public standalone route: Employer Verification Portal (/verify/:token)
-  if (pathname.startsWith('/verify/')) {
-    const token = pathname.replace(/^\/verify\/?/, '').split('/')[0];
-    return <EmployerVerificationPage token={token} />;
-  }
-
-  // Public standalone route: Provider Analytics Portal (/provider/:token)
-  if (pathname.startsWith('/provider/')) {
-    const token = pathname.replace(/^\/provider\/?/, '').split('/')[0];
-    return <ProviderViewPage token={token} />;
-  }
-
+const Workspace: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const managerRef = useRef<SceneManager | null>(null);
   const [sceneManager, setSceneManager] = useState<SceneManager | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   const {
     viewMode,
     isResumeForgeOpen,
@@ -86,8 +78,7 @@ const App: React.FC = () => {
     saveProfile,
   } = useTraineeProfile();
 
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
+  // 3D Scene Initialization
   useEffect(() => {
     if (canvasRef.current) {
       if (!managerRef.current) {
@@ -111,6 +102,7 @@ const App: React.FC = () => {
     };
   }, []);
 
+  // Real-time Agent SSE Stream
   useEffect(() => {
     const eventSource = new EventSource('/api/agents/activity');
     eventSource.onmessage = (e) => {
@@ -145,66 +137,51 @@ const App: React.FC = () => {
 
   return (
     <SceneContext.Provider value={sceneManager}>
-      <div className="w-screen h-screen bg-zinc-50 overflow-hidden flex flex-row font-sans text-zinc-950">
-        {/* PART A: Permanent Left Sidebar - Full height from top to bottom of page */}
-        {!isFullscreen && <Sidebar />}
+      <Shell isFullscreen={isFullscreen}>
+        {/* Top Control Panel (when viewing 3D Agent Dashboard) */}
+        {!isFullscreen && viewMode !== 'design' && activeSidebarTab === 'dashboard' && (
+          <PhaseOneControlPanel />
+        )}
 
-        {/* Right Content Column: Top Control Panel + Main Views */}
-        <div className="flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden relative">
-          {/* Top Control Panel (Dashboard only) */}
-          {!isFullscreen && viewMode !== 'design' && activeSidebarTab === 'dashboard' && <PhaseOneControlPanel />}
+        {/* Dynamic Views Area */}
+        <div className="relative flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-transparent">
+          {activeSidebarTab === 'skill-gaps' && <SkillGapsView />}
+          {activeSidebarTab === 'job-matches' && <JobMatchesView />}
+          {activeSidebarTab === 'recommended-programs' && <RecommendedProgramsView />}
+          {activeSidebarTab === 'interview-prep' && <InterviewPrepView />}
+          {activeSidebarTab === 'new-cv' && <NewCVView />}
+          {activeSidebarTab === 'my-outcome' && <OutcomeStatusView />}
+          {activeSidebarTab === 'linkedin-integration' && <LinkedInIntegrationView />}
+          {activeSidebarTab === 'career-health' && <CareerHealthDashboard />}
+          {activeSidebarTab === 'application-tracker' && <ApplicationTrackerView />}
+          {activeSidebarTab === 'career-passport' && <CareerPassportView />}
+          {activeSidebarTab === 'settings' && <SettingsPage />}
 
-          {/* Center: Main View Area */}
-          <div className="relative flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-transparent">
-            {/* Sections 2–8: Render views or empty state */}
-            {activeSidebarTab === 'skill-gaps' && <SkillGapsView />}
-            {activeSidebarTab === 'job-matches' && <JobMatchesView />}
-            {activeSidebarTab === 'recommended-programs' && <RecommendedProgramsView />}
-            {activeSidebarTab === 'interview-prep' && <InterviewPrepView />}
-            {activeSidebarTab === 'new-cv' && <NewCVView />}
-            {activeSidebarTab === 'my-outcome' && <OutcomeStatusView />}
-            {activeSidebarTab === 'linkedin-integration' && <LinkedInIntegrationView />}
-            {activeSidebarTab === 'career-health' && <CareerHealthDashboard />}
-            {activeSidebarTab === 'application-tracker' && <ApplicationTrackerView />}
-            {activeSidebarTab === 'career-passport' && <CareerPassportView />}
-            {activeSidebarTab !== 'dashboard' &&
-              activeSidebarTab !== 'skill-gaps' &&
-              activeSidebarTab !== 'job-matches' &&
-              activeSidebarTab !== 'recommended-programs' &&
-              activeSidebarTab !== 'interview-prep' &&
-              activeSidebarTab !== 'new-cv' &&
-              activeSidebarTab !== 'my-outcome' &&
-              activeSidebarTab !== 'career-health' &&
-              activeSidebarTab !== 'application-tracker' &&
-              activeSidebarTab !== 'career-passport' &&
-              activeSidebarTab !== 'linkedin-integration' && (
-                <EmptySectionView tab={activeSidebarTab} />
-              )}
-
-            {/* Section 1: Dashboard (Simulation Context - Persistently Mounted) */}
-            <div
-              className="flex-1 flex flex-col min-w-0 min-h-0 relative"
-              style={{
-                display: activeSidebarTab === 'dashboard' ? 'flex' : 'none',
-                visibility: viewMode === 'design' ? 'hidden' : 'visible',
-              }}
-            >
-              <SimulationView canvasRef={canvasRef} isFullscreen={isFullscreen} setIsFullscreen={setIsFullscreen} />
-              {isLowFpsFallback && <AgentActivityHUD />}
-            </div>
+          {/* Section 1: 3D Agent Command Center (Persistently Mounted to Preserve WebGL Context) */}
+          <div
+            className="flex-1 flex flex-col min-w-0 min-h-0 relative"
+            style={{
+              display: activeSidebarTab === 'dashboard' ? 'flex' : 'none',
+              visibility: viewMode === 'design' ? 'hidden' : 'visible',
+            }}
+          >
+            <SimulationView
+              canvasRef={canvasRef}
+              isFullscreen={isFullscreen}
+              setIsFullscreen={setIsFullscreen}
+            />
+            {isLowFpsFallback && <AgentActivityHUD />}
           </div>
-
-          {/* PART C: Agent-detail slide-in drawer */}
-          <AgentDetailDrawer />
         </div>
 
-        {/* Design Mode Overlay (Modal) */}
+        {/* Slide-in Agent Detail Telemetry Drawer */}
+        <AgentDetailDrawer />
+
+        {/* Design Mode Overlay (Visual Configurator) */}
         {viewMode === 'design' && (
-          <div
-            className="fixed inset-0 z-[60] flex items-center justify-center p-3 md:p-6 bg-white/40 backdrop-blur-xl"
-          >
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 md:p-6 bg-black/60 backdrop-blur-xl">
             <div
-              className="w-full h-full bg-white rounded-2xl shadow-2xl border border-zinc-200/50 overflow-hidden flex flex-col"
+              className="w-full h-full bg-[#12131C] rounded-2xl shadow-2xl border border-white/10 overflow-hidden flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               <VisualConfigurator />
@@ -212,7 +189,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* Modals */}
+        {/* Dialogs & Interactive Modals */}
         <FinalOutputModal />
         <OutputReviewModal />
         {isBYOKOpen && <BYOKModal onClose={() => setBYOKOpen(false)} />}
@@ -220,40 +197,86 @@ const App: React.FC = () => {
         {isNexusHunterOpen && <NexusHunterModal onClose={() => setNexusHunterOpen(false)} />}
         {isNexusMirrorOpen && <NexusMirrorModal onClose={() => setNexusMirrorOpen(false)} />}
 
-        {/* Dedup Admin Panel Modal */}
+        {/* Admin Panels */}
         {isDedupReviewOpen && (
-          <div className="fixed inset-0 z-[100] flex flex-col bg-white">
-            <div className="flex items-center justify-between p-4 border-b border-zinc-200">
-              <h2 className="text-xl font-bold text-darkDelegation">Admin: Trainee Deduplication</h2>
+          <div className="fixed inset-0 z-[100] flex flex-col bg-[#090A0F] text-zinc-100">
+            <div className="flex items-center justify-between p-4 border-b border-white/10 bg-[#12131C]">
+              <h2 className="text-lg font-display font-bold text-white">Admin: Trainee Deduplication</h2>
               <button 
                 onClick={() => setDedupReviewOpen(false)}
-                className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-lg text-sm font-bold transition-colors cursor-pointer"
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
               >
                 Close Panel
               </button>
             </div>
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-auto p-4">
               <DedupReviewPanel />
             </div>
           </div>
         )}
 
-        {/* Analytics Dashboard Admin Panel Modal */}
         {isAnalyticsDashboardOpen && (
-          <div className="fixed inset-0 z-[100] flex flex-col bg-white animate-in fade-in duration-150">
+          <div className="fixed inset-0 z-[100] flex flex-col bg-[#090A0F] animate-in fade-in duration-150">
             <AnalyticsDashboard />
           </div>
         )}
 
-        {/* DPDP Consent & Trainee Identity Onboarding Flow */}
+        {/* Onboarding & DPDP Flow */}
         {!isTraineeLoading && needsConsent && (
           <ConsentScreen onConsentsSaved={submitConsents} />
         )}
         {!isTraineeLoading && !needsConsent && needsProfile && (
           <TraineeProfileSetup onProfileSaved={saveProfile} />
         )}
-      </div>
+      </Shell>
     </SceneContext.Provider>
+  );
+};
+
+const MainRouter: React.FC = () => {
+  const { pathname, navigate } = useRouter();
+
+  // 1. Employer Verification Portal (/verify/:token)
+  if (pathname.startsWith('/verify/')) {
+    const token = pathname.replace(/^\/verify\/?/, '').split('/')[0];
+    return <EmployerVerificationPage token={token} />;
+  }
+
+  // 2. Provider Analytics Portal (/provider/:token)
+  if (pathname.startsWith('/provider/')) {
+    const token = pathname.replace(/^\/provider\/?/, '').split('/')[0];
+    return <ProviderViewPage token={token} />;
+  }
+
+  // 3. Login & Authentication (/login, /register)
+  if (pathname === '/login' || pathname === '/register') {
+    return (
+      <LoginPage
+        onSuccess={() => navigate('/dashboard')}
+        onBackToHome={() => navigate('/')}
+      />
+    );
+  }
+
+  // 4. Public Landing Page (at root '/' or '/landing')
+  if (pathname === '/' || pathname === '/landing') {
+    return (
+      <LandingPage
+        onEnterApp={() => navigate('/dashboard')}
+        onGoLogin={() => navigate('/login')}
+      />
+    );
+  }
+
+  // 5. Default: Full Application Workspace
+  return <Workspace />;
+};
+
+const App: React.FC = () => {
+  return (
+    <RouterProvider>
+      <MainRouter />
+    </RouterProvider>
   );
 };
 

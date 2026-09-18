@@ -4,15 +4,18 @@ import {
   Clock, XCircle, AlertCircle, RefreshCw, Send, ChevronRight
 } from 'lucide-react';
 import { useCoreStore } from '../integration/store/coreStore';
-
+import { getAuthHeaders } from '../integration/store/authStore';
+import { Button } from './primitives/Button';
+import { Card } from './primitives/Card';
+import { Badge } from './primitives/Badge';
 
 const COLUMNS = [
-  { id: 'SAVED', title: 'Saved', color: 'bg-zinc-100 text-zinc-700 border-zinc-200' },
-  { id: 'APPLIED', title: 'Applied', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-  { id: 'ASSESSMENT', title: 'Assessment', color: 'bg-purple-50 text-purple-700 border-purple-200' },
-  { id: 'INTERVIEW', title: 'Interview', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-  { id: 'OFFER', title: 'Offer', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  { id: 'REJECTED', title: 'Rejected', color: 'bg-red-50 text-red-700 border-red-200' }
+  { id: 'SAVED', title: 'Saved', color: 'text-zinc-400 bg-zinc-800/80 border-zinc-700' },
+  { id: 'APPLIED', title: 'Applied', color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/30' },
+  { id: 'ASSESSMENT', title: 'Assessment', color: 'text-purple-400 bg-purple-500/10 border-purple-500/30' },
+  { id: 'INTERVIEW', title: 'Interview', color: 'text-amber-400 bg-amber-500/10 border-amber-500/30' },
+  { id: 'OFFER', title: 'Offer', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' },
+  { id: 'REJECTED', title: 'Rejected', color: 'text-rose-400 bg-rose-500/10 border-rose-500/30' }
 ];
 
 export const ApplicationTrackerView: React.FC = () => {
@@ -22,22 +25,11 @@ export const ApplicationTrackerView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
 
-  const getActiveToken = useCallback((): string => {
-    try {
-      const auth = localStorage.getItem('nexis-auth');
-      if (auth) {
-        const parsed = JSON.parse(auth);
-        if (parsed?.state?.token) return parsed.state.token;
-      }
-    } catch {}
-    return '';
-  }, []);
-
   const fetchApplications = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/applications', {
-        headers: { Authorization: `Bearer ${getActiveToken()}` }
+        headers: { ...getAuthHeaders() }
       });
       if (!res.ok) throw new Error('Failed to load applications');
       const data = await res.json();
@@ -47,7 +39,7 @@ export const ApplicationTrackerView: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [getActiveToken]);
+  }, []);
 
   useEffect(() => {
     fetchApplications();
@@ -60,14 +52,13 @@ export const ApplicationTrackerView: React.FC = () => {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${getActiveToken()}` 
+          ...getAuthHeaders() 
         },
         body: JSON.stringify({ status: newStatus, notes: `Moved to ${newStatus}` })
       });
       
       if (!res.ok) throw new Error('Failed to update status');
       
-      // Update local state directly for speed, or refetch
       const updatedApp = await res.json();
       setApplications(prev => prev.map(app => app.id === id ? updatedApp : app));
     } catch (err) {
@@ -77,95 +68,105 @@ export const ApplicationTrackerView: React.FC = () => {
     }
   };
 
-  // Kanban Drag and Drop simulation
   const getApplicationsByStatus = (status: string) => {
     return applications.filter(app => app.status === status);
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto px-4 py-8 sm:p-8 flex flex-col gap-6 max-w-[1400px] w-full mx-auto custom-scrollbar bg-zinc-50/30">
-      
+    <div className="flex-1 h-full overflow-y-auto px-4 py-6 sm:p-8 flex flex-col gap-6 max-w-[1500px] w-full mx-auto custom-scrollbar bg-[#090a0f]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-zinc-950 flex items-center justify-center shrink-0 shadow-lg shadow-zinc-900/10">
-            <Briefcase size={22} strokeWidth={2} className="text-white" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-1">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 text-indigo-400">
+            <Briefcase size={20} />
           </div>
           <div>
-            <h1 className="text-2xl font-display font-bold text-zinc-950 tracking-tight leading-tight">Application Tracker</h1>
-            <p className="text-xs text-zinc-500 font-medium mt-1">
-              Track your job applications across the hiring pipeline.
+            <h1 className="text-xl sm:text-2xl font-bold font-['Space_Grotesk'] text-white tracking-tight">
+              Application Pipeline Tracker
+            </h1>
+            <p className="text-xs text-zinc-400 font-mono mt-0.5">
+              Live progression kanban across your active job applications
             </p>
           </div>
         </div>
-        <button
+
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={fetchApplications}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 transition-all shadow-[var(--shadow-subtle)] disabled:opacity-50"
+          leftIcon={<RefreshCw size={13} className={loading ? 'animate-spin' : ''} />}
         >
-          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-          <span>Refresh</span>
-        </button>
+          Refresh Board
+        </Button>
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 text-red-700 text-sm rounded-xl border border-red-200 font-medium flex items-center gap-3">
-          <AlertCircle size={16} className="text-red-500" />
-          {error}
+        <div className="p-3.5 bg-rose-500/10 text-rose-300 text-xs font-mono rounded-xl border border-rose-500/20 flex items-center gap-2">
+          <AlertCircle size={15} className="text-rose-400 shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
       {/* Kanban Board */}
-      <div className="flex flex-1 gap-6 overflow-x-auto pb-4 snap-x">
-        {COLUMNS.map(col => (
-          <div key={col.id} className="min-w-[300px] w-[300px] flex flex-col gap-3 snap-center">
-            {/* Column Header */}
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-sm font-bold text-zinc-800 uppercase tracking-wider">{col.title}</h3>
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-md border ${col.color}`}>
-                {getApplicationsByStatus(col.id).length}
-              </span>
-            </div>
+      <div className="flex flex-1 gap-4 overflow-x-auto pb-4 snap-x custom-scrollbar">
+        {COLUMNS.map(col => {
+          const colApps = getApplicationsByStatus(col.id);
+          return (
+            <div key={col.id} className="min-w-[280px] w-[280px] flex flex-col gap-3 snap-center">
+              {/* Column Header */}
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-bold font-['Space_Grotesk'] uppercase tracking-wider text-zinc-300">
+                  {col.title}
+                </span>
+                <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-md border ${col.color}`}>
+                  {colApps.length}
+                </span>
+              </div>
 
-            {/* Column Body */}
-            <div className="flex-1 bg-zinc-100/50 border border-zinc-200/60 rounded-3xl p-3 flex flex-col gap-3 min-h-[400px]">
-              {getApplicationsByStatus(col.id).map(app => (
-                <div key={app.id} className="bg-white p-4 rounded-2xl border border-zinc-200/80 shadow-sm hover:shadow-md transition-shadow relative group">
-                  {updating === app.id && (
-                    <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-2xl">
-                      <Loader2 className="animate-spin text-zinc-900" size={24} />
+              {/* Column Dropzone / Container */}
+              <div className="flex-1 bg-[#12131c] border border-zinc-800 rounded-2xl p-3 flex flex-col gap-2.5 min-h-[420px]">
+                {colApps.map(app => (
+                  <div
+                    key={app.id}
+                    className="bg-[#1a1b28] p-4 rounded-xl border border-zinc-700/60 shadow-sm hover:border-indigo-500/40 transition-all relative group"
+                  >
+                    {updating === app.id && (
+                      <div className="absolute inset-0 bg-black/60 backdrop-blur-xs z-10 flex items-center justify-center rounded-xl">
+                        <Loader2 className="animate-spin text-indigo-400" size={20} />
+                      </div>
+                    )}
+                    
+                    <h4 className="font-bold font-['Space_Grotesk'] text-white text-sm leading-snug mb-1">
+                      {app.jobTitle}
+                    </h4>
+                    <p className="text-xs text-zinc-400 font-mono mb-3 truncate">{app.companyName}</p>
+                    
+                    <div className="flex items-center gap-2 pt-2.5 border-t border-zinc-800">
+                      <span className="text-[10px] uppercase font-mono text-zinc-500 flex-1">Move:</span>
+                      <select
+                        className="text-xs font-mono bg-zinc-900 border border-zinc-700 text-zinc-200 rounded-lg px-2 py-1 outline-none cursor-pointer hover:border-indigo-500"
+                        value={app.status}
+                        onChange={(e) => updateStatus(app.id, e.target.value)}
+                      >
+                        {COLUMNS.map(c => (
+                          <option key={c.id} value={c.id}>{c.title}</option>
+                        ))}
+                      </select>
                     </div>
-                  )}
-                  
-                  <h4 className="font-bold text-zinc-950 text-sm leading-tight mb-1">{app.jobTitle}</h4>
-                  <p className="text-xs text-zinc-500 font-medium mb-4">{app.companyName}</p>
-                  
-                  <div className="flex items-center gap-2 mt-2 pt-3 border-t border-zinc-100">
-                    <span className="text-[10px] uppercase font-bold text-zinc-400 flex-1">Move to:</span>
-                    <select
-                      className="text-xs bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1 font-medium text-zinc-700 outline-none cursor-pointer hover:border-zinc-300 focus:ring-2 focus:ring-zinc-900/10"
-                      value={app.status}
-                      onChange={(e) => updateStatus(app.id, e.target.value)}
-                    >
-                      {COLUMNS.map(c => (
-                        <option key={c.id} value={c.id}>{c.title}</option>
-                      ))}
-                    </select>
                   </div>
-                </div>
-              ))}
-              
-              {getApplicationsByStatus(col.id).length === 0 && (
-                <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
-                  <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center mb-3">
-                    <Briefcase size={16} className="text-zinc-300" />
+                ))}
+                
+                {colApps.length === 0 && (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-6 border border-dashed border-zinc-800/80 rounded-xl">
+                    <Briefcase size={20} className="text-zinc-700 mb-2" />
+                    <p className="text-xs text-zinc-500 font-mono">No items in {col.title}</p>
                   </div>
-                  <p className="text-xs font-medium text-zinc-400">No applications in {col.title}</p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -22,7 +22,8 @@ export type ActiveSidebarTab =
   | 'linkedin-integration'
   | 'career-health'
   | 'application-tracker'
-  | 'career-passport';
+  | 'career-passport'
+  | 'settings';
 
 export type JobBucket = 'APPLY_NOW' | 'LEARN_THEN_APPLY' | 'STRETCH' | 'IGNORE';
 

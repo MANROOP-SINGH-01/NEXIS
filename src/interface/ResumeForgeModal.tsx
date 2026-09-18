@@ -1,8 +1,10 @@
-import { Loader2, Github, Plus, Check, X, Sparkles, Code2, Link } from 'lucide-react'
+import { Loader2, Github, Plus, Check, X, Sparkles, Code2, Link as LinkIcon, ArrowRight } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { generateResumeBullet } from '../core/agent/resumeForge'
 import { useGitHubData } from '../integration/hooks/useGitHubData'
 import { useCoreStore, type ResumeForgeItem } from '../integration/store/coreStore'
+import { Button } from './primitives/Button'
+import { Badge } from './primitives/Badge'
 
 type ResumeForgeStage = 'connect' | 'loading' | 'results'
 
@@ -12,14 +14,14 @@ interface ResumeForgeModalProps {
 
 function ProgressStrip() {
   return (
-    <div className="w-full rounded-2xl border border-zinc-200/60 bg-white shadow-sm p-6 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
-      <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4 flex items-center gap-2">
-        <Sparkles size={14} className="text-blue-500 animate-pulse" />
-        Nexus-Writer parsing repositories...
+    <div className="w-full rounded-2xl border border-zinc-800 bg-[#12131c] p-6 relative overflow-hidden shadow-2xl">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2">
+        <Sparkles size={14} className="text-indigo-400 animate-spin" />
+        <span>Nexus-Writer parsing repositories & synthesizing impact bullets...</span>
       </div>
-      <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
-        <div className="h-full w-3/4 bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-500 animate-[pulse_1.5s_ease-in-out_infinite] rounded-full" />
+      <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
+        <div className="h-full w-3/4 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 animate-pulse rounded-full" />
       </div>
     </div>
   )
@@ -76,71 +78,86 @@ export default function ResumeForgeModal({ onClose }: ResumeForgeModalProps) {
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 pointer-events-auto overflow-hidden">
       {/* Backdrop */}
-      <div onClick={onClose} className="absolute inset-0 bg-zinc-950/20 backdrop-blur-sm transition-opacity duration-300" />
+      <div onClick={onClose} className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300" />
       
-      {/* Modal */}
-      <div className="relative w-full max-w-5xl bg-white/95 backdrop-blur-xl rounded-[32px] shadow-2xl p-6 md:p-8 border border-white/20 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+      {/* Modal Dialog */}
+      <div className="relative w-full max-w-5xl bg-[#12131c] rounded-2xl shadow-2xl shadow-black/80 p-6 md:p-8 border border-zinc-800 animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col z-10">
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-full transition-colors cursor-pointer z-10"
+          className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer z-10"
         >
           <X size={18} />
         </button>
 
         {/* Header */}
-        <div className="mb-8 flex items-start gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-zinc-950 flex items-center justify-center shadow-lg shrink-0">
-            <Github size={26} className="text-white" />
+        <div className="mb-6 flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-md shrink-0 text-indigo-400">
+            <Github size={24} />
           </div>
           <div>
-            <h2 className="text-2xl font-display font-bold text-zinc-950 tracking-tight">Resume Forge</h2>
-            <p className="text-sm text-zinc-500 font-medium mt-1 max-w-md leading-relaxed">
-              Transform your GitHub repositories into quantified, high-impact resume bullets via Nexus-Writer.
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-mono mb-1">
+              <Sparkles size={11} />
+              <span>NEXUS-WRITER REPO SYNTHESIS</span>
+            </div>
+            <h2 className="text-2xl font-bold font-['Space_Grotesk'] text-white tracking-tight">
+              Resume Forge
+            </h2>
+            <p className="text-xs text-zinc-400 mt-1 max-w-lg leading-relaxed">
+              Transform your GitHub repositories and production commits into quantified, high-ATS resume bullets via Nexus-Writer.
             </p>
           </div>
         </div>
 
         {stage === 'connect' && (
           <div className="flex-1 overflow-auto space-y-6 custom-scrollbar">
-            
-            <div className="rounded-3xl border border-zinc-200/60 p-8 bg-zinc-50/50 flex flex-col items-center justify-center text-center gap-6 relative overflow-hidden shadow-sm">
-              <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50/40 via-transparent to-transparent pointer-events-none" />
-              
+            <div className="rounded-2xl border border-zinc-800 p-8 bg-zinc-900/60 flex flex-col items-center justify-center text-center gap-6 relative overflow-hidden shadow-inner">
               <div className="relative z-10 space-y-2">
-                <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1">Status</p>
-                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest ${isConnected ? 'bg-emerald-100/80 text-emerald-800 border border-emerald-200/50' : 'bg-zinc-200/80 text-zinc-600 border border-zinc-300/50'}`}>
-                  {isConnected ? 'GitHub Connected' : 'Not Connected'}
+                <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-1">Telemetry Status</p>
+                <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold uppercase tracking-wider ${
+                  isConnected 
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' 
+                    : 'bg-zinc-800 text-zinc-400 border border-zinc-700/60'
+                }`}>
+                  <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-zinc-500'}`} />
+                  {isConnected ? 'GitHub Connected' : 'No Account Linked'}
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 relative z-10">
+              <div className="flex items-center gap-3 relative z-10">
                 {!isConnected ? (
-                  <button
+                  <Button
+                    variant="glow"
+                    size="md"
                     onClick={() => { window.location.href = connectUrl }}
-                    className="inline-flex items-center gap-2 px-6 py-3.5 bg-zinc-950 text-white rounded-xl text-sm font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all active:scale-95 shadow-md"
+                    leftIcon={<LinkIcon size={15} />}
                   >
-                    <Link size={16} />
-                    Connect Account
-                  </button>
+                    Connect GitHub Account
+                  </Button>
                 ) : (
-                  <button onClick={clearToken} className="px-6 py-3.5 bg-zinc-100 hover:bg-red-50 text-zinc-600 hover:text-red-600 rounded-xl text-sm font-bold uppercase tracking-widest transition-colors">
-                    Disconnect
-                  </button>
+                  <Button variant="ghost" size="sm" onClick={clearToken}>
+                    Disconnect Account
+                  </Button>
                 )}
               </div>
             </div>
 
-            {error && <div className="text-xs text-red-800 font-medium bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3"><X size={16} className="text-red-600"/> {error}</div>}
+            {error && (
+              <div className="text-xs text-rose-300 font-medium bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 flex items-center gap-2">
+                <X size={16} className="text-rose-400 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
 
-            <div className="flex justify-end border-t border-zinc-100 pt-6">
-              <button
+            <div className="flex justify-end border-t border-zinc-800/80 pt-5">
+              <Button
+                variant="glow"
+                size="md"
                 onClick={runForge}
                 disabled={!isConnected}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-2xl text-sm font-bold uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 active:scale-95"
+                leftIcon={<Sparkles size={16} />}
               >
-                <Sparkles size={16} />
                 Run Nexus-Writer
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -154,51 +171,61 @@ export default function ResumeForgeModal({ onClose }: ResumeForgeModalProps) {
         )}
 
         {stage === 'results' && (
-          <div className="flex-1 overflow-auto custom-scrollbar pr-2 space-y-6">
+          <div className="flex-1 overflow-auto custom-scrollbar pr-1 space-y-4">
             {resumeForgeItems.map((item) => (
-              <div key={item.id} className="rounded-3xl border border-zinc-200/60 bg-white p-6 shadow-[var(--shadow-subtle)] hover:shadow-md transition-shadow flex flex-col gap-5">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  
-                  {/* Left Column: Repo Info */}
-                  <div className="lg:col-span-5 bg-zinc-50/80 rounded-2xl border border-zinc-100 p-5 flex flex-col gap-3">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-1.5"><Code2 size={12}/> Repository Details</p>
-                    <a href={item.repositoryUrl} target="_blank" rel="noreferrer" className="text-base font-display font-bold text-zinc-950 hover:text-blue-600 transition-colors underline decoration-zinc-200 underline-offset-4">
+              <div key={item.id} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5 shadow-sm hover:border-zinc-700 transition-colors flex flex-col gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                  {/* Left: Repo metadata */}
+                  <div className="lg:col-span-5 bg-[#12131c] rounded-xl border border-zinc-800 p-4 flex flex-col gap-2.5">
+                    <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 flex items-center gap-1.5">
+                      <Code2 size={12} className="text-indigo-400" />
+                      Repository Telemetry
+                    </p>
+                    <a
+                      href={item.repositoryUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm font-bold text-white hover:text-indigo-400 transition-colors underline decoration-zinc-700 underline-offset-4"
+                    >
                       {item.repository}
                     </a>
-                    <div className="inline-flex items-center gap-1.5 bg-white border border-zinc-200 px-3 py-1.5 rounded-lg text-xs font-mono text-zinc-600 shadow-sm w-max">
+                    <div className="inline-flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-lg text-xs font-mono text-zinc-300 w-max">
                       {item.codeSnapshot}
                     </div>
                   </div>
 
-                  {/* Right Column: Output & Actions */}
-                  <div className="lg:col-span-7 flex flex-col gap-3">
-                    <div className="flex items-center justify-between px-1">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-1.5"><Sparkles size={12} className="text-amber-500"/> Generated Bullet</p>
+                  {/* Right: Suggested bullet & actions */}
+                  <div className="lg:col-span-7 flex flex-col gap-2.5">
+                    <div className="flex items-center justify-between px-0.5">
+                      <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 flex items-center gap-1.5">
+                        <Sparkles size={12} className="text-amber-400" />
+                        Quantified STAR Bullet
+                      </p>
                     </div>
                     <textarea
                       value={item.suggestedBullet}
                       onChange={(e) => updateResumeForgeItemBullet(item.id, e.target.value)}
-                      className="w-full flex-1 min-h-[100px] resize-y bg-white border border-zinc-200/80 rounded-2xl p-4 text-sm text-zinc-900 leading-relaxed font-medium focus:outline-none focus:ring-2 focus:ring-zinc-950/20 shadow-sm transition-all"
+                      className="w-full flex-1 min-h-[90px] resize-y bg-[#12131c] border border-zinc-800 rounded-xl p-3.5 text-xs text-zinc-100 leading-relaxed font-mono focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                     />
-                    <div className="flex items-center gap-3 pt-2">
-                      <button
+                    <div className="flex items-center gap-2 pt-1">
+                      <Button
+                        variant={item.accepted ? 'secondary' : 'glow'}
+                        size="sm"
                         onClick={() => acceptResumeForgeBullet(item.id)}
-                        className={`flex-1 inline-flex justify-center items-center gap-2 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
-                          item.accepted ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-zinc-950 text-white hover:bg-zinc-800 shadow-md'
-                        }`}
+                        className="flex-1"
+                        leftIcon={<Check size={14} />}
                       >
-                        <Check size={16} />
-                        {item.accepted ? 'Accepted' : 'Accept Draft'}
-                      </button>
-                      <button
+                        {item.accepted ? 'Accepted' : 'Accept Bullet'}
+                      </Button>
+                      <Button
+                        variant={item.addedToLedger ? 'secondary' : 'outline'}
+                        size="sm"
                         onClick={() => addResumeForgeToLedger(item.id)}
-                        className={`flex-1 inline-flex justify-center items-center gap-2 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
-                          item.addedToLedger ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border border-zinc-200'
-                        }`}
+                        className="flex-1"
+                        leftIcon={<Plus size={14} />}
                       >
-                        <Plus size={16} />
                         {item.addedToLedger ? 'In Ledger' : 'Add to Ledger'}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>

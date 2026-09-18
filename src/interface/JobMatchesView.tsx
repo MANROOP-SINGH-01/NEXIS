@@ -7,8 +7,10 @@ import {
 import { useUiStore } from '../integration/store/uiStore';
 import { useCoreStore } from '../integration/store/coreStore';
 import { getAuthHeaders } from '../integration/store/authStore';
-import { USER_COLOR, USER_COLOR_LIGHT } from '../theme/brand';
 import { DiscoveredJob, JobBucket } from '../types';
+import { Button } from './primitives/Button';
+import { Card } from './primitives/Card';
+import { Badge } from './primitives/Badge';
 
 export const JobMatchesView: React.FC = () => {
   const { skillProfile, jobMatchesCurrent, jobMatchesReachable, setJobMatches, setActiveSidebarTab } = useUiStore();
@@ -72,13 +74,11 @@ export const JobMatchesView: React.FC = () => {
             discoveredAt: Date.now(),
             source: (String(item.source || 'adzuna') as 'linkedin' | 'company-careers' | 'hidden' | 'adzuna'),
             ai_suggested: Boolean(item.ai_suggested),
-            // P1.9 Job Trust Score
             trustScore: item.trustScore ?? 0.85,
             trustPercent: item.trustPercent ?? 85,
             trustLevel: item.trustLevel || 'HIGH',
             isLikelyGhost: Boolean(item.isLikelyGhost),
             isDirectAts: Boolean(item.isDirectAts),
-            // P1.5 Multi-Signal Scoring & Buckets
             skillScore: item.skillScore ?? Math.round(item.alignment_score || 85),
             experienceScore: item.experienceScore ?? 80,
             titleScore: item.titleScore ?? 75,
@@ -107,7 +107,6 @@ export const JobMatchesView: React.FC = () => {
     fetchJobs();
   }, [mode, currentJobs.length, currentResume, runtimeKeys, userCareerProfile.targetRole, setJobMatches, skillProfile]);
 
-  // 1-Click Track Application
   const handleTrackApplication = async (job: DiscoveredJob) => {
     if (trackedJobIds.has(job.id) || trackingJobId) return;
 
@@ -136,13 +135,11 @@ export const JobMatchesView: React.FC = () => {
     }
   };
 
-  // Filter jobs by bucket
   const filteredJobs = currentJobs.filter(job => {
     if (selectedBucket === 'ALL') return true;
     return job.bucket === selectedBucket;
   });
 
-  // Bucket counts
   const bucketCounts = {
     ALL: currentJobs.length,
     APPLY_NOW: currentJobs.filter(j => j.bucket === 'APPLY_NOW').length,
@@ -152,55 +149,56 @@ export const JobMatchesView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto px-4 py-8 sm:p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto custom-scrollbar">
-      
+    <div className="flex-1 h-full overflow-y-auto px-4 py-6 sm:p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto custom-scrollbar bg-[#090a0f]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-zinc-950 flex items-center justify-center shrink-0 shadow-lg shadow-zinc-900/10">
-            <Briefcase size={22} strokeWidth={2} className="text-white" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-1">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0 text-cyan-400">
+            <Briefcase size={20} />
           </div>
           <div>
-            <h1 className="text-2xl font-display font-bold text-zinc-950 tracking-tight leading-tight">Job Matches</h1>
-            <p className="text-xs text-zinc-500 font-medium mt-1">
+            <h1 className="text-xl sm:text-2xl font-bold font-['Space_Grotesk'] text-white tracking-tight">
+              Job Intelligence Radar
+            </h1>
+            <p className="text-xs text-zinc-400 font-mono mt-0.5">
               Multi-signal matching with Job Trust Score & anti-ghosting verification
             </p>
           </div>
         </div>
 
         {/* Mode Toggle */}
-        <div className="flex items-center bg-zinc-200/50 p-1 rounded-xl shadow-inner border border-zinc-200">
+        <div className="flex items-center bg-zinc-900/90 p-1 rounded-xl border border-zinc-800">
           <button
             onClick={() => setMode('current')}
-            className={`flex-1 min-w-[120px] px-4 py-2 text-xs font-bold rounded-lg transition-all duration-300 ${
-              mode === 'current' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50'
+            className={`flex-1 min-w-[110px] px-3 py-1.5 text-xs font-mono font-semibold rounded-lg transition-all ${
+              mode === 'current' ? 'bg-indigo-600 text-white shadow-sm' : 'text-zinc-400 hover:text-white'
             }`}
           >
             Current Fit
           </button>
           <button
             onClick={() => setMode('reachable')}
-            className={`flex-1 min-w-[120px] px-4 py-2 text-xs font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-1.5 ${
-              mode === 'reachable' ? 'bg-zinc-950 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50'
+            className={`flex-1 min-w-[110px] px-3 py-1.5 text-xs font-mono font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+              mode === 'reachable' ? 'bg-indigo-600 text-white shadow-sm' : 'text-zinc-400 hover:text-white'
             }`}
           >
-            <Sparkles size={14} className={mode === 'reachable' ? 'text-amber-300' : 'text-zinc-400'} />
+            <Sparkles size={12} className={mode === 'reachable' ? 'text-amber-300' : 'text-zinc-500'} />
             Reachable
           </button>
         </div>
       </div>
 
       {trackFeedback && (
-        <div className="p-4 bg-zinc-950 text-white rounded-2xl text-xs font-medium shadow-xl flex items-center justify-between gap-3 animate-in slide-in-from-top-2">
-          <div className="flex items-center gap-2.5">
-            <CheckCircle2 size={16} className="text-emerald-400" />
+        <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-xl text-xs font-mono flex items-center justify-between gap-3 animate-in slide-in-from-top-2">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={15} className="text-emerald-400" />
             <span>{trackFeedback}</span>
           </div>
           <button
-            onClick={() => setActiveSidebarTab('my-outcome')}
-            className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-bold transition-all"
+            onClick={() => setActiveSidebarTab('application-tracker')}
+            className="px-2.5 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 rounded-lg text-xs font-mono transition-all"
           >
-            View Outcomes
+            View Pipeline →
           </button>
         </div>
       )}
@@ -210,217 +208,200 @@ export const JobMatchesView: React.FC = () => {
         <div className="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
           <button
             onClick={() => setSelectedBucket('ALL')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-medium whitespace-nowrap transition-all ${
               selectedBucket === 'ALL'
-                ? 'bg-zinc-950 text-white shadow-sm'
-                : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white'
             }`}
           >
             All Matches ({bucketCounts.ALL})
           </button>
           <button
             onClick={() => setSelectedBucket('APPLY_NOW')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
               selectedBucket === 'APPLY_NOW'
                 ? 'bg-emerald-600 text-white shadow-sm'
-                : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200/60'
+                : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20'
             }`}
           >
-            <Flame size={13} />
+            <Flame size={12} />
             Apply Now ({bucketCounts.APPLY_NOW})
           </button>
           <button
             onClick={() => setSelectedBucket('LEARN_THEN_APPLY')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
               selectedBucket === 'LEARN_THEN_APPLY'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200/60'
+                ? 'bg-cyan-600 text-white shadow-sm'
+                : 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20'
             }`}
           >
-            <Sparkles size={13} />
+            <Sparkles size={12} />
             Learn Then Apply ({bucketCounts.LEARN_THEN_APPLY})
           </button>
           <button
             onClick={() => setSelectedBucket('STRETCH')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
               selectedBucket === 'STRETCH'
                 ? 'bg-amber-600 text-white shadow-sm'
-                : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200/60'
+                : 'bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20'
             }`}
           >
-            <Target size={13} />
+            <Target size={12} />
             Stretch ({bucketCounts.STRETCH})
           </button>
         </div>
       )}
 
       {loading && (
-        <div className="flex-1 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm rounded-3xl border border-zinc-200/60 shadow-[var(--shadow-subtle)] min-h-[400px]">
-          <Loader2 size={32} className="animate-spin text-zinc-950 mb-4" />
-          <p className="text-sm font-bold text-zinc-950 tracking-tight">Running Nexus-Hunter Multi-Signal Engine...</p>
-          <p className="text-xs text-zinc-500 mt-2">Computing Job Trust Scores and bucket alignments</p>
+        <div className="flex-1 flex flex-col items-center justify-center bg-[#12131c] rounded-2xl border border-zinc-800 p-12 min-h-[350px]">
+          <Loader2 size={28} className="animate-spin text-indigo-400 mb-3" />
+          <p className="text-sm font-bold font-['Space_Grotesk'] text-white">Scanning Live Market Pipelines...</p>
+          <p className="text-xs text-zinc-500 font-mono mt-1">Calculating multi-signal scores & trust metrics</p>
         </div>
       )}
 
       {error && !loading && (
-        <div className="p-4 bg-red-50/80 text-red-700 text-sm rounded-2xl border border-red-200 font-medium flex items-center gap-3">
-          <AlertTriangle size={18} className="text-red-500 shrink-0" />
-          {error}
+        <div className="p-4 bg-rose-500/10 text-rose-300 text-xs font-mono rounded-xl border border-rose-500/20 flex items-center gap-2.5">
+          <AlertTriangle size={16} className="text-rose-400 shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
       {!loading && !error && currentJobs.length === 0 && (
-        <div className="flex-1 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm rounded-3xl border border-zinc-200/60 shadow-[var(--shadow-subtle)] min-h-[400px]">
-          <Target size={36} className="text-zinc-300 mb-4" />
-          <p className="text-sm font-bold text-zinc-950 tracking-tight">No Prime Targets Found</p>
-          <p className="text-xs text-zinc-500 mt-2">Adjust your resume or try a different role.</p>
+        <div className="flex-1 flex flex-col items-center justify-center bg-[#12131c] rounded-2xl border border-zinc-800 p-12 min-h-[350px] text-center">
+          <Target size={32} className="text-zinc-600 mb-3" />
+          <p className="text-sm font-bold font-['Space_Grotesk'] text-white">No Direct Matches in Current Cache</p>
+          <p className="text-xs text-zinc-500 font-mono mt-1">Run the Agent Mesh or update your Target Role to scan fresh postings.</p>
         </div>
       )}
 
       {!loading && !error && currentJobs.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredJobs.map((job) => {
             const isTracked = trackedJobIds.has(job.id);
             const isSaving = trackingJobId === job.id;
 
             return (
-              <div
+              <Card
                 key={job.id}
-                className="bg-white rounded-3xl border border-zinc-200/70 p-6 hover:shadow-lg hover:-translate-y-0.5 hover:border-zinc-300 transition-all duration-300 flex flex-col justify-between group"
+                variant="glass"
+                className="border-zinc-800 p-5 flex flex-col justify-between hover:border-zinc-700 transition-all duration-200"
               >
                 <div>
-                  {/* Top Badges: Trust Score, Bucket, Direct ATS */}
-                  <div className="flex items-center justify-between gap-2 flex-wrap mb-3.5">
-                    {/* Bucket Badge */}
-                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${
+                  {/* Top Badges */}
+                  <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider ${
                       job.bucket === 'APPLY_NOW'
-                        ? 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                        ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
                         : job.bucket === 'LEARN_THEN_APPLY'
-                        ? 'bg-blue-100 text-blue-900 border border-blue-200'
+                        ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30'
                         : job.bucket === 'STRETCH'
-                        ? 'bg-amber-100 text-amber-900 border border-amber-200'
-                        : 'bg-zinc-100 text-zinc-700 border border-zinc-200'
+                        ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                        : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
                     }`}>
-                      {job.bucket === 'APPLY_NOW' ? '🔥 Apply Now' : job.bucket === 'LEARN_THEN_APPLY' ? '⚡ Learn Then Apply' : job.bucket === 'STRETCH' ? '🎯 Stretch' : 'Low Match'}
+                      {job.bucket === 'APPLY_NOW' ? '🔥 Apply Now' : job.bucket === 'LEARN_THEN_APPLY' ? '⚡ Learn Then Apply' : job.bucket === 'STRETCH' ? '🎯 Stretch' : 'Moderate Match'}
                     </span>
 
-                    {/* Job Trust Score Badge */}
                     <div className="flex items-center gap-1.5">
                       {job.isLikelyGhost && (
-                        <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-red-100 text-red-800 border border-red-200 flex items-center gap-1">
+                        <span className="px-2 py-0.5 rounded text-[9px] font-mono bg-rose-500/10 text-rose-300 border border-rose-500/20 flex items-center gap-1">
                           <Clock size={10} />
                           Stale (&gt;45d)
                         </span>
                       )}
                       {job.isDirectAts && (
-                        <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                        <span className="px-2 py-0.5 rounded text-[9px] font-mono bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
                           Direct ATS
                         </span>
                       )}
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold ${
-                          (job.trustPercent ?? 85) >= 80
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : (job.trustPercent ?? 85) >= 55
-                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                            : 'bg-amber-50 text-amber-700 border border-amber-200'
-                        }`}
-                        title={`Job Trust Score: ${job.trustPercent}%`}
-                      >
-                        <ShieldCheck size={12} />
-                        <span>{job.trustPercent ?? 85}% Trust</span>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700/60">
+                        <ShieldCheck size={11} className="text-emerald-400" />
+                        {job.trustPercent ?? 85}% Trust
                       </span>
                     </div>
                   </div>
 
                   {/* Job Title & Company */}
-                  <div className="mb-4">
-                    <h2 className="text-base font-display font-bold text-zinc-950 group-hover:text-blue-600 transition-colors leading-snug">
+                  <div className="mb-3">
+                    <h2 className="text-base font-bold font-['Space_Grotesk'] text-white leading-snug hover:text-indigo-300 transition-colors">
                       {job.title}
                     </h2>
-                    <div className="flex items-center gap-2 text-xs text-zinc-500 font-medium mt-1">
-                      <Building size={14} className="text-zinc-400" />
+                    <div className="flex items-center gap-2 text-xs text-zinc-400 font-mono mt-1">
+                      <Building size={13} className="text-zinc-500" />
                       <span>{job.company}</span>
-                      <span className="w-1 h-1 rounded-full bg-zinc-300" />
+                      <span className="w-1 h-1 rounded-full bg-zinc-600" />
                       <span className="capitalize">{job.source}</span>
                     </div>
                   </div>
 
                   {/* Multi-Signal Breakdown */}
-                  <div className="bg-zinc-50 rounded-2xl p-3.5 border border-zinc-100 mb-4">
+                  <div className="bg-[#1a1b28] rounded-xl p-3 border border-zinc-800 mb-3">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Multi-Signal Fit</span>
-                      <span className="text-xs font-bold text-zinc-900">{job.overallScore ?? job.alignmentScore}% Composite</span>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Multi-Signal Overlap</span>
+                      <span className="text-xs font-mono font-bold text-indigo-300">{job.overallScore ?? job.alignmentScore}% Composite</span>
                     </div>
-                    <div className="grid grid-cols-4 gap-2 text-center">
-                      <div className="p-1.5 rounded-lg bg-white border border-zinc-100">
-                        <p className="text-[9px] text-zinc-400 font-bold uppercase">Skills</p>
-                        <p className="text-xs font-bold text-emerald-600">{job.skillScore ?? 85}%</p>
+                    <div className="grid grid-cols-4 gap-2 text-center font-mono">
+                      <div className="p-1 rounded-lg bg-zinc-900 border border-zinc-800">
+                        <p className="text-[9px] text-zinc-500 uppercase">Skills</p>
+                        <p className="text-xs font-bold text-emerald-400">{job.skillScore ?? 85}%</p>
                       </div>
-                      <div className="p-1.5 rounded-lg bg-white border border-zinc-100">
-                        <p className="text-[9px] text-zinc-400 font-bold uppercase">Exp</p>
-                        <p className="text-xs font-bold text-blue-600">{job.experienceScore ?? 80}%</p>
+                      <div className="p-1 rounded-lg bg-zinc-900 border border-zinc-800">
+                        <p className="text-[9px] text-zinc-500 uppercase">Exp</p>
+                        <p className="text-xs font-bold text-cyan-400">{job.experienceScore ?? 80}%</p>
                       </div>
-                      <div className="p-1.5 rounded-lg bg-white border border-zinc-100">
-                        <p className="text-[9px] text-zinc-400 font-bold uppercase">Title</p>
-                        <p className="text-xs font-bold text-purple-600">{job.titleScore ?? 75}%</p>
+                      <div className="p-1 rounded-lg bg-zinc-900 border border-zinc-800">
+                        <p className="text-[9px] text-zinc-500 uppercase">Title</p>
+                        <p className="text-xs font-bold text-purple-400">{job.titleScore ?? 75}%</p>
                       </div>
-                      <div className="p-1.5 rounded-lg bg-white border border-zinc-100">
-                        <p className="text-[9px] text-zinc-400 font-bold uppercase">Project</p>
-                        <p className="text-xs font-bold text-amber-600">{job.projectScore ?? 70}%</p>
+                      <div className="p-1 rounded-lg bg-zinc-900 border border-zinc-800">
+                        <p className="text-[9px] text-zinc-500 uppercase">Project</p>
+                        <p className="text-xs font-bold text-amber-400">{job.projectScore ?? 70}%</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Nexus Match Reason */}
-                  <p className="text-xs text-zinc-600 font-medium leading-relaxed mb-5 line-clamp-3">
+                  <p className="text-xs text-zinc-400 leading-relaxed mb-4 line-clamp-2 font-normal">
                     {job.nexusMatchReason}
                   </p>
                 </div>
 
-                {/* Card Actions: Track in Pipeline + Apply */}
-                <div className="flex items-center gap-2 pt-3 border-t border-zinc-100">
-                  <button
+                {/* Card Actions */}
+                <div className="flex items-center gap-2 pt-3 border-t border-zinc-800">
+                  <Button
+                    variant={isTracked ? 'secondary' : 'outline'}
+                    size="sm"
                     onClick={() => handleTrackApplication(job)}
                     disabled={isTracked || isSaving}
-                    className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                      isTracked
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800'
-                    }`}
+                    isLoading={isSaving}
+                    leftIcon={isTracked ? <Check size={13} className="text-emerald-400" /> : <BookmarkPlus size={13} />}
+                    className="flex-1"
                   >
-                    {isSaving ? (
-                      <Loader2 size={13} className="animate-spin text-zinc-600" />
-                    ) : isTracked ? (
-                      <Check size={13} className="text-emerald-600" />
-                    ) : (
-                      <BookmarkPlus size={13} />
-                    )}
-                    <span>{isTracked ? 'Tracked in Pipeline' : 'Track Application'}</span>
-                  </button>
+                    {isTracked ? 'Tracked' : 'Track Application'}
+                  </Button>
 
                   <button
                     onClick={() => {
                       setStructuredResume({ targetJD: `${job.title} at ${job.company}\n\nNexus Match Reason: ${job.nexusMatchReason}` });
                       setActiveSidebarTab('skill-gaps');
                     }}
-                    className="py-2.5 px-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-xl text-xs font-bold transition-all flex items-center justify-center shadow-sm"
+                    className="p-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-xl text-xs border border-zinc-800 transition-colors"
                     title="Generate Reverse Resume"
                   >
-                    <Repeat size={13} />
+                    <Repeat size={14} />
                   </button>
 
                   <a
                     href={job.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="py-2.5 px-4 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                    className="py-2 px-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold font-['Space_Grotesk'] tracking-wider transition-all flex items-center gap-1 shadow-md shadow-indigo-600/25"
                   >
                     <span>Apply</span>
                     <ArrowUpRight size={13} />
                   </a>
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>
