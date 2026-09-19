@@ -63,8 +63,11 @@ const Workspace: React.FC = () => {
     setNexusHunterOpen,
   } = useCoreStore();
 
+  const { pathname, navigate } = useRouter();
+
   const {
     activeSidebarTab,
+    setActiveSidebarTab,
     isBYOKOpen,
     setBYOKOpen,
     isDedupReviewOpen,
@@ -73,6 +76,44 @@ const Workspace: React.FC = () => {
     setAnalyticsDashboardOpen,
     isLowFpsFallback,
   } = useUiStore();
+
+  // Bi-directional synchronization: URL pathname -> activeSidebarTab
+  useEffect(() => {
+    const pathToTab: Record<string, ActiveSidebarTab> = {
+      '/dashboard': 'dashboard',
+      '/app': 'dashboard',
+      '/profile': 'profile',
+      '/jobs': 'job-matches',
+      '/job-matches': 'job-matches',
+      '/skills': 'skill-gaps',
+      '/skill-gaps': 'skill-gaps',
+      '/learning': 'recommended-programs',
+      '/recommended-programs': 'recommended-programs',
+      '/interview': 'interview-prep',
+      '/interview-prep': 'interview-prep',
+      '/resume': 'new-cv',
+      '/new-cv': 'new-cv',
+      '/overview': 'career-health',
+      '/career-health': 'career-health',
+      '/tracker': 'application-tracker',
+      '/application-tracker': 'application-tracker',
+      '/passport': 'career-passport',
+      '/career-passport': 'career-passport',
+      '/outcomes': 'my-outcome',
+      '/my-outcome': 'my-outcome',
+      '/network': 'linkedin-integration',
+      '/linkedin-integration': 'linkedin-integration',
+      '/logs': 'system-logs',
+      '/system-logs': 'system-logs',
+      '/settings': 'settings',
+    };
+
+    const cleanPath = pathname.replace(/\/$/, '') || '/';
+    const matchedTab = pathToTab[cleanPath];
+    if (matchedTab && matchedTab !== activeSidebarTab) {
+      setActiveSidebarTab(matchedTab);
+    }
+  }, [pathname, activeSidebarTab, setActiveSidebarTab]);
 
   const {
     loading: isTraineeLoading,

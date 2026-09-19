@@ -93,7 +93,19 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCommandBar, onOpenResumeFo
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveSidebarTab(tab.id)}
+                onClick={() => {
+                  setActiveSidebarTab(tab.id);
+                  const tabToPathMap: Partial<Record<ActiveSidebarTab, string>> = {
+                    'dashboard': '/dashboard',
+                    'career-health': '/career-health',
+                    'job-matches': '/jobs',
+                    'new-cv': '/resume',
+                    'skill-gaps': '/skills',
+                    'application-tracker': '/tracker',
+                  };
+                  const targetPath = tabToPathMap[tab.id] || `/${tab.id}`;
+                  navigate(targetPath);
+                }}
                 className={`nx-nav-tab flex items-center gap-1.5 cursor-pointer ${
                   isActive ? 'active' : ''
                 }`}

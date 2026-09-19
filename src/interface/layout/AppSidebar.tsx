@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { ActiveSidebarTab } from '../../types';
 import { useUiStore } from '../../integration/store/uiStore';
+import { useRouter } from '../../router';
 import { useActiveTeam } from '../../integration/store/teamStore';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { useLocale } from '../../integration/hooks/useLocale';
@@ -88,6 +89,7 @@ const NAV_GROUPS: NavGroup[] = [
 ];
 
 export const AppSidebar: React.FC = () => {
+  const { navigate } = useRouter();
   const { 
     activeSidebarTab, 
     setActiveSidebarTab, 
@@ -172,7 +174,27 @@ export const AppSidebar: React.FC = () => {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveSidebarTab(item.id)}
+                  onClick={() => {
+                    setActiveSidebarTab(item.id);
+                    const tabToPathMap: Record<ActiveSidebarTab, string> = {
+                      'dashboard': '/dashboard',
+                      'profile': '/profile',
+                      'job-matches': '/jobs',
+                      'skill-gaps': '/skills',
+                      'recommended-programs': '/learning',
+                      'interview-prep': '/interview',
+                      'new-cv': '/resume',
+                      'career-health': '/career-health',
+                      'application-tracker': '/tracker',
+                      'career-passport': '/passport',
+                      'my-outcome': '/outcomes',
+                      'linkedin-integration': '/network',
+                      'system-logs': '/system-logs',
+                      'settings': '/settings',
+                    };
+                    const targetPath = tabToPathMap[item.id] || `/${item.id}`;
+                    navigate(targetPath);
+                  }}
                   className={`group flex items-center gap-3 w-full px-2.5 py-2 rounded-xl text-left transition-all duration-150 cursor-pointer ${
                     isActive
                       ? 'bg-white text-[#181512] shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-[#EADFCF] font-bold'
