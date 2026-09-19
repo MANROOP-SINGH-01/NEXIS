@@ -150,3 +150,98 @@ export function generateTargetedCoverLetter(
     fleschScore,
   };
 }
+
+/**
+ * Proficiently Standard: Metric Density Audit
+ * Verifies that >= 60% of bullets contain quantified metrics (percentages, numbers, dollars, throughput, scale).
+ */
+export function auditResumeMetricDensity(bullets: string[]): {
+  densityPercent: number;
+  countWithMetrics: number;
+  totalBullets: number;
+  passesStandard: boolean;
+  feedback: string;
+} {
+  if (!bullets || bullets.length === 0) {
+    return {
+      densityPercent: 0,
+      countWithMetrics: 0,
+      totalBullets: 0,
+      passesStandard: false,
+      feedback: 'No bullets provided for metric audit.',
+    };
+  }
+
+  // Regex detecting quantifiable numbers, percentages, multipliers, or financial values
+  const metricRegex = /\b(\d+(?:\.\d+)?%|\$\d+(?:,\d+)*(?:\.\d+)?[kKmMbB]?|\d+x|\d+\s*(?:ms|seconds|minutes|hours|days|users|requests|req\/s|rps|nodes|services|records|engineers|teams))\b/i;
+
+  let countWithMetrics = 0;
+  for (const bullet of bullets) {
+    if (metricRegex.test(bullet) || /\d+/.test(bullet)) {
+      countWithMetrics += 1;
+    }
+  }
+
+  const densityPercent = Math.round((countWithMetrics / bullets.length) * 100);
+  const passesStandard = densityPercent >= 60;
+
+  return {
+    densityPercent,
+    countWithMetrics,
+    totalBullets: bullets.length,
+    passesStandard,
+    feedback: passesStandard
+      ? `High-impact metric density: ${densityPercent}% of bullets include quantified evidence (Proficiently standard: ≥60%).`
+      : `Low metric density (${densityPercent}%). Proficiently requires ≥60% of bullets to have concrete numbers, throughput, or percentage gains.`,
+  };
+}
+
+/**
+ * Proficiently Seniority Calibration Engine
+ * Calibrates resume bullet emphasis, scope, and word counts based on target seniority level.
+ */
+export function calibrateSeniorityFocus(seniority: 'executive' | 'director' | 'senior' | 'mid' | 'entry' = 'senior'): {
+  level: string;
+  emphasizedThemes: string[];
+  deEmphasizedThemes: string[];
+  recommendedBulletCount: { currentRole: string; pastRoles: string; olderRoles: string };
+  guidance: string;
+} {
+  switch (seniority) {
+    case 'executive':
+      return {
+        level: 'Executive (VP, C-Suite)',
+        emphasizedThemes: ['Organizational Strategy & Vision', 'P&L Ownership & Revenue Impact', 'Board-Level Communication', 'Org Design & Culture'],
+        deEmphasizedThemes: ['Tactical task execution', 'Individual coding tickets', 'Routine framework usage'],
+        recommendedBulletCount: { currentRole: '5-7 bullets', pastRoles: '3-4 bullets', olderRoles: '2 bullets' },
+        guidance: 'Lead with company-wide business impact and cross-functional leadership. Bullets should show business outcome, not task completion.',
+      };
+    case 'director':
+      return {
+        level: 'Director / Head of Engineering',
+        emphasizedThemes: ['Program & Roadmap Ownership', 'Team Building & Hiring Scale', 'Cross-Functional Operational Excellence', 'Engineering Velocity'],
+        deEmphasizedThemes: ['Micro-implementation details', 'Single-feature bug fixes'],
+        recommendedBulletCount: { currentRole: '5-7 bullets', pastRoles: '3-5 bullets', olderRoles: '2-3 bullets' },
+        guidance: 'Balance strategic roadmap vision with operational team execution. Show both upward executive alignment and downward team growth.',
+      };
+    case 'senior':
+      return {
+        level: 'Senior / Staff / Lead Engineer',
+        emphasizedThemes: ['Hands-on System Architecture', 'Technical Depth & Reliability', 'Mentorship & Code Standards', 'Production Deliverables'],
+        deEmphasizedThemes: ['Speculative executive claims', 'Generic corporate management phrases'],
+        recommendedBulletCount: { currentRole: '5-7 bullets', pastRoles: '3-5 bullets', olderRoles: '2-3 bullets' },
+        guidance: 'Emphasize technical ownership, distributed system scalability, architectural decisions, and influence without authority.',
+      };
+    case 'mid':
+    case 'entry':
+    default:
+      return {
+        level: 'Mid-Level / Associate Engineer',
+        emphasizedThemes: ['Execution Velocity', 'Test Coverage & Quality', 'Cross-Functional Collaboration', 'Framework Mastery'],
+        deEmphasizedThemes: ['Exaggerated org-wide strategy claims'],
+        recommendedBulletCount: { currentRole: '4-6 bullets', pastRoles: '3-4 bullets', olderRoles: '1-2 bullets' },
+        guidance: 'Emphasize concrete features shipped, test reliability, rapid learning velocity, and production stability.',
+      };
+  }
+}
+
