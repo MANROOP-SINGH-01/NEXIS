@@ -8,6 +8,7 @@ import { CharacterManager } from './entities/CharacterManager';
 import { NavMeshManager } from './pathfinding/NavMeshManager';
 import { PathAgent } from './pathfinding/PathAgent';
 import { PoiManager } from './world/PoiManager';
+import { ObstacleSystem } from './physics/ObstacleSystem';
 
 /**
  * CharacterController — unified API for controlling any character (player or NPC).
@@ -96,22 +97,21 @@ export class CharacterController implements ICharacterDriver {
       );
     }
 
+    // Push start position out of any obstacle so navmesh can find a clean path
+    ObstacleSystem.resolveCollision(from);
+
     const path = this.navMesh.findPath(from, target);
 
     if (path.length === 0) {
-      // Emergency Teleport: If the target is valid on the navmesh but we can't find a path
-      // (likely because the character is stuck outside the navmesh bounds), teleport directly.
-      if (index === getActiveAgentSet().user.index) {
-        this.characterManager.setPosition(index, target);
-        if (targetOrientation) {
-          this.characterManager.setOrientation(index, targetOrientation);
-        }
-        this.play(index, arrivalState);
-        onArrival?.(index);
-        return true;
+      // Emergency Unstuck: If the agent was trapped inside an obstacle or off navmesh,
+      // teleport directly to the target destination and assume target orientation.
+      this.characterManager.setPosition(index, target);
+      if (targetOrientation) {
+        this.characterManager.setOrientation(index, targetOrientation);
       }
-
-      return false;
+      this.play(index, arrivalState);
+      onArrival?.(index);
+      return true;
     }
 
     // Ensure the agent ends up at the exact target position,

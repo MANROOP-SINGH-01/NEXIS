@@ -214,8 +214,11 @@ export class PhysicalInteractionController {
 
       case 'IMPACT': {
         this.impact.update(dt);
-        // Apply compression offset into character Y
-        this.physics.position.y = DEFAULT_PHYSICS_SETTINGS.floorY + this.impact.getCompressionOffset();
+        // Apply compression offset with floorY clamp so feet never submerge
+        this.physics.position.y = Math.max(
+          DEFAULT_PHYSICS_SETTINGS.floorY,
+          DEFAULT_PHYSICS_SETTINGS.floorY + this.impact.getCompressionOffset()
+        );
 
         this.secondaryMotion.update(
           this.physics.linearVelocity,
@@ -239,6 +242,13 @@ export class PhysicalInteractionController {
 
         const isFinished = this.recovery.update(dt);
         this.proceduralWeight = this.recovery.getBlendWeight();
+
+        // Cute clumsy recovery shimmy as character dusts off and gets balance back
+        const wobble = this.recovery.getRecoveryWobble();
+        if (Math.abs(wobble) > 0.001) {
+          this.secondaryMotion.injectImpulse('spine', new THREE.Vector3(wobble * 0.4, 0, wobble * 0.7));
+          this.secondaryMotion.injectImpulse('head', new THREE.Vector3(0, wobble * 1.1, wobble * 0.4));
+        }
 
         this.secondaryMotion.update(
           this.physics.linearVelocity,

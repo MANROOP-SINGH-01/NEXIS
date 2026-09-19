@@ -1,6 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { PhysicalInteractionController } from './PhysicalInteractionController';
 import { PhysicalState } from './PhysicsTypes';
+import { ObstacleSystem } from './ObstacleSystem';
 
 /**
  * System-level manager for all interactive physical characters in the scene.
@@ -157,11 +158,28 @@ export class InteractivePhysicsSystem {
     let needsWeightUpdate = false;
     let needsOrientationUpdate = false;
 
+    // 1. Advance individual physics controllers
+    for (let i = 0; i < this.maxInstances; i++) {
+      const ctrl = this.controllers.get(i);
+      if (ctrl) ctrl.update(delta, baseAnimBones);
+    }
+
+    // 2. Resolve agent-to-agent collisions so characters push apart and never stick inside each other
+    const activePositions: THREE.Vector3[] = [];
+    const activeVelocities: THREE.Vector3[] = [];
+    for (let i = 0; i < this.maxInstances; i++) {
+      const ctrl = this.controllers.get(i);
+      if (ctrl) {
+        activePositions.push(ctrl.physics.position);
+        activeVelocities.push(ctrl.physics.linearVelocity);
+      }
+    }
+    ObstacleSystem.resolveAgentOverlap(activePositions, activeVelocities, this.activeGrabbedIndex);
+
+    // 3. Pack procedural weights, orientations, and bone matrices into GPU buffers
     for (let i = 0; i < this.maxInstances; i++) {
       const ctrl = this.controllers.get(i);
       if (!ctrl) continue;
-
-      ctrl.update(delta, baseAnimBones);
 
       // Pack procedural weight
       const prevWeight = this.weightArray[i];

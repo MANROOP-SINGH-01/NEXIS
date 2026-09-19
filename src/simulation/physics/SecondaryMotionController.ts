@@ -15,6 +15,7 @@ interface LimbSimulationState {
  */
 export class SecondaryMotionController {
   private limbs = new Map<ProceduralLimbKey, LimbSimulationState>();
+  private airborneTimer = 0;
 
   // Base configurations tailored per anatomical group
   private static readonly LIMB_CONFIGS: Record<ProceduralLimbKey, LimbPhysicsConfig> = {
@@ -126,6 +127,7 @@ export class SecondaryMotionController {
    * Resets all limb physical angles and velocities to zero.
    */
   public reset(): void {
+    this.airborneTimer = 0;
     for (const state of this.limbs.values()) {
       state.currentAngle.set(0, 0, 0);
       state.angularVelocity.set(0, 0, 0);
@@ -161,6 +163,13 @@ export class SecondaryMotionController {
     const worldGravity = new THREE.Vector3(0, -9.81, 0);
     const localGravity = worldGravity.applyQuaternion(invOrientation);
 
+    // Update airborne timer for procedural falling animations
+    if (isAirborne) {
+      this.airborneTimer += clampedDelta;
+    } else {
+      this.airborneTimer = 0;
+    }
+
     for (const [key, state] of this.limbs.entries()) {
       const cfg = state.config;
 
@@ -185,16 +194,46 @@ export class SecondaryMotionController {
       targetDisplacement.x -= localVel.z * cfg.velocityInfluence * 0.08;
       targetDisplacement.z += localVel.x * cfg.velocityInfluence * 0.08;
 
-      // 3. Gravity dangle when airborne or held
+      // 3. Gravity dangle and cute clumsy falling animation when airborne
       if (isAirborne) {
-        if (key.startsWith('leg')) {
-          // Legs dangle naturally along gravity vector
-          targetDisplacement.x += (localGravity.y < -5.0 ? 0.35 : 0.1) * cfg.gravityInfluence;
-          targetDisplacement.z += localGravity.x * 0.05 * cfg.gravityInfluence;
-        } else if (key.startsWith('arm')) {
-          // Arms hang downward
-          targetDisplacement.x += 0.25 * cfg.gravityInfluence;
-          targetDisplacement.z += (key.includes('L') ? 0.15 : -0.15) * cfg.gravityInfluence;
+        const t = this.airborneTimer;
+        const airSpeed = bodyLinearVelocity.length();
+        const flailAmp = Math.min(1.0, 0.45 + airSpeed * 0.12);
+        const flailFreq = 20.0;
+        const kickFreq = 16.0;
+
+        if (key === 'armL') {
+          // Frantic cartoon windmilling arm
+          targetDisplacement.x += (Math.sin(t * flailFreq) * 0.85 + 0.35) * flailAmp;
+          targetDisplacement.z += (Math.cos(t * flailFreq) * 0.55 + 0.50) * flailAmp;
+          targetDisplacement.y += Math.sin(t * flailFreq * 0.7) * 0.35 * flailAmp;
+        } else if (key === 'lowerArmL') {
+          // Cute rapid elbow flapping
+          targetDisplacement.x += (Math.abs(Math.sin(t * flailFreq * 1.4)) * 0.75 + 0.30) * flailAmp;
+          targetDisplacement.z += Math.sin(t * flailFreq) * 0.35 * flailAmp;
+        } else if (key === 'armR') {
+          // Counter-phase windmilling arm
+          targetDisplacement.x += (Math.sin(t * flailFreq + Math.PI) * 0.85 + 0.35) * flailAmp;
+          targetDisplacement.z += (-Math.cos(t * flailFreq + Math.PI) * 0.55 - 0.50) * flailAmp;
+          targetDisplacement.y += -Math.sin(t * flailFreq * 0.7) * 0.35 * flailAmp;
+        } else if (key === 'lowerArmR') {
+          targetDisplacement.x += (Math.abs(Math.sin(t * flailFreq * 1.4 + Math.PI)) * 0.75 + 0.30) * flailAmp;
+          targetDisplacement.z += -Math.sin(t * flailFreq) * 0.35 * flailAmp;
+        } else if (key === 'legL') {
+          // Running in the air bicycle kicks with cute wide splay
+          targetDisplacement.x += Math.sin(t * kickFreq) * 0.75 * flailAmp;
+          targetDisplacement.z += (0.32 + Math.cos(t * kickFreq * 0.5) * 0.15) * flailAmp;
+        } else if (key === 'legR') {
+          targetDisplacement.x += Math.sin(t * kickFreq + Math.PI) * 0.75 * flailAmp;
+          targetDisplacement.z += (-0.32 - Math.cos(t * kickFreq * 0.5) * 0.15) * flailAmp;
+        } else if (key === 'head') {
+          // Bobblehead panic: tilted back in surprise with cute wobble
+          targetDisplacement.x += (-0.35 + Math.sin(t * 15.0) * 0.22) * flailAmp;
+          targetDisplacement.z += Math.cos(t * 13.0) * 0.25 * flailAmp;
+        } else if (key === 'spine') {
+          // Wobbly spine
+          targetDisplacement.x += Math.sin(t * 12.0) * 0.16 * flailAmp;
+          targetDisplacement.z += Math.cos(t * 10.0) * 0.16 * flailAmp;
         }
       }
 

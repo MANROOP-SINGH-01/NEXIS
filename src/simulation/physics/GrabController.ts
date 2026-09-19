@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { GrabInfo, OFFICE_BOUNDS } from './PhysicsTypes';
+import { ObstacleSystem } from './ObstacleSystem';
 
 /**
  * Handles 3D pointer grab detection, camera-plane coordinate projection,
@@ -145,6 +146,9 @@ export class GrabController {
     targetBodyPos.x = THREE.MathUtils.clamp(targetBodyPos.x, OFFICE_BOUNDS.minX, OFFICE_BOUNDS.maxX);
     targetBodyPos.z = THREE.MathUtils.clamp(targetBodyPos.z, OFFICE_BOUNDS.minZ, OFFICE_BOUNDS.maxZ);
     targetBodyPos.y = THREE.MathUtils.clamp(targetBodyPos.y, minDangleHeight, OFFICE_BOUNDS.maxHeldY ?? 1.20);
+
+    // Keep dragged target position outside solid furniture
+    ObstacleSystem.resolveCollision(targetBodyPos);
 
     this.grabInfo.targetPointWorld.copy(targetBodyPos);
 

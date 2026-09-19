@@ -9,6 +9,7 @@ import { InputManager } from './input/InputManager';
 import { NavMeshManager } from './pathfinding/NavMeshManager';
 import { PoiManager } from './world/PoiManager';
 import { WorldManager } from './world/WorldManager';
+import { ObstacleSystem } from './physics/ObstacleSystem';
 
 import { AgentSimulation } from './core/AgentSimulation';
 import { useCoreStore } from '../integration/store/coreStore';
@@ -569,6 +570,7 @@ export class SceneManager {
     this.controller?.update(delta, this.engine.renderer);
     this.controller?.syncFromGPU(this.engine.renderer).then((pos) => {
       if (!pos || !this.controller) return;
+      this.resolveWorldAndAgentCollisions(pos);
       this.controller.updatePaths(pos);
       this.driverManager?.update(pos, delta);
       this.updateTransparency(pos, delta);
@@ -615,6 +617,47 @@ export class SceneManager {
 
     this.stage.setChatMode(useUiStore.getState().isChatting, this.controller?.getAgentState(player) === AgentBehavior.GOTO);
     this.engine.render(this.stage.scene, this.stage.camera);
+  }
+
+  private resolveWorldAndAgentCollisions(pos: Float32Array): void {
+    if (!this.controller) return;
+    const count = this.controller.getCount();
+    const phys = this.characterManager.getPhysicsSystem();
+    const grabbedIdx = phys?.getActiveGrabbedIndex() ?? null;
+
+    const agentVecs: THREE.Vector3[] = [];
+    const seatedSet = new Set<number>();
+
+    for (let i = 0; i < count; i++) {
+      const p = new THREE.Vector3(pos[i * 4], pos[i * 4 + 1], pos[i * 4 + 2]);
+      const stateKey = this.controller.getState(i);
+      const isSeated = stateKey === 'sit_idle' || stateKey === 'sit_work' || stateKey === 'sit_down';
+
+      if (isSeated) {
+        seatedSet.add(i);
+      } else if (i !== grabbedIdx) {
+        // Enforce solid furniture & obstacle collision on standing/walking characters
+        if (ObstacleSystem.resolveCollision(p)) {
+          pos[i * 4] = p.x;
+          pos[i * 4 + 1] = p.y;
+          pos[i * 4 + 2] = p.z;
+          this.characterManager.setPosition(i, p);
+        }
+      }
+      agentVecs.push(p);
+    }
+
+    // Mutual agent-to-agent push-apart separation
+    if (ObstacleSystem.resolveAgentOverlap(agentVecs, undefined, grabbedIdx, seatedSet)) {
+      for (let i = 0; i < count; i++) {
+        if (i !== grabbedIdx && !seatedSet.has(i)) {
+          pos[i * 4] = agentVecs[i].x;
+          pos[i * 4 + 1] = agentVecs[i].y;
+          pos[i * 4 + 2] = agentVecs[i].z;
+          this.characterManager.setPosition(i, agentVecs[i]);
+        }
+      }
+    }
   }
 
   private updateTransparency(pos: Float32Array, delta: number) {

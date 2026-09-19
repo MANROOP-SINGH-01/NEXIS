@@ -57,6 +57,16 @@ export class RecoveryController {
     return false;
   }
 
+  /**
+   * Returns a cute cartoon wobble/dust-off shimmy as the character gets back on their feet.
+   */
+  public getRecoveryWobble(): number {
+    if (!this.isRecovering) return 0;
+    const progress = Math.min(1.0, this.recoveryTimer / Math.max(0.1, this.recoveryDuration));
+    // 3 rapid playful shimmies decaying to 0
+    return Math.sin(progress * Math.PI * 6.0) * (1.0 - progress) * 0.14;
+  }
+
   public interrupt(): void {
     this.isRecovering = false;
     this.recoveryTimer = 0;

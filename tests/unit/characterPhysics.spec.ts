@@ -6,6 +6,7 @@ import { CharacterPhysicsController } from '../../src/simulation/physics/Charact
 import { ImpactController } from '../../src/simulation/physics/ImpactController';
 import { RecoveryController } from '../../src/simulation/physics/RecoveryController';
 import { SecondaryMotionController } from '../../src/simulation/physics/SecondaryMotionController';
+import { ObstacleSystem } from '../../src/simulation/physics/ObstacleSystem';
 
 function createMockSkeleton(): THREE.Skeleton {
   const names = ['root', 'hips', 'leg.L', 'leg.R', 'spine', 'head', 'arm.L', 'lower.arm.L', 'arm.R', 'lower.arm.R'];
@@ -209,6 +210,89 @@ test.describe('Physical Interaction System Tests', () => {
     expect(finished).toBe(true);
     expect(recovery.isUnderway()).toBe(false);
     expect(recovery.getBlendWeight()).toBe(0.0);
+  });
+
+  test('ObstacleSystem prevents characters from penetrating reception counter, desks, and plants', () => {
+    // 1. Test point inside reception counter [-3.50, 0, 3.94]
+    const counterInside = new THREE.Vector3(-3.50, 0.2, 3.94);
+    const counterVel = new THREE.Vector3(0, 0, 2.0);
+    const resolvedCounter = ObstacleSystem.resolveCollision(counterInside, counterVel);
+
+    expect(resolvedCounter).toBe(true);
+    // Character must be pushed outside the counter box
+    const counterBox = ObstacleSystem.getObstacles().find(o => o.id === 'static-counter')?.box;
+    expect(counterBox).toBeDefined();
+    const isStillInside =
+      counterInside.x > counterBox!.min.x &&
+      counterInside.x < counterBox!.max.x &&
+      counterInside.z > counterBox!.min.z &&
+      counterInside.z < counterBox!.max.z;
+    expect(isStillInside).toBe(false);
+
+    // 2. Test point inside potted plant 1 [-2.13, 0, 3.92]
+    const plantInside = new THREE.Vector3(-2.13, 0.1, 3.92);
+    const resolvedPlant = ObstacleSystem.resolveCollision(plantInside);
+    expect(resolvedPlant).toBe(true);
+    const plantBox = ObstacleSystem.getObstacles().find(o => o.id === 'static-plant.001')?.box;
+    expect(plantBox).toBeDefined();
+    const isPlantInside =
+      plantInside.x > plantBox!.min.x &&
+      plantInside.x < plantBox!.max.x &&
+      plantInside.z > plantBox!.min.z &&
+      plantInside.z < plantBox!.max.z;
+    expect(isPlantInside).toBe(false);
+  });
+
+  test('ObstacleSystem resolves agent overlap by separating co-located characters', () => {
+    // Two agents standing at almost identical positions
+    const posA = new THREE.Vector3(0, 0, 0);
+    const posB = new THREE.Vector3(0.05, 0, 0.05);
+
+    const positions = [posA, posB];
+    const hadOverlap = ObstacleSystem.resolveAgentOverlap(positions);
+
+    expect(hadOverlap).toBe(true);
+    const distanceAfter = posA.distanceTo(posB);
+    // Distance after separation must be at least the safe separation threshold (0.64m)
+    expect(distanceAfter).toBeGreaterThanOrEqual(0.64);
+  });
+
+  test('SecondaryMotionController generates cute clumsy windmilling arms and kicking legs when airborne', () => {
+    const secondary = new SecondaryMotionController();
+    const velocity = new THREE.Vector3(2.0, -3.5, 1.0); // Thrown downward and forward
+    const acceleration = new THREE.Vector3(0, -9.81, 0);
+    const orientation = new THREE.Quaternion();
+
+    // Advance airborne frames
+    for (let i = 0; i < 10; i++) {
+      secondary.update(velocity, acceleration, orientation, true, 0.016);
+    }
+
+    const armL = secondary.getLimbAngle('armL');
+    const armR = secondary.getLimbAngle('armR');
+    const legL = secondary.getLimbAngle('legL');
+    const legR = secondary.getLimbAngle('legR');
+    const head = secondary.getLimbAngle('head');
+
+    // Both arms and legs must have dynamic, non-zero flail/kick displacements
+    expect(Math.abs(armL.x) + Math.abs(armL.z)).toBeGreaterThan(0.1);
+    expect(Math.abs(armR.x) + Math.abs(armR.z)).toBeGreaterThan(0.1);
+    expect(Math.abs(legL.x) + Math.abs(legL.z)).toBeGreaterThan(0.1);
+    expect(Math.abs(legR.x) + Math.abs(legR.z)).toBeGreaterThan(0.1);
+    // Head must show clumsy tilt back
+    expect(Math.abs(head.x) + Math.abs(head.z)).toBeGreaterThan(0.05);
+  });
+
+  test('RecoveryController generates cute cartoon shimmy wobble during recovery', () => {
+    const recovery = new RecoveryController(0.6);
+    recovery.startRecovery();
+
+    // Advance to 30% progress
+    recovery.update(0.18);
+    const wobble = recovery.getRecoveryWobble();
+
+    // Must have active, non-zero recovery shimmy
+    expect(Math.abs(wobble)).toBeGreaterThan(0.005);
   });
 
 });

@@ -7,6 +7,7 @@ import { useTeamStore } from '../../integration/store/teamStore';
 import { DRACO_LIB_PATH } from '../constants';
 import { NavMeshManager } from '../pathfinding/NavMeshManager';
 import { PoiManager } from './PoiManager';
+import { ObstacleSystem } from '../physics/ObstacleSystem';
 
 import { getFloorTexture, getWoodDeskTexture, getWhiteboardTexture } from './TextureGenerator';
 
@@ -27,6 +28,9 @@ export class WorldManager {
     const officeGltf = await loader.loadAsync(`${import.meta.env.BASE_URL}models/office.glb`);
     this.office = officeGltf.scene;
     this.scene.add(this.office);
+
+    // Register 3D office geometry obstacles for collision avoidance
+    ObstacleSystem.registerFromScene(this.office);
 
     // Get current AgentSet color
     const { selectedAgentSetId, customSystems } = useTeamStore.getState();

@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { CharacterPhysicsSettings, DEFAULT_PHYSICS_SETTINGS } from './PhysicsTypes';
+import { ObstacleSystem } from './ObstacleSystem';
 
 /**
  * Physical rigid-body & spring solver for the character's root transform.
@@ -102,6 +103,9 @@ export class CharacterPhysicsController {
       if (this.linearVelocity.y > 0) this.linearVelocity.y = 0;
     }
 
+    // Enforce solid obstacle collision resolution during grab
+    ObstacleSystem.resolveCollision(this.position, this.linearVelocity);
+
     // Dynamic Clumsy Ninja Torso Tilt & Pendulum Swing from velocity & acceleration
     const horizSpeed = Math.hypot(this.linearVelocity.x, this.linearVelocity.z);
     const tiltDampFactor = horizSpeed < 0.25 ? THREE.MathUtils.clamp(horizSpeed / 0.25, 0.0, 1.0) : 1.0;
@@ -198,6 +202,9 @@ export class CharacterPhysicsController {
       this.linearVelocity.y = -Math.abs(this.linearVelocity.y) * 0.35;
     }
 
+    // Enforce solid obstacle collision resolution during free-fall
+    ObstacleSystem.resolveCollision(this.position, this.linearVelocity);
+
     // Angular momentum update
     this.angularVelocity.multiplyScalar(Math.pow(this.settings.angularDrag, dt * 60));
 
@@ -282,5 +289,8 @@ export class CharacterPhysicsController {
     this.orientation.slerp(uprightQuat, Math.min(1.0, speedMultiplier * dt));
     this.angularVelocity.multiplyScalar(0.2);
     this.linearVelocity.multiplyScalar(0.3);
+
+    // Ensure settled position is strictly outside obstacles
+    ObstacleSystem.resolveCollision(this.position, this.linearVelocity);
   }
 }
