@@ -15,7 +15,7 @@ export const Shell: React.FC<ShellProps> = ({ children, isFullscreen = false }) 
   const { setResumeForgeOpen } = useCoreStore();
 
   return (
-    <div className="w-screen h-screen bg-[#F8F3EC] text-[#181512] overflow-hidden flex flex-row font-sans selection:bg-[#F47B20]/20 selection:text-[#CC5D08]">
+    <div className="w-screen h-screen bg-[#0A0B0E] text-[#EDEDED] overflow-hidden flex flex-row font-sans selection:bg-[#FF5C1A]/20 selection:text-[#FF5C1A]">
       {/* Desktop App Sidebar */}
       {!isFullscreen && (
         <div className="hidden md:flex">
@@ -34,7 +34,7 @@ export const Shell: React.FC<ShellProps> = ({ children, isFullscreen = false }) 
         )}
 
         {/* Dynamic Main Views Content */}
-        <main className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden relative pb-16 md:pb-0 bg-[#F8F3EC]">
+        <main className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden relative pb-16 md:pb-0 bg-[#0A0B0E]">
           {children}
         </main>
 

@@ -17,15 +17,15 @@ export const NexusEmptyState: React.FC<NexusEmptyStateProps> = ({
 }) => {
   return (
     <div
-      className={`bg-white rounded-2xl border border-dashed border-[#D7CABB] p-8 sm:p-12 text-center flex flex-col items-center justify-center max-w-lg mx-auto my-6 ${className}`}
+      className={`bg-[#121317] rounded-[10px] border border-dashed border-white/12 p-8 sm:p-12 text-center flex flex-col items-center justify-center max-w-lg mx-auto my-6 shadow-[0_8px_24px_rgba(0,0,0,0.4)] ${className}`}
     >
       {icon && (
-        <div className="w-14 h-14 rounded-2xl bg-[#FFF0E4] border border-[#FDCBA7] flex items-center justify-center text-[#F47B20] mb-4 shadow-sm">
+        <div className="w-12 h-12 rounded-[8px] bg-[#1A1B20] border border-white/8 flex items-center justify-center text-[#FF5C1A] mb-4 shadow-sm">
           {icon}
         </div>
       )}
-      <h3 className="text-lg font-bold text-[#181512] tracking-tight mb-1.5">{title}</h3>
-      <p className="text-sm text-[#6A6359] max-w-sm mb-6 leading-relaxed">{description}</p>
+      <h3 className="text-base sm:text-lg font-bold text-[#EDEDED] tracking-tight mb-1.5">{title}</h3>
+      <p className="text-xs sm:text-sm text-[#8B949E] max-w-sm mb-6 leading-relaxed">{description}</p>
       {action && <div>{action}</div>}
     </div>
   );

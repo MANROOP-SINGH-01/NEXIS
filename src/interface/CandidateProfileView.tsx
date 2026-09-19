@@ -99,30 +99,30 @@ export const CandidateProfileView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8 bg-[#F8F3EC] text-[#181512]">
+    <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8 bg-[#0A0B0E] text-[#EDEDED]">
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* ── Candidate Profile Header Banner ────────────────────────── */}
-        <div className="bg-white border border-[#EADFCF] rounded-3xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+        <div className="bg-[#121317] border border-white/8 rounded-[10px] p-6 sm:p-8 shadow-[0_8px_24px_rgba(0,0,0,0.4)] relative overflow-hidden">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
             <div className="flex items-start gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-[#F47B20] text-white flex items-center justify-center font-['Space_Grotesk'] text-2xl font-bold shrink-0 shadow-xs">
+              <div className="w-16 h-16 rounded-[10px] bg-gradient-to-br from-[#FF5C1A] to-[#E04006] text-white flex items-center justify-center font-bold text-2xl shrink-0 shadow-[0_0_20px_rgba(255,92,26,0.35)]">
                 PS
               </div>
               <div>
                 <div className="flex items-center gap-2.5 flex-wrap">
-                  <h1 className="font-['Space_Grotesk'] text-2xl font-extrabold text-[#181512] tracking-tight">
+                  <h1 className="text-2xl font-extrabold text-[#EDEDED] tracking-tight">
                     {traineeProfile?.trainee?.name || history.candidateName || 'Priya Sharma'}
                   </h1>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold font-mono px-2.5 py-0.5 rounded-full bg-[#E6F4F2] border border-[#BDE3DF] text-[#147D73]">
-                    <Check size={12} className="stroke-[3]" />
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold font-mono px-2.5 py-0.5 rounded-full bg-[#22C55E]/10 border border-[#22C55E]/25 text-[#22C55E]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] shadow-[0_0_6px_rgba(34,197,94,0.6)] animate-pulse" />
                     VERIFIED CANDIDATE
                   </span>
                 </div>
-                <p className="text-sm font-semibold text-[#6A6359] mt-0.5">
+                <p className="text-sm font-medium text-[#8B949E] mt-0.5">
                   Staff Backend & Distributed Systems Engineer &bull; 6+ YOE
                 </p>
-                <p className="text-xs text-[#999084] mt-1 font-mono">
+                <p className="text-xs text-[#6E7681] mt-1 font-mono">
                   Autonomous Agent Mesh: Active &bull; DPDP Consent: Granted
                 </p>
               </div>
@@ -130,16 +130,17 @@ export const CandidateProfileView: React.FC = () => {
 
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#999084] block">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#6E7681] block">
                   Profile Completeness
                 </span>
-                <span className="font-['Space_Grotesk'] text-xl font-bold text-[#181512]">
+                <span className="text-lg font-mono font-extrabold text-[#EDEDED]">
                   94%
                 </span>
               </div>
+
               <button
                 onClick={handleSave}
-                className="nx-btn-primary !py-2.5 !px-5 text-xs font-bold uppercase tracking-wider cursor-pointer flex items-center gap-2"
+                className="h-[36px] px-4 rounded-[8px] bg-gradient-to-r from-[#FF5C1A] to-[#E04006] hover:brightness-110 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(255,92,26,0.35)] transition-all cursor-pointer"
               >
                 <Save size={14} />
                 <span>Save Profile</span>
@@ -147,23 +148,22 @@ export const CandidateProfileView: React.FC = () => {
             </div>
           </div>
 
-          {/* Save Notice Alert */}
           {saveNotice && (
-            <div className="mt-4 p-3 bg-[#E6F4F2] border border-[#BDE3DF] rounded-xl flex items-center gap-2 text-xs font-semibold text-[#147D73] animate-in fade-in duration-200">
-              <CheckCircle2 size={15} />
+            <div className="mt-4 p-2.5 rounded-[8px] bg-[#22C55E]/10 border border-[#22C55E]/25 text-xs text-[#22C55E] font-medium flex items-center gap-2 animate-in fade-in">
+              <CheckCircle2 size={14} />
               <span>{saveNotice}</span>
             </div>
           )}
         </div>
 
-        {/* ── Sub-navigation Tabs ──────────────────────────────────────── */}
-        <div className="flex border-b border-[#EADFCF] gap-6">
+        {/* ── Navigation Tabs ────────────────────────────────────────── */}
+        <div className="flex border-b border-white/8 gap-6 font-mono">
           <button
             onClick={() => setActiveTab('preferences')}
             className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer flex items-center gap-2 ${
               activeTab === 'preferences'
-                ? 'border-[#F47B20] text-[#F47B20]'
-                : 'border-transparent text-[#6A6359] hover:text-[#181512]'
+                ? 'border-[#FF5C1A] text-[#FF5C1A]'
+                : 'border-transparent text-[#8B949E] hover:text-[#EDEDED]'
             }`}
           >
             <ShieldAlert size={14} />
@@ -174,8 +174,8 @@ export const CandidateProfileView: React.FC = () => {
             onClick={() => setActiveTab('history')}
             className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer flex items-center gap-2 ${
               activeTab === 'history'
-                ? 'border-[#F47B20] text-[#F47B20]'
-                : 'border-transparent text-[#6A6359] hover:text-[#181512]'
+                ? 'border-[#FF5C1A] text-[#FF5C1A]'
+                : 'border-transparent text-[#8B949E] hover:text-[#EDEDED]'
             }`}
           >
             <Briefcase size={14} />
@@ -186,8 +186,8 @@ export const CandidateProfileView: React.FC = () => {
             onClick={() => setActiveTab('competencies')}
             className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer flex items-center gap-2 ${
               activeTab === 'competencies'
-                ? 'border-[#F47B20] text-[#F47B20]'
-                : 'border-transparent text-[#6A6359] hover:text-[#181512]'
+                ? 'border-[#FF5C1A] text-[#FF5C1A]'
+                : 'border-transparent text-[#8B949E] hover:text-[#EDEDED]'
             }`}
           >
             <Award size={14} />
@@ -203,18 +203,18 @@ export const CandidateProfileView: React.FC = () => {
             <div className="lg:col-span-7 space-y-6">
               
               {/* Dealbreakers Panel */}
-              <div className="bg-white border border-[#EADFCF] rounded-3xl p-6 shadow-xs">
+              <div className="bg-[#121317] border border-white/8 rounded-[10px] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h2 className="font-['Space_Grotesk'] text-base font-bold text-[#181512] flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#D93829]" />
+                    <h2 className="text-sm font-bold text-[#EDEDED] flex items-center gap-2 font-mono">
+                      <span className="w-2 h-2 rounded-full bg-[#EF4444] shadow-[0_0_6px_rgba(239,68,68,0.6)]" />
                       Dealbreakers (Immediate Skip)
                     </h2>
-                    <p className="text-xs text-[#6A6359] mt-0.5">
+                    <p className="text-xs text-[#8B949E] mt-0.5">
                       Jobs triggering any dealbreaker are automatically sorted into the <strong>IGNORE</strong> bucket.
                     </p>
                   </div>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 bg-[#FDEEED] text-[#B83128] rounded-md border border-[#F7BEBA]">
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 bg-[#EF4444]/10 text-[#EF4444] rounded-full border border-[#EF4444]/25">
                     {dealbreakers.length} Active
                   </span>
                 </div>
@@ -224,12 +224,12 @@ export const CandidateProfileView: React.FC = () => {
                   {dealbreakers.map((item) => (
                     <span
                       key={item}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-[#FDEEED] text-[#9B2319] border border-[#F7BEBA]"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-medium bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/25"
                     >
                       <span>{item}</span>
                       <button
                         onClick={() => removeDealbreaker(item)}
-                        className="hover:text-[#D93829] cursor-pointer"
+                        className="hover:text-white cursor-pointer"
                         title="Remove Dealbreaker"
                       >
                         <X size={13} />
@@ -246,11 +246,11 @@ export const CandidateProfileView: React.FC = () => {
                     onChange={(e) => setNewDealbreaker(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addDealbreaker(); } }}
                     placeholder="e.g. Requires >2 days on-site, compensation < ₹25L..."
-                    className="flex-1 px-3.5 py-2 bg-[#FAF7F2] border border-[#EADFCF] rounded-xl text-xs text-[#181512] focus:outline-none focus:border-[#F47B20]"
+                    className="flex-1 h-[36px] px-3.5 bg-[#1A1B20] border border-white/10 rounded-[8px] text-xs text-[#EDEDED] focus:outline-none focus:border-[#FF5C1A] placeholder-[#6E7681]"
                   />
                   <button
                     onClick={addDealbreaker}
-                    className="nx-btn-secondary !py-2 !px-3 text-xs font-bold cursor-pointer"
+                    className="h-[36px] px-3.5 rounded-[8px] bg-[#1A1B20] hover:bg-[#22242B] border border-white/10 text-xs font-bold text-[#EDEDED] flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
                   >
                     <Plus size={14} />
                     <span>Add</span>
@@ -259,18 +259,18 @@ export const CandidateProfileView: React.FC = () => {
               </div>
 
               {/* Must-Haves Panel */}
-              <div className="bg-white border border-[#EADFCF] rounded-3xl p-6 shadow-xs">
+              <div className="bg-[#121317] border border-white/8 rounded-[10px] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h2 className="font-['Space_Grotesk'] text-base font-bold text-[#181512] flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#147D73]" />
+                    <h2 className="text-sm font-bold text-[#EDEDED] flex items-center gap-2 font-mono">
+                      <span className="w-2 h-2 rounded-full bg-[#22C55E] shadow-[0_0_6px_rgba(34,197,94,0.6)]" />
                       Must-Haves (Strict Requirements)
                     </h2>
-                    <p className="text-xs text-[#6A6359] mt-0.5">
+                    <p className="text-xs text-[#8B949E] mt-0.5">
                       Target roles must fulfill these criteria to score 85%+ into the <strong>APPLY NOW</strong> bucket.
                     </p>
                   </div>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 bg-[#E6F4F2] text-[#147D73] rounded-md border border-[#BDE3DF]">
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 bg-[#22C55E]/10 text-[#22C55E] rounded-full border border-[#22C55E]/25">
                     {mustHaves.length} Active
                   </span>
                 </div>
@@ -280,12 +280,12 @@ export const CandidateProfileView: React.FC = () => {
                   {mustHaves.map((item) => (
                     <span
                       key={item}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-[#E6F4F2] text-[#0E5B54] border border-[#BDE3DF]"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-medium bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/25"
                     >
                       <span>{item}</span>
                       <button
                         onClick={() => removeMustHave(item)}
-                        className="hover:text-[#147D73] cursor-pointer"
+                        className="hover:text-white cursor-pointer"
                         title="Remove Must-Have"
                       >
                         <X size={13} />
@@ -302,11 +302,11 @@ export const CandidateProfileView: React.FC = () => {
                     onChange={(e) => setNewMustHave(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addMustHave(); } }}
                     placeholder="e.g. Production TypeScript backend, mentorship track..."
-                    className="flex-1 px-3.5 py-2 bg-[#FAF7F2] border border-[#EADFCF] rounded-xl text-xs text-[#181512] focus:outline-none focus:border-[#F47B20]"
+                    className="flex-1 h-[36px] px-3.5 bg-[#1A1B20] border border-white/10 rounded-[8px] text-xs text-[#EDEDED] focus:outline-none focus:border-[#FF5C1A] placeholder-[#6E7681]"
                   />
                   <button
                     onClick={addMustHave}
-                    className="nx-btn-secondary !py-2 !px-3 text-xs font-bold cursor-pointer"
+                    className="h-[36px] px-3.5 rounded-[8px] bg-[#1A1B20] hover:bg-[#22242B] border border-white/10 text-xs font-bold text-[#EDEDED] flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
                   >
                     <Plus size={14} />
                     <span>Add</span>
@@ -320,9 +320,9 @@ export const CandidateProfileView: React.FC = () => {
             <div className="lg:col-span-5 space-y-6">
 
               {/* Target Roles */}
-              <div className="bg-white border border-[#EADFCF] rounded-3xl p-6 shadow-xs">
-                <h2 className="font-['Space_Grotesk'] text-base font-bold text-[#181512] mb-3 flex items-center gap-2">
-                  <Target size={16} className="text-[#F47B20]" />
+              <div className="bg-[#121317] border border-white/8 rounded-[10px] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
+                <h2 className="text-sm font-bold text-[#EDEDED] mb-3 flex items-center gap-2 font-mono">
+                  <Target size={15} className="text-[#FF5C1A]" />
                   Target Role Titles
                 </h2>
 
@@ -330,12 +330,12 @@ export const CandidateProfileView: React.FC = () => {
                   {targetRoles.map((role) => (
                     <span
                       key={role}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#FAF7F2] text-[#181512] border border-[#EADFCF]"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-[#1A1B20] text-[#EDEDED] border border-white/10"
                     >
                       <span>{role}</span>
                       <button
                         onClick={() => removeTargetRole(role)}
-                        className="text-[#999084] hover:text-[#181512] cursor-pointer"
+                        className="text-[#6E7681] hover:text-white cursor-pointer"
                       >
                         <X size={12} />
                       </button>
@@ -350,11 +350,11 @@ export const CandidateProfileView: React.FC = () => {
                     onChange={(e) => setNewRole(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTargetRole(); } }}
                     placeholder="Add target title..."
-                    className="flex-1 px-3 py-2 bg-[#FAF7F2] border border-[#EADFCF] rounded-xl text-xs text-[#181512] focus:outline-none"
+                    className="flex-1 h-[36px] px-3.5 bg-[#1A1B20] border border-white/10 rounded-[8px] text-xs text-[#EDEDED] focus:outline-none focus:border-[#FF5C1A] placeholder-[#6E7681]"
                   />
                   <button
                     onClick={addTargetRole}
-                    className="nx-btn-secondary !py-2 !px-3 text-xs font-bold cursor-pointer"
+                    className="h-[36px] px-3.5 rounded-[8px] bg-[#1A1B20] hover:bg-[#22242B] border border-white/10 text-xs font-bold text-[#EDEDED] flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
                   >
                     <Plus size={13} />
                   </button>
@@ -362,9 +362,9 @@ export const CandidateProfileView: React.FC = () => {
               </div>
 
               {/* Work Mode & Compensation */}
-              <div className="bg-white border border-[#EADFCF] rounded-3xl p-6 shadow-xs space-y-5">
+              <div className="bg-[#121317] border border-white/8 rounded-[10px] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.4)] space-y-5">
                 <div>
-                  <h2 className="font-['Space_Grotesk'] text-sm font-bold text-[#181512] mb-2.5">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#8B949E] mb-2.5 font-mono">
                     Permitted Work Modes
                   </h2>
                   <div className="grid grid-cols-3 gap-2">
@@ -374,10 +374,10 @@ export const CandidateProfileView: React.FC = () => {
                         <button
                           key={mode}
                           onClick={() => handleToggleWorkMode(mode)}
-                          className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                          className={`h-[36px] px-3 rounded-[8px] text-xs font-bold font-mono transition-all cursor-pointer border ${
                             isSelected
-                              ? 'bg-[#181512] text-white border-[#181512] shadow-xs'
-                              : 'bg-[#FAF7F2] text-[#6A6359] border-[#EADFCF] hover:border-[#D7CABB]'
+                              ? 'bg-[#1A1B20] text-white border-[#FF5C1A] shadow-[0_0_12px_rgba(255,92,26,0.25)]'
+                              : 'bg-[#0A0B0E] text-[#8B949E] border-white/8 hover:border-white/16'
                           }`}
                         >
                           {mode}
@@ -388,28 +388,28 @@ export const CandidateProfileView: React.FC = () => {
                 </div>
 
                 <div>
-                  <h2 className="font-['Space_Grotesk'] text-sm font-bold text-[#181512] mb-1.5">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#8B949E] mb-1.5 font-mono">
                     Minimum Target Compensation
                   </h2>
                   <div className="relative flex items-center">
-                    <DollarSign size={14} className="absolute left-3 text-[#999084]" />
+                    <DollarSign size={14} className="absolute left-3 text-[#6E7681]" />
                     <input
                       type="text"
                       value={minSalary}
                       onChange={(e) => setMinSalary(e.target.value)}
                       placeholder="e.g. ₹28,00,000 / year"
-                      className="w-full pl-8 pr-3 py-2 bg-[#FAF7F2] border border-[#EADFCF] rounded-xl text-xs font-semibold text-[#181512] focus:outline-none"
+                      className="w-full h-[36px] pl-8 pr-3 bg-[#1A1B20] border border-white/10 rounded-[8px] text-xs font-mono font-semibold text-[#EDEDED] focus:outline-none focus:border-[#FF5C1A]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <h2 className="font-['Space_Grotesk'] text-sm font-bold text-[#181512] mb-1.5">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#8B949E] mb-1.5 font-mono">
                     Preferred Hubs / Locations
                   </h2>
                   <div className="flex flex-wrap gap-1.5">
                     {locations.map((loc) => (
-                      <span key={loc} className="px-2.5 py-1 bg-[#F4EFE6] rounded-lg text-xs font-medium text-[#6A6359] border border-[#EADFCF]">
+                      <span key={loc} className="px-2.5 py-1 bg-[#1A1B20] rounded-md text-xs font-mono text-[#8B949E] border border-white/8">
                         {loc}
                       </span>
                     ))}
@@ -425,13 +425,13 @@ export const CandidateProfileView: React.FC = () => {
         {/* ── TAB 2: WORK HISTORY & ACCOMPLISHMENTS ────────────────────── */}
         {activeTab === 'history' && (
           <div className="space-y-6">
-            <div className="bg-white border border-[#EADFCF] rounded-3xl p-6 sm:p-8 shadow-xs">
+            <div className="bg-[#121317] border border-white/8 rounded-[10px] p-6 sm:p-8 shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="font-['Space_Grotesk'] text-lg font-bold text-[#181512]">
+                  <h2 className="text-base font-bold text-[#EDEDED] font-mono">
                     Chronological Roles & Proven Impact (STAR Format)
                   </h2>
-                  <p className="text-xs text-[#6A6359] mt-0.5">
+                  <p className="text-xs text-[#8B949E] mt-0.5">
                     Quantified accomplishment bullets formatted to satisfy institutional Flesch &gt;90 clarity standards.
                   </p>
                 </div>
@@ -441,41 +441,41 @@ export const CandidateProfileView: React.FC = () => {
                 {history.roles.map((role, idx) => (
                   <div
                     key={idx}
-                    className="p-5 bg-[#FAF7F2] border border-[#EADFCF] rounded-2xl space-y-3.5 hover:border-[#D7CABB] transition-colors"
+                    className="p-5 bg-[#1A1B20] border border-white/8 rounded-[10px] space-y-3.5 hover:border-white/16 transition-colors"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
-                        <h3 className="font-['Space_Grotesk'] text-base font-bold text-[#181512]">
+                        <h3 className="text-sm font-bold text-[#EDEDED] font-mono">
                           {role.title}
                         </h3>
-                        <p className="text-xs font-semibold text-[#F47B20] flex items-center gap-1 mt-0.5">
+                        <p className="text-xs font-semibold text-[#FF5C1A] flex items-center gap-1 mt-0.5">
                           <Building2 size={13} />
                           {role.company}
                         </p>
                       </div>
-                      <span className="text-xs font-mono font-medium px-3 py-1 bg-white rounded-lg border border-[#EADFCF] text-[#6A6359] shrink-0 self-start sm:self-center">
+                      <span className="text-xs font-mono font-medium px-3 py-1 bg-[#121317] rounded-md border border-white/8 text-[#8B949E] shrink-0 self-start sm:self-center">
                         {role.startDate} &mdash; {role.endDate}
                       </span>
                     </div>
 
-                    <p className="text-xs text-[#6A6359] leading-relaxed italic">
+                    <p className="text-xs text-[#8B949E] leading-relaxed italic">
                       "{role.companyContext}"
                     </p>
 
                     {/* Accomplishments */}
-                    <div className="space-y-2 pt-2 border-t border-[#EADFCF]">
-                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#999084] block">
+                    <div className="space-y-2 pt-2 border-t border-white/8">
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#6E7681] block">
                         Verified STAR Accomplishments
                       </span>
                       {role.accomplishments.map((acc, aIdx) => (
-                        <div key={aIdx} className="text-xs text-[#181512] flex items-start gap-2 leading-relaxed">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#147D73] mt-2 shrink-0" />
+                        <div key={aIdx} className="text-xs text-[#EDEDED] flex items-start gap-2 leading-relaxed">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] shadow-[0_0_6px_rgba(34,197,94,0.6)] mt-2 shrink-0" />
                           <div>
                             <strong>{acc.headline}:</strong> {acc.action} resulting in {acc.result}.
                             {acc.metrics.length > 0 && (
                               <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                                 {acc.metrics.map((m, mIdx) => (
-                                  <span key={mIdx} className="text-[10px] font-mono font-bold px-2 py-0.5 bg-[#E6F4F2] text-[#147D73] rounded border border-[#BDE3DF]">
+                                  <span key={mIdx} className="text-[10px] font-mono font-bold px-2 py-0.5 bg-[#22C55E]/10 text-[#22C55E] rounded-md border border-[#22C55E]/25">
                                     {m}
                                   </span>
                                 ))}
@@ -489,7 +489,7 @@ export const CandidateProfileView: React.FC = () => {
                     {/* Tools */}
                     <div className="flex flex-wrap gap-1.5 pt-2">
                       {role.tools.map((t) => (
-                        <span key={t} className="text-[10px] font-mono px-2 py-0.5 bg-white text-[#6A6359] rounded border border-[#EADFCF]">
+                        <span key={t} className="text-[10px] font-mono px-2 py-0.5 bg-[#121317] text-[#8B949E] rounded-md border border-white/8">
                           {t}
                         </span>
                       ))}
@@ -503,12 +503,12 @@ export const CandidateProfileView: React.FC = () => {
 
         {/* ── TAB 3: VERIFIED COMPETENCIES ────────────────────────────── */}
         {activeTab === 'competencies' && (
-          <div className="bg-white border border-[#EADFCF] rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="bg-[#121317] border border-white/8 rounded-[10px] p-6 sm:p-8 shadow-[0_8px_24px_rgba(0,0,0,0.4)] space-y-6">
             <div>
-              <h2 className="font-['Space_Grotesk'] text-lg font-bold text-[#181512]">
+              <h2 className="text-base font-bold text-[#EDEDED] font-mono">
                 O*NET Standard Competency Mapping & Government Certifications
               </h2>
-              <p className="text-xs text-[#6A6359] mt-0.5">
+              <p className="text-xs text-[#8B949E] mt-0.5">
                 Cryptographically anchored skill proofs verifiable via W3C compliant Career Passport.
               </p>
             </div>
@@ -522,16 +522,16 @@ export const CandidateProfileView: React.FC = () => {
                 { name: 'Zero-Downtime Microservices', level: 'Proficient (82%)', verified: true, source: 'AWS Verified Proof' },
                 { name: 'DPDP Cryptographic Audit & Privacy', level: 'Specialist (90%)', verified: true, source: 'MeitY Regulatory Module' },
               ].map((c) => (
-                <div key={c.name} className="p-4 bg-[#FAF7F2] border border-[#EADFCF] rounded-2xl space-y-2">
+                <div key={c.name} className="p-4 bg-[#1A1B20] border border-white/8 rounded-[10px] space-y-2 hover:border-white/16 transition-colors">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-[#E6F4F2] text-[#147D73] rounded border border-[#BDE3DF] flex items-center gap-1">
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-[#22C55E]/10 text-[#22C55E] rounded-full border border-[#22C55E]/25 flex items-center gap-1">
                       <Check size={11} className="stroke-[3]" />
                       VERIFIED
                     </span>
-                    <span className="text-[10px] font-mono text-[#999084]">{c.source}</span>
+                    <span className="text-[10px] font-mono text-[#6E7681]">{c.source}</span>
                   </div>
-                  <p className="text-xs font-bold text-[#181512]">{c.name}</p>
-                  <p className="text-[11px] text-[#6A6359]">{c.level}</p>
+                  <p className="text-xs font-mono font-bold text-[#EDEDED]">{c.name}</p>
+                  <p className="text-[11px] text-[#8B949E]">{c.level}</p>
                 </div>
               ))}
             </div>

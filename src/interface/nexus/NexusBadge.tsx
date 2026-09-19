@@ -22,30 +22,30 @@ export const NexusBadge: React.FC<NexusBadgeProps> = ({
   }[size];
 
   const variantClasses = {
-    orange: 'bg-[#FFF0E4] text-[#C45709] border border-[#FDCBA7]',
-    dark: 'bg-[#181512] text-white border border-[#2B2621]',
-    success: 'bg-[#E8F6EE] text-[#246B44] border border-[#BCE4CE]',
-    warning: 'bg-[#FEF6E9] text-[#A6690E] border border-[#F8DFAC]',
-    danger: 'bg-[#FDEEED] text-[#B83128] border border-[#F7BEBA]',
-    neutral: 'bg-[#F4EDE3] text-[#575047] border border-[#E5DBCF]',
-    'hatched-teal': 'nx-hatch-teal text-[#1E6B61] font-semibold',
-    'hatched-orange': 'nx-hatch-orange text-[#B3471D] font-semibold',
+    orange: 'bg-[#FF5C1A]/10 text-[#FF5C1A] border border-[#FF5C1A]/25',
+    dark: 'bg-[#1A1B20] text-[#EDEDED] border border-white/10',
+    success: 'bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/25',
+    warning: 'bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/25',
+    danger: 'bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/25',
+    neutral: 'bg-[#1A1B20] text-[#8B949E] border border-white/8',
+    'hatched-teal': 'bg-[#3B82F6]/10 text-[#60A5FA] border border-[#3B82F6]/25 font-semibold',
+    'hatched-orange': 'bg-[#FF5C1A]/10 text-[#FF5C1A] border border-[#FF5C1A]/25 font-semibold',
   }[variant];
 
   const dotColors = {
-    orange: 'bg-[#F47B20]',
-    dark: 'bg-white',
-    success: 'bg-[#2E8555]',
-    warning: 'bg-[#C98218]',
-    danger: 'bg-[#D9453B]',
-    neutral: 'bg-[#999084]',
-    'hatched-teal': 'bg-[#1E6B61]',
-    'hatched-orange': 'bg-[#B3471D]',
+    orange: 'bg-[#FF5C1A] shadow-[0_0_8px_rgba(255,92,26,0.6)]',
+    dark: 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]',
+    success: 'bg-[#22C55E] shadow-[0_0_8px_rgba(34,197,94,0.6)]',
+    warning: 'bg-[#F59E0B] shadow-[0_0_8px_rgba(245,158,11,0.6)]',
+    danger: 'bg-[#EF4444] shadow-[0_0_8px_rgba(239,68,68,0.6)]',
+    neutral: 'bg-[#8B949E]',
+    'hatched-teal': 'bg-[#3B82F6] shadow-[0_0_8px_rgba(59,130,246,0.6)]',
+    'hatched-orange': 'bg-[#FF5C1A] shadow-[0_0_8px_rgba(255,92,26,0.6)]',
   }[variant];
 
   return (
     <span
-      className={`inline-flex items-center rounded-full tracking-tight transition-colors ${sizeClasses} ${variantClasses} ${className}`}
+      className={`inline-flex items-center rounded-full tracking-tight transition-colors font-mono ${sizeClasses} ${variantClasses} ${className}`}
     >
       {dot && <span className={`w-1.5 h-1.5 rounded-full ${dotColors} flex-shrink-0 animate-pulse`} />}
       {children}

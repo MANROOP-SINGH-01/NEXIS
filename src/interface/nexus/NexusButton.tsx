@@ -23,24 +23,24 @@ export const NexusButton: React.FC<NexusButtonProps> = ({
   ...props
 }) => {
   const sizeClasses = {
-    sm: 'px-3 py-1.5 text-xs gap-1.5',
-    md: 'px-4 py-2 text-sm gap-2',
-    lg: 'px-6 py-2.5 text-base gap-2.5',
+    sm: 'h-[30px] px-3 text-xs gap-1.5',
+    md: 'h-[36px] px-4 text-xs gap-2',
+    lg: 'h-[44px] px-6 text-sm gap-2.5',
   }[size];
 
-  const roundedClass = pill ? 'rounded-full' : 'rounded-xl';
+  const roundedClass = pill ? 'rounded-full' : 'rounded-[8px]';
 
   const variantClasses = {
     primary:
-      'bg-[#F47B20] text-white hover:bg-[#E36D13] active:bg-[#CC5D08] shadow-[0_2px_8px_rgba(244,123,32,0.28)] border border-transparent font-semibold',
+      'bg-gradient-to-r from-[#FF5C1A] to-[#E04006] text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_20px_rgba(255,92,26,0.35)] border border-transparent font-semibold',
     dark:
-      'bg-[#181512] text-white hover:bg-[#2B2621] active:bg-[#100E0C] shadow-[0_2px_6px_rgba(24,21,18,0.2)] border border-transparent font-semibold',
+      'bg-[#121317] text-[#EDEDED] hover:bg-[#1A1B20] active:bg-[#22242B] border border-white/10 hover:border-white/20 font-medium',
     secondary:
-      'bg-white text-[#181512] border border-[#EADFCF] hover:bg-[#F7F2EA] active:bg-[#EFE7DC] font-medium shadow-[0_1px_2px_rgba(0,0,0,0.03)]',
+      'bg-[#1A1B20] text-[#EDEDED] border border-white/10 hover:border-white/20 hover:bg-[#22242B] active:bg-[#282A33] font-medium shadow-sm',
     ghost:
-      'bg-transparent text-[#6A6359] hover:text-[#181512] hover:bg-[#F2ECE2] active:bg-[#E8DFC0] border border-transparent font-medium',
+      'bg-transparent text-[#8B949E] hover:text-[#EDEDED] hover:bg-[#1A1B20] active:bg-[#22242B] border border-transparent font-medium',
     danger:
-      'bg-[#D9453B] text-white hover:bg-[#C2382F] active:bg-[#A92E26] shadow-[0_2px_8px_rgba(217,69,59,0.25)] border border-transparent font-semibold',
+      'bg-[#EF4444]/15 text-[#EF4444] hover:bg-[#EF4444]/25 active:bg-[#EF4444]/30 border border-[#EF4444]/30 font-medium shadow-sm',
   }[variant];
 
   return (

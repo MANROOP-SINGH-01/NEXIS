@@ -21,23 +21,14 @@ export function getFloorTexture(): THREE.CanvasTexture {
   canvas.height = 1024;
   const ctx = canvas.getContext('2d')!;
 
-  // Base warm architectural terrazzo / honed stone
-  ctx.fillStyle = '#dbe3ed';
+  // Base dark command-center slate
+  ctx.fillStyle = '#0E1015';
   ctx.fillRect(0, 0, 1024, 1024);
 
-  // Subtle tonal variation across tiles
-  const tileSize = 128;
-  for (let x = 0; x < 1024; x += tileSize) {
-    for (let y = 0; y < 1024; y += tileSize) {
-      const shade = (Math.sin(x * 12.9898 + y * 78.233) * 0.5 + 0.5) * 0.05;
-      ctx.fillStyle = `rgba(255, 255, 255, ${shade})`;
-      ctx.fillRect(x, y, tileSize, tileSize);
-    }
-  }
-
-  // Architectural tile joints / grout lines (crisp and visible)
-  ctx.strokeStyle = '#94a3b8';
-  ctx.lineWidth = 4;
+  // Subtle telemetry grid pattern
+  const tileSize = 64;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+  ctx.lineWidth = 1;
 
   for (let x = 0; x <= 1024; x += tileSize) {
     ctx.beginPath();
@@ -53,20 +44,28 @@ export function getFloorTexture(): THREE.CanvasTexture {
     ctx.stroke();
   }
 
-  // Natural mineral terrazzo flecks
-  for (let i = 0; i < 4000; i++) {
-    const r = Math.random();
-    if (r < 0.4) {
-      ctx.fillStyle = 'rgba(71, 85, 105, 0.25)'; // Darker slate specks
-    } else if (r < 0.7) {
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; // White quartz specks
-    } else {
-      ctx.fillStyle = 'rgba(148, 163, 184, 0.2)'; // Mid-tone stone specks
+  // Telemetry coordinate marks at grid intersections
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+  for (let x = 0; x <= 1024; x += tileSize * 2) {
+    for (let y = 0; y <= 1024; y += tileSize * 2) {
+      ctx.fillRect(x - 1.5, y - 1.5, 3, 3);
     }
+  }
+
+  // Micro particle dots
+  for (let i = 0; i < 600; i++) {
     const px = Math.random() * 1024;
     const py = Math.random() * 1024;
-    const size = 1.5 + Math.random() * 2.5;
-    ctx.fillRect(px, py, size, size);
+    const isOrange = Math.random() < 0.08;
+    const isCyan = Math.random() < 0.12;
+    if (isOrange) {
+      ctx.fillStyle = 'rgba(255, 92, 26, 0.35)';
+    } else if (isCyan) {
+      ctx.fillStyle = 'rgba(59, 130, 246, 0.35)';
+    } else {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    }
+    ctx.fillRect(px, py, 1.5, 1.5);
   }
 
   const texture = new THREE.CanvasTexture(canvas);

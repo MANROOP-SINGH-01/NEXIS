@@ -1,6 +1,5 @@
 import { 
   AlertTriangle, 
-  Bot, 
   Brain, 
   CheckCircle2, 
   ChevronDown, 
@@ -487,7 +486,6 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
         'Nexus Director: Resume package optimized. Review suggested final draft and proceed to submission staging.',
       ])
 
-      // Navigate to Skill Gaps view so user sees the immediate tailored outcome
       setActiveSidebarTab('skill-gaps')
     } catch (err) {
       const strategist = buildFallbackStrategist(currentResume.content, currentResume.targetJD)
@@ -518,24 +516,25 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
   }
 
   return (
-    <aside className="w-96 shrink-0 border-l border-[#EADFCF] bg-[#FDFBF7] flex flex-col h-full z-20 font-sans shadow-[-4px_0_24px_rgba(0,0,0,0.03)] overflow-hidden select-none">
-      {/* 1. Header Bar */}
-      <div className="p-3.5 border-b border-[#EADFCF] bg-[#F8F3EC] flex items-center justify-between shrink-0">
+    <aside className="w-96 shrink-0 border-l border-[rgba(255,255,255,0.08)] bg-[#121317]/95 backdrop-blur-xl flex flex-col h-full z-20 font-sans shadow-[-8px_0_32px_rgba(0,0,0,0.5)] overflow-hidden select-none">
+      {/* 1. Header Bar with 40px hit target close button */}
+      <div className="h-14 px-4 border-b border-[rgba(255,255,255,0.08)] bg-[#121317] flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#F47B20] text-white flex items-center justify-center shadow-xs">
+          <div className="w-8 h-8 rounded-lg bg-[#FF5C1A] text-white flex items-center justify-center shadow-md shadow-[#FF5C1A]/20">
             <Cpu size={16} />
           </div>
           <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-black text-[#181512] tracking-tight uppercase">
-                Mission Dispatch
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono font-bold text-white tracking-wider uppercase">
+                MISSION DISPATCH
               </span>
-              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9]">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-semibold bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] shadow-[0_0_6px_#22C55E]" />
                 LIVE
               </span>
             </div>
-            <p className="text-[10px] text-[#6A6359] font-medium">
-              Autonomous Agent Orchestrator
+            <p className="text-[10px] text-[#6B7280]">
+              Autonomous Multi-Agent Telemetry
             </p>
           </div>
         </div>
@@ -543,10 +542,11 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
         {onClose && (
           <button
             onClick={onClose}
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-[#999084] hover:text-[#181512] hover:bg-[#EFE7DC] transition-colors cursor-pointer"
+            className="w-10 h-10 rounded-lg flex items-center justify-center text-[#6B7280] hover:text-white hover:bg-[#1A1B20] transition-colors cursor-pointer"
             title="Collapse Dispatch Panel"
+            aria-label="Collapse Dispatch Panel"
           >
-            <X size={15} />
+            <X size={16} />
           </button>
         )}
       </div>
@@ -554,16 +554,16 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
       {/* 2. Scrollable Configuration Body */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
         {/* Quick Demo Preset Trigger */}
-        <div className="bg-white border border-[#EADFCF] rounded-xl p-3 shadow-xs">
+        <div className="bg-[#16171D] border border-[rgba(255,255,255,0.08)] rounded-[10px] p-3.5 shadow-xs">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#999084] flex items-center gap-1">
-              <Sparkles size={11} className="text-[#F47B20]" />
+            <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#9CA3AF] flex items-center gap-1.5">
+              <Sparkles size={12} className="text-[#FF5C1A]" />
               Quick Priming
             </span>
             {(resumeLen > 0 || jdLen > 0) && (
               <button
                 onClick={handleClearAll}
-                className="text-[10px] text-[#999084] hover:text-[#B83128] flex items-center gap-1 cursor-pointer transition-colors"
+                className="text-[10px] font-mono text-[#6B7280] hover:text-[#EF4444] flex items-center gap-1 cursor-pointer transition-colors"
                 title="Clear all fields"
               >
                 <RotateCcw size={10} />
@@ -573,15 +573,15 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
           </div>
           <button
             onClick={handleLoadDemo}
-            className="w-full py-2 px-3 rounded-lg bg-[#FFF0E4] hover:bg-[#FFE3CE] text-[#D86109] border border-[#FDCBA7] text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.99]"
+            className="w-full h-9 rounded-lg bg-[#FF5C1A]/10 hover:bg-[#FF5C1A]/20 text-[#FF5C1A] border border-[#FF5C1A]/30 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99]"
           >
-            <Zap size={13} className="fill-[#F47B20] text-[#F47B20]" />
+            <Zap size={14} className="fill-[#FF5C1A]" />
             <span>Load Demo Candidate (Priya Sharma)</span>
           </button>
         </div>
 
-        {/* Section 1: Candidate Resume */}
-        <div className="bg-white border border-[#EADFCF] rounded-xl p-3.5 shadow-xs space-y-2.5">
+        {/* Card 1: Candidate Resume (Elevated Glass Card) */}
+        <div className="bg-[#16171D] border border-[rgba(255,255,255,0.08)] rounded-[10px] p-4 shadow-xs space-y-3">
           <input
             ref={fileRef}
             type="file"
@@ -593,24 +593,30 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
             }}
           />
 
+          {/* Card Header Row */}
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#999084] flex items-center gap-1.5">
-              <FileText size={12} className="text-[#6A6359]" />
-              Candidate Resume
-            </span>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md bg-[#3B82F6]/15 text-[#3B82F6] flex items-center justify-center">
+                <FileText size={13} />
+              </div>
+              <span className="text-xs font-mono font-semibold uppercase tracking-wider text-white">
+                CANDIDATE RESUME
+              </span>
+            </div>
+
             {isResumeReady ? (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#2E7D32] bg-[#E8F5E9] border border-[#C8E6C9] px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium text-[#22C55E] bg-[#22C55E]/10 border border-[#22C55E]/20 px-2 py-0.5 rounded-full">
                 <CheckCircle2 size={10} />
                 {wordCount(currentResume.content)} words
               </span>
             ) : (
-              <span className="text-[10px] font-bold text-[#A6690E] bg-[#FEF6E9] border border-[#F8DFAC] px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-mono text-[#F59E0B] bg-[#F59E0B]/10 border border-[#F59E0B]/20 px-2 py-0.5 rounded-full">
                 Required
               </span>
             )}
           </div>
 
-          {/* Interactive PDF Dropzone */}
+          {/* Dropzone / Upload State */}
           <div
             onDragOver={(e) => {
               e.preventDefault()
@@ -624,93 +630,103 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
               if (file) void handlePdfUpload(file)
             }}
             onClick={() => fileRef.current?.click()}
-            className={`border-2 border-dashed rounded-xl p-3 text-center transition-all cursor-pointer ${
+            className={`border border-dashed rounded-lg p-3 text-center transition-all cursor-pointer ${
               isDragOver
-                ? 'border-[#F47B20] bg-[#FFF8F3]'
+                ? 'border-[#FF5C1A] bg-[#FF5C1A]/10'
                 : isResumeReady
-                ? 'border-[#D7CABB] bg-[#FAF8F5] hover:border-[#F47B20]'
-                : 'border-[#EADFCF] bg-[#FDFBF7] hover:border-[#F47B20] hover:bg-[#FFF8F3]'
+                ? 'border-[rgba(255,255,255,0.12)] bg-[#121317] hover:border-[rgba(255,255,255,0.25)]'
+                : 'border-[rgba(255,255,255,0.12)] bg-[#121317] hover:border-[#FF5C1A] hover:bg-[#1A1B20]'
             }`}
           >
             {resumeFileName ? (
               <div className="flex items-center justify-between gap-2 text-left">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-7 h-7 rounded-lg bg-[#FFF0E4] text-[#F47B20] flex items-center justify-center shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-7 h-7 rounded-md bg-[#FF5C1A]/15 text-[#FF5C1A] flex items-center justify-center shrink-0">
                     <FileText size={14} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-[#181512] truncate max-w-[170px]">
+                    <p className="text-xs font-mono font-medium text-white truncate max-w-[170px]">
                       {resumeFileName}
                     </p>
-                    <p className="text-[10px] text-[#6A6359]">
+                    <p className="text-[10px] text-[#6B7280]">
                       Click to replace PDF
                     </p>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-[#F47B20] underline shrink-0">
+                <span className="text-[10px] font-mono text-[#FF5C1A] hover:underline shrink-0">
                   Change
                 </span>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-1.5 py-1">
-                <UploadCloud size={20} className="text-[#F47B20]" />
-                <span className="text-xs font-bold text-[#181512]">
-                  Upload PDF Resume
+              <div className="flex flex-col items-center gap-1.5 py-2">
+                <UploadCloud size={20} className="text-[#6B7280]" />
+                <span className="text-xs font-medium text-white">
+                  Drop PDF or click to upload
                 </span>
-                <span className="text-[10px] text-[#999084]">
-                  Drop file here or click to browse
+                <span className="text-[10px] text-[#6B7280] font-mono">
+                  Parsed locally & privately
                 </span>
               </div>
             )}
           </div>
 
-          {/* Expandable text preview / editor */}
+          {/* Body Monospace Preview with Fade-out Gradient */}
           {currentResume.content && (
             <div>
               <button
                 type="button"
                 onClick={() => setIsResumePreviewOpen(!isResumePreviewOpen)}
-                className="w-full flex items-center justify-between text-[10px] font-bold text-[#6A6359] hover:text-[#181512] py-1 cursor-pointer"
+                className="w-full flex items-center justify-between text-[11px] font-mono text-[#9CA3AF] hover:text-white py-1 cursor-pointer"
               >
-                <span>{isResumePreviewOpen ? 'Hide Parsed Text' : 'View / Edit Parsed Text'}</span>
+                <span>{isResumePreviewOpen ? 'Collapse Parsed Text' : 'Inspect Parsed Text'}</span>
                 {isResumePreviewOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
               </button>
               {isResumePreviewOpen && (
-                <textarea
-                  value={currentResume.content}
-                  onChange={(e) => {
-                    setCurrentResumeContent(e.target.value)
-                    clearResumeAnalysis()
-                  }}
-                  className="mt-1 w-full bg-[#FAF8F5] border border-[#EADFCF] rounded-lg p-2 text-[11px] text-[#181512] font-mono leading-relaxed focus:outline-none focus:border-[#F47B20] resize-y custom-scrollbar"
-                  rows={6}
-                />
+                <div className="relative mt-1">
+                  <textarea
+                    value={currentResume.content}
+                    onChange={(e) => {
+                      setCurrentResumeContent(e.target.value)
+                      clearResumeAnalysis()
+                    }}
+                    className="w-full bg-[#0A0B0E] border border-[rgba(255,255,255,0.08)] rounded-lg p-2.5 text-[12px] text-[#EDEDED] font-mono leading-relaxed focus:outline-none focus:border-[#FF5C1A] resize-y custom-scrollbar"
+                    rows={6}
+                  />
+                  {/* Subtle fade-out gradient indicator at bottom */}
+                  <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-[#0A0B0E] to-transparent rounded-b-lg" />
+                </div>
               )}
             </div>
           )}
         </div>
 
-        {/* Section 2: Target Job Description */}
-        <div className="bg-white border border-[#EADFCF] rounded-xl p-3.5 shadow-xs space-y-2.5">
+        {/* Card 2: Target Job Description (Elevated Glass Card) */}
+        <div className="bg-[#16171D] border border-[rgba(255,255,255,0.08)] rounded-[10px] p-4 shadow-xs space-y-3">
+          {/* Card Header Row */}
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#999084] flex items-center gap-1.5">
-              <Target size={12} className="text-[#6A6359]" />
-              Target Job Description
-            </span>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md bg-[#FF5C1A]/15 text-[#FF5C1A] flex items-center justify-center">
+                <Target size={13} />
+              </div>
+              <span className="text-xs font-mono font-semibold uppercase tracking-wider text-white">
+                TARGET JOB DESCRIPTION
+              </span>
+            </div>
+
             {isJdReady ? (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#2E7D32] bg-[#E8F5E9] border border-[#C8E6C9] px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium text-[#22C55E] bg-[#22C55E]/10 border border-[#22C55E]/20 px-2 py-0.5 rounded-full">
                 <CheckCircle2 size={10} />
                 {jdLen} chars
               </span>
             ) : (
-              <span className="text-[10px] font-bold text-[#A6690E] bg-[#FEF6E9] border border-[#F8DFAC] px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-mono text-[#F59E0B] bg-[#F59E0B]/10 border border-[#F59E0B]/20 px-2 py-0.5 rounded-full">
                 Required
               </span>
             )}
           </div>
 
           {/* Quick preset pills */}
-          <div className="flex items-center gap-1 overflow-x-auto pb-0.5 custom-scrollbar">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
             {SAMPLE_PRESETS.map((preset) => (
               <button
                 key={preset.name}
@@ -718,7 +734,7 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
                   setTargetJD(preset.jd)
                   clearResumeAnalysis()
                 }}
-                className="px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider bg-[#F8F3EC] text-[#6A6359] hover:bg-[#FFF0E4] hover:text-[#F47B20] border border-[#EADFCF] hover:border-[#FDCBA7] transition-all shrink-0 cursor-pointer"
+                className="px-2.5 py-1 rounded-full text-[10px] font-mono font-medium bg-[#121317] hover:bg-[#1A1B20] text-[#9CA3AF] hover:text-white border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.16)] transition-all shrink-0 cursor-pointer"
                 title={`Load ${preset.name} JD`}
               >
                 + {preset.name}
@@ -726,89 +742,96 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
             ))}
           </div>
 
-          <textarea
-            value={currentResume.targetJD}
-            onChange={(e) => {
-              setTargetJD(e.target.value)
-              if (!e.target.value.trim()) clearResumeAnalysis()
-            }}
-            placeholder="Paste target job requirements, skills, or job description here..."
-            className="w-full bg-[#FAF8F5] border border-[#EADFCF] rounded-lg p-2.5 text-xs text-[#181512] placeholder-[#999084] focus:outline-none focus:border-[#F47B20] focus:ring-1 focus:ring-[#F47B20]/20 resize-none leading-relaxed custom-scrollbar"
-            rows={4}
-          />
-        </div>
-
-        {/* Section 3: Agent Mesh Readiness & Roster */}
-        <div className="bg-[#FAF8F5] border border-[#EADFCF] rounded-xl p-3 space-y-2">
-          <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[#999084]">
-            <span>Orchestration Roster</span>
-            <span className="text-[#6A6359]">4 Active Desks</span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-            <div className="p-1.5 rounded-lg bg-white border border-[#EADFCF] flex items-center gap-2">
-              <Eye size={12} className="text-[#2563EB]" />
-              <span className="font-semibold text-[#181512]">Vision (Audit)</span>
-            </div>
-            <div className="p-1.5 rounded-lg bg-white border border-[#EADFCF] flex items-center gap-2">
-              <Brain size={12} className="text-[#7C3AED]" />
-              <span className="font-semibold text-[#181512]">Strategist (Fit)</span>
-            </div>
-            <div className="p-1.5 rounded-lg bg-white border border-[#EADFCF] flex items-center gap-2">
-              <Pencil size={12} className="text-[#059669]" />
-              <span className="font-semibold text-[#181512]">Writer (Tailor)</span>
-            </div>
-            <div className="p-1.5 rounded-lg bg-white border border-[#EADFCF] flex items-center gap-2">
-              <Target size={12} className="text-[#D97706]" />
-              <span className="font-semibold text-[#181512]">Hunter (Match)</span>
-            </div>
+          <div className="relative">
+            <textarea
+              value={currentResume.targetJD}
+              onChange={(e) => {
+                setTargetJD(e.target.value)
+                if (!e.target.value.trim()) clearResumeAnalysis()
+              }}
+              placeholder="Paste target job requirements, skills, or job description here..."
+              className="w-full bg-[#0A0B0E] border border-[rgba(255,255,255,0.08)] rounded-lg p-2.5 text-[12px] text-[#EDEDED] font-mono placeholder-[#6B7280] focus:outline-none focus:border-[#FF5C1A] focus:ring-1 focus:ring-[#FF5C1A]/20 resize-none leading-relaxed custom-scrollbar"
+              rows={4}
+            />
+            {/* Fade-out gradient at bottom */}
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-[#0A0B0E] to-transparent rounded-b-lg" />
           </div>
         </div>
 
-        {/* Dynamic Step Status when orchestrating */}
+        {/* Section 3: Multi-Agent Telemetry Roster */}
+        <div className="bg-[#16171D] border border-[rgba(255,255,255,0.08)] rounded-[10px] p-3.5 space-y-2">
+          <div className="flex items-center justify-between text-[11px] font-mono font-semibold uppercase tracking-wider text-[#9CA3AF]">
+            <span>Active Agent Roster</span>
+            <span className="text-[#22C55E] flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
+              4 Standing By
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
+            <div className="p-2 rounded-lg bg-[#121317] border border-[rgba(255,255,255,0.08)] flex items-center gap-2">
+              <Eye size={13} className="text-[#3B82F6]" />
+              <span className="text-[#EDEDED]">Vision (Audit)</span>
+            </div>
+            <div className="p-2 rounded-lg bg-[#121317] border border-[rgba(255,255,255,0.08)] flex items-center gap-2">
+              <Brain size={13} className="text-[#A855F7]" />
+              <span className="text-[#EDEDED]">Strategist (Fit)</span>
+            </div>
+            <div className="p-2 rounded-lg bg-[#121317] border border-[rgba(255,255,255,0.08)] flex items-center gap-2">
+              <Pencil size={13} className="text-[#10B981]" />
+              <span className="text-[#EDEDED]">Writer (Tailor)</span>
+            </div>
+            <div className="p-2 rounded-lg bg-[#121317] border border-[rgba(255,255,255,0.08)] flex items-center gap-2">
+              <Target size={13} className="text-[#F59E0B]" />
+              <span className="text-[#EDEDED]">Hunter (Match)</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Dynamic Orchestration Progress */}
         {loading && (
-          <div className="bg-[#FFF0E4] border border-[#FDCBA7] rounded-xl p-3 flex items-center gap-2.5 text-xs text-[#D86109] font-medium animate-pulse">
-            <Loader2 size={16} className="animate-spin shrink-0 text-[#F47B20]" />
-            <span>{orchestrationStep || 'Agents Orchestrating Multi-Pass Optimization...'}</span>
+          <div className="bg-[#FF5C1A]/10 border border-[#FF5C1A]/30 rounded-[10px] p-3 flex items-center gap-2.5 text-xs font-mono text-[#FF5C1A] animate-pulse">
+            <Loader2 size={16} className="animate-spin shrink-0 text-[#FF5C1A]" />
+            <span>{orchestrationStep || 'Orchestrating agent mesh...'}</span>
           </div>
         )}
 
         {/* Error / Warning Alert */}
         {error && (
-          <div className="text-xs text-[#B83128] bg-[#FDEEED] border border-[#F7BEBA] rounded-xl p-2.5 flex items-start gap-2">
-            <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-            <span className="font-medium leading-snug">{error}</span>
+          <div className="text-xs font-mono text-[#EF4444] bg-[#EF4444]/10 border border-[#EF4444]/25 rounded-[10px] p-3 flex items-start gap-2">
+            <AlertTriangle size={14} className="shrink-0 mt-0.5 text-[#EF4444]" />
+            <span className="leading-snug">{error}</span>
           </div>
         )}
       </div>
 
-      {/* 3. Bottom Dispatch Action */}
-      <div className="p-3.5 border-t border-[#EADFCF] bg-[#F8F3EC] space-y-2 shrink-0">
+      {/* 3. Bottom Execution Tier: "RUN AGENT MESH" (Primary Action) */}
+      <div className="p-4 border-t border-[rgba(255,255,255,0.08)] bg-[#121317] space-y-2 shrink-0">
         <button
           onClick={handleRun}
           disabled={!canRun || loading}
-          className={`w-full py-3.5 px-4 rounded-xl font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+          className={`w-full h-11 rounded-lg font-bold text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
             !canRun || loading
-              ? 'bg-[#E5DBCF] text-[#999084] cursor-not-allowed shadow-none'
-              : 'bg-[#F47B20] hover:bg-[#E36D13] active:scale-[0.99] text-white shadow-md shadow-[#F47B20]/25'
+              ? 'bg-[#1A1B20] text-[#6B7280] border border-[rgba(255,255,255,0.08)] cursor-not-allowed shadow-none'
+              : 'bg-gradient-to-r from-[#FF5C1A] to-[#E04006] text-white shadow-[0_0_24px_rgba(255,92,26,0.35)] hover:scale-[1.02] active:scale-[0.99]'
           }`}
           title={canRun ? 'Execute Multi-Agent Pipeline' : 'Provide both Candidate Resume & Target Job Description to run'}
         >
           {loading ? (
             <>
-              <Loader2 size={15} className="animate-spin text-white" />
+              <Loader2 size={16} className="animate-spin text-white" />
               <span>Mesh Orchestrating...</span>
             </>
           ) : (
             <>
-              <Play size={13} className="fill-current" />
-              <span>Run Agent Mesh</span>
+              <Play size={14} className="fill-current" />
+              <span>RUN AGENT MESH</span>
             </>
           )}
         </button>
 
         {!canRun && !loading && (
-          <p className="text-[10px] text-center text-[#999084] font-medium">
+          <p className="text-[10px] font-mono text-center text-[#6B7280]">
             {!resumeLen ? '⚡ Upload PDF or click "Load Demo Candidate"' : 'Paste Target Job Description (>30 chars)'}
           </p>
         )}

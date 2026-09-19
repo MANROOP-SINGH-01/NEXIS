@@ -40,19 +40,19 @@ export const NexusMetric: React.FC<NexusMetricProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-2xl border border-[#EADFCF] p-5 sm:p-6 shadow-[0_4px_20px_-2px_rgba(180,150,120,0.08),0_1px_4px_rgba(160,130,100,0.04)] flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_28px_-4px_rgba(180,150,120,0.12)] ${className}`}
+      className={`bg-[#121317] rounded-[10px] border border-white/8 p-5 sm:p-6 shadow-[0_8px_24px_rgba(0,0,0,0.4)] flex flex-col justify-between transition-all duration-150 hover:-translate-y-0.5 hover:border-white/16 hover:shadow-[0_12px_32px_rgba(0,0,0,0.6)] ${className}`}
     >
       {/* Top row: Label, sublabel, and trend arrow */}
       <div className="flex items-start justify-between">
         <div>
-          <span className="text-sm font-semibold text-[#181512] block tracking-tight">{label}</span>
-          {sublabel && <span className="text-xs text-[#999084] font-medium block mt-0.5">{sublabel}</span>}
+          <span className="text-xs font-bold text-[#8B949E] uppercase tracking-wider block font-mono">{label}</span>
+          {sublabel && <span className="text-[11px] text-[#6E7681] font-medium block mt-0.5">{sublabel}</span>}
         </div>
-        <div className="w-7 h-7 rounded-full bg-[#FAF6F0] border border-[#EADFCF] flex items-center justify-center text-[#6A6359] group-hover:text-[#181512]">
+        <div className="w-7 h-7 rounded-full bg-[#1A1B20] border border-white/8 flex items-center justify-center text-[#8B949E]">
           {trend?.direction === 'up' ? (
-            <ArrowUpRight className="w-3.5 h-3.5" />
+            <ArrowUpRight className="w-3.5 h-3.5 text-[#22C55E]" />
           ) : trend?.direction === 'down' ? (
-            <ArrowDownRight className="w-3.5 h-3.5" />
+            <ArrowDownRight className="w-3.5 h-3.5 text-[#3B82F6]" />
           ) : (
             <Minus className="w-3.5 h-3.5" />
           )}
@@ -61,31 +61,31 @@ export const NexusMetric: React.FC<NexusMetricProps> = ({
 
       {/* Center value: Giant bold typography */}
       <div className="my-4">
-        <div className="text-3xl sm:text-4xl font-extrabold text-[#181512] tracking-tight">
+        <div className="text-3xl sm:text-4xl font-extrabold text-[#EDEDED] font-mono tracking-tight">
           {value}
         </div>
         {trend?.text && (
-          <span className="text-xs text-[#6A6359] mt-1 inline-block font-medium">
+          <span className="text-xs text-[#8B949E] mt-1 inline-block font-medium">
             {trend.text}
           </span>
         )}
       </div>
 
-      {/* Pattern chips row: PulseAI Hatch texture comparison */}
+      {/* Pattern chips row */}
       {(currentChip || previousChip) && (
-        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-[#F5EFE6] my-2">
+        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/8 my-2">
           {currentChip && (
             <div>
-              <span className="text-[11px] font-semibold text-[#6A6359] block mb-1">
+              <span className="text-[10px] uppercase font-mono text-[#6E7681] block mb-1">
                 {currentChip.label || 'Current'}
               </span>
               <div
-                className={`h-7 rounded-lg flex items-center px-2.5 text-xs font-semibold ${
+                className={`h-7 rounded-md flex items-center px-2.5 text-xs font-mono font-semibold border ${
                   currentChip.variant === 'teal-hatch'
-                    ? 'nx-hatch-teal text-[#1E6B61]'
+                    ? 'bg-[#3B82F6]/10 text-[#60A5FA] border-[#3B82F6]/30'
                     : currentChip.variant === 'orange-hatch'
-                    ? 'nx-hatch-orange text-[#B3471D]'
-                    : 'nx-hatch-muted text-[#575047]'
+                    ? 'bg-[#FF5C1A]/10 text-[#FF5C1A] border-[#FF5C1A]/30'
+                    : 'bg-[#1A1B20] text-[#8B949E] border-white/8'
                 }`}
               >
                 {currentChip.value || ''}
@@ -95,16 +95,16 @@ export const NexusMetric: React.FC<NexusMetricProps> = ({
 
           {previousChip && (
             <div>
-              <span className="text-[11px] font-semibold text-[#999084] block mb-1">
+              <span className="text-[10px] uppercase font-mono text-[#6E7681] block mb-1">
                 {previousChip.label || 'Previous'}
               </span>
               <div
-                className={`h-7 rounded-lg flex items-center px-2.5 text-xs font-semibold ${
+                className={`h-7 rounded-md flex items-center px-2.5 text-xs font-mono font-semibold border ${
                   previousChip.variant === 'orange-hatch'
-                    ? 'nx-hatch-orange text-[#B3471D]'
+                    ? 'bg-[#FF5C1A]/10 text-[#FF5C1A] border-[#FF5C1A]/30'
                     : previousChip.variant === 'teal-hatch'
-                    ? 'nx-hatch-teal text-[#1E6B61]'
-                    : 'nx-hatch-muted text-[#575047]'
+                    ? 'bg-[#3B82F6]/10 text-[#60A5FA] border-[#3B82F6]/30'
+                    : 'bg-[#1A1B20] text-[#8B949E] border-white/8'
                 }`}
               >
                 {previousChip.value || ''}
@@ -116,9 +116,9 @@ export const NexusMetric: React.FC<NexusMetricProps> = ({
 
       {/* Footer line */}
       {(footerLabel || footerValue) && (
-        <div className="flex items-center justify-between pt-3 mt-1 border-t border-[#F5EFE6] text-xs">
-          <span className="text-[#999084] font-medium">{footerLabel}</span>
-          <span className="text-[#181512] font-bold">{footerValue}</span>
+        <div className="flex items-center justify-between pt-3 mt-1 border-t border-white/8 text-xs font-mono">
+          <span className="text-[#6E7681]">{footerLabel}</span>
+          <span className="text-[#EDEDED] font-bold">{footerValue}</span>
         </div>
       )}
     </div>

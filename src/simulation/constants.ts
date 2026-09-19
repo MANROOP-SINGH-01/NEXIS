@@ -37,5 +37,5 @@ export const ENCOUNTER_RADIUS = 1.5;
 /** Zone ID used with three-pathfinding. */
 export const NAVMESH_ZONE = 'level';
 
-/** Color de fondo de la escena (Three.js) */
-export const SCENE_BACKGROUND_COLOR = 0xf1f5f9;
+/** Color de fondo de la escena (Three.js) - Dark Command Center */
+export const SCENE_BACKGROUND_COLOR = 0x0a0b0e;

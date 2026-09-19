@@ -3,7 +3,6 @@ import {
   Briefcase,
   FileText,
   GraduationCap,
-  LayoutDashboard,
   MessageSquare,
   Target,
   Award,
@@ -26,9 +25,6 @@ import {
 import { ActiveSidebarTab } from '../../types';
 import { useUiStore } from '../../integration/store/uiStore';
 import { useRouter } from '../../router';
-import { useActiveTeam } from '../../integration/store/teamStore';
-import { useCoreStore } from '../../integration/store/coreStore';
-import { useLocale } from '../../integration/hooks/useLocale';
 import { isDemoMode, loadDemoData, clearDemoData } from '../../demo/demoData';
 
 interface NavGroup {
@@ -96,7 +92,6 @@ export const AppSidebar: React.FC = () => {
     setBYOKOpen, 
     setAnalyticsDashboardOpen 
   } = useUiStore();
-  const { t } = useLocale();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [demoActive, setDemoActive] = useState(isDemoMode());
 
@@ -120,31 +115,31 @@ export const AppSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`h-screen bg-[#FBF8F3] border-r border-[#EADFCF] flex flex-col shrink-0 z-40 transition-all duration-300 select-none shadow-[4px_0_24px_rgba(180,150,120,0.05)] ${
-        isCollapsed ? 'w-18' : 'w-[250px]'
+      className={`h-screen bg-[#0A0B0E] border-r border-[rgba(255,255,255,0.08)] flex flex-col shrink-0 z-40 transition-all duration-200 select-none ${
+        isCollapsed ? 'w-18' : 'w-[240px]'
       }`}
       role="navigation"
       aria-label="Main Navigation"
     >
-      {/* Brand Header */}
-      <div className="h-16 px-4 flex items-center justify-between border-b border-[#EADFCF] shrink-0 bg-[#F8F3EC]">
+      {/* Brand / Toggle Header */}
+      <div className="h-16 px-4 flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] shrink-0 bg-[#0A0B0E]">
         {!isCollapsed ? (
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#F47B20] text-white flex items-center justify-center shadow-md shadow-[#F47B20]/25">
+            <div className="w-8 h-8 rounded-lg bg-[#FF5C1A] text-white flex items-center justify-center shadow-md shadow-[#FF5C1A]/20">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-extrabold tracking-tight text-[#181512] font-['Space_Grotesk']">
+              <span className="text-sm font-bold tracking-tight text-white">
                 NEXIS
               </span>
-              <span className="text-[10px] font-medium text-[#999084] tracking-wider uppercase">
-                CAREER OS
+              <span className="text-[10px] font-mono text-[#6B7280] tracking-wider uppercase">
+                COMMAND CENTER
               </span>
             </div>
           </div>
         ) : (
           <div className="w-full flex justify-center">
-            <div className="w-8 h-8 rounded-xl bg-[#F47B20] text-white flex items-center justify-center shadow-md shadow-[#F47B20]/25">
+            <div className="w-8 h-8 rounded-lg bg-[#FF5C1A] text-white flex items-center justify-center shadow-md shadow-[#FF5C1A]/20">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
           </div>
@@ -152,7 +147,7 @@ export const AppSidebar: React.FC = () => {
 
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-1.5 rounded-lg text-[#999084] hover:text-[#181512] hover:bg-[#EFE7DC] transition-colors"
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-[#6B7280] hover:text-white hover:bg-[#121317] border border-transparent hover:border-[rgba(255,255,255,0.08)] transition-all"
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {isCollapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
@@ -160,136 +155,147 @@ export const AppSidebar: React.FC = () => {
       </div>
 
       {/* Navigation Cluster Groups */}
-      <div className="flex-1 py-4 px-3 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
+      <div className="flex-1 px-3 overflow-y-auto custom-scrollbar">
         {NAV_GROUPS.map((group) => (
-          <div key={group.name} className="flex flex-col gap-1">
+          <div key={group.name} className="flex flex-col mt-6 first:mt-3">
             {!isCollapsed && (
-              <span className="px-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#999084]">
+              <span className="px-3 mb-2 text-[11px] font-bold uppercase tracking-[0.08em] text-[#6B7280]">
                 {group.name}
               </span>
             )}
-            {group.items.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeSidebarTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveSidebarTab(item.id);
-                    const tabToPathMap: Record<ActiveSidebarTab, string> = {
-                      'dashboard': '/dashboard',
-                      'profile': '/profile',
-                      'job-matches': '/jobs',
-                      'skill-gaps': '/skills',
-                      'recommended-programs': '/learning',
-                      'interview-prep': '/interview',
-                      'new-cv': '/resume',
-                      'career-health': '/career-health',
-                      'application-tracker': '/tracker',
-                      'career-passport': '/passport',
-                      'my-outcome': '/outcomes',
-                      'linkedin-integration': '/network',
-                      'system-logs': '/system-logs',
-                      'settings': '/settings',
-                    };
-                    const targetPath = tabToPathMap[item.id] || `/${item.id}`;
-                    navigate(targetPath);
-                  }}
-                  className={`group flex items-center gap-3 w-full px-2.5 py-2 rounded-xl text-left transition-all duration-150 cursor-pointer ${
-                    isActive
-                      ? 'bg-white text-[#181512] shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-[#EADFCF] font-bold'
-                      : 'text-[#6A6359] hover:text-[#181512] hover:bg-[#F2ECE2] font-medium border border-transparent'
-                  }`}
-                  title={isCollapsed ? item.label : undefined}
-                >
-                  <div
-                    className={`shrink-0 transition-colors ${
-                      isActive ? 'text-[#F47B20]' : 'text-[#6A6359] group-hover:text-[#181512]'
+            <div className="space-y-1">
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeSidebarTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveSidebarTab(item.id);
+                      const tabToPathMap: Record<ActiveSidebarTab, string> = {
+                        'dashboard': '/dashboard',
+                        'profile': '/profile',
+                        'job-matches': '/jobs',
+                        'skill-gaps': '/skills',
+                        'recommended-programs': '/learning',
+                        'interview-prep': '/interview',
+                        'new-cv': '/resume',
+                        'career-health': '/career-health',
+                        'application-tracker': '/tracker',
+                        'career-passport': '/passport',
+                        'my-outcome': '/outcomes',
+                        'linkedin-integration': '/network',
+                        'system-logs': '/system-logs',
+                        'settings': '/settings',
+                      };
+                      const targetPath = tabToPathMap[item.id] || `/${item.id}`;
+                      navigate(targetPath);
+                    }}
+                    className={`relative flex items-center h-10 w-full rounded-xl pl-3 pr-2.5 text-left transition-all duration-150 cursor-pointer overflow-hidden ${
+                      isActive
+                        ? 'bg-[#1A1B20] text-white font-semibold shadow-xs'
+                        : 'text-[#9CA3AF] hover:text-[#EDEDED] hover:bg-[#121317]'
                     }`}
+                    title={isCollapsed ? item.label : undefined}
                   >
-                    <Icon size={17} strokeWidth={isActive ? 2.5 : 2} />
-                  </div>
-                  {!isCollapsed && (
-                    <span className="text-xs tracking-tight truncate flex-1">
-                      {item.label}
-                    </span>
-                  )}
-                  {!isCollapsed && item.badge && (
-                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-semibold bg-[#FFF0E4] text-[#F47B20] border border-[#FDCBA7]">
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+                    {/* Active Left 2px Orange Bar */}
+                    {isActive && (
+                      <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#FF5C1A]" />
+                    )}
+
+                    <div
+                      className={`shrink-0 transition-colors ${
+                        isActive ? 'text-[#FF5C1A]' : 'text-[#6B7280] group-hover:text-white'
+                      }`}
+                    >
+                      <Icon size={20} strokeWidth={isActive ? 2.2 : 1.75} />
+                    </div>
+
+                    {!isCollapsed && (
+                      <span className="ml-3 text-xs tracking-tight truncate flex-1">
+                        {item.label}
+                      </span>
+                    )}
+
+                    {!isCollapsed && item.badge && (
+                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#FF5C1A]/15 text-[#FF5C1A] border border-[#FF5C1A]/30">
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         ))}
 
-        {/* SYSTEM CLUSTER */}
-        <div className="flex flex-col gap-1 pt-2 border-t border-[#F0E6D8]">
+        {/* SYSTEM UTILITIES QUICK SHORTCUTS */}
+        <div className="flex flex-col mt-6 pt-3 border-t border-[rgba(255,255,255,0.08)]">
           {!isCollapsed && (
-            <span className="px-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#999084]">
-              SYSTEM
+            <span className="px-3 mb-2 text-[11px] font-bold uppercase tracking-[0.08em] text-[#6B7280]">
+              UTILITIES
             </span>
           )}
-          <button
-            onClick={() => setAnalyticsDashboardOpen(true)}
-            className="group flex items-center gap-3 w-full px-2.5 py-2 rounded-xl text-left text-[#6A6359] hover:text-[#181512] hover:bg-[#F2ECE2] font-medium transition-colors cursor-pointer"
-            title={isCollapsed ? 'Government Analytics' : undefined}
-          >
-            <BarChart3 size={17} className="text-[#6A6359] group-hover:text-[#181512]" />
-            {!isCollapsed && (
-              <span className="text-xs tracking-tight truncate flex-1">
-                Gov & System Analytics
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setBYOKOpen(true)}
-            className="group flex items-center gap-3 w-full px-2.5 py-2 rounded-xl text-left text-[#6A6359] hover:text-[#181512] hover:bg-[#F2ECE2] font-medium transition-colors cursor-pointer"
-            title={isCollapsed ? 'AI Vault & BYOK' : undefined}
-          >
-            <KeyRound size={17} className="text-[#6A6359] group-hover:text-[#181512]" />
-            {!isCollapsed && (
-              <span className="text-xs tracking-tight truncate flex-1">
-                AI Vault & BYOK
-              </span>
-            )}
-          </button>
-          <button
-            onClick={handleToggleDemo}
-            className={`group flex items-center gap-3 w-full px-2.5 py-2 rounded-xl text-left font-medium transition-colors cursor-pointer ${
-              demoActive ? 'bg-[#FFF0E4] text-[#F47B20] border border-[#FDCBA7]' : 'text-[#6A6359] hover:text-[#181512] hover:bg-[#F2ECE2]'
-            }`}
-            title={isCollapsed ? (demoActive ? 'Reset Demo' : 'Load Demo Data') : undefined}
-          >
-            <Sparkles size={17} className={demoActive ? 'text-[#F47B20]' : 'text-[#6A6359] group-hover:text-[#181512]'} />
-            {!isCollapsed && (
-              <span className="text-xs tracking-tight truncate flex-1 font-semibold">
-                {demoActive ? 'Demo Active (Reset)' : 'Load Demo Dataset'}
-              </span>
-            )}
-          </button>
+          <div className="space-y-1">
+            <button
+              onClick={() => setAnalyticsDashboardOpen(true)}
+              className="flex items-center h-10 w-full rounded-xl pl-3 pr-2.5 text-left text-[#9CA3AF] hover:text-[#EDEDED] hover:bg-[#121317] transition-all cursor-pointer"
+              title={isCollapsed ? 'System Analytics' : undefined}
+            >
+              <BarChart3 size={20} strokeWidth={1.75} className="text-[#6B7280]" />
+              {!isCollapsed && (
+                <span className="ml-3 text-xs tracking-tight truncate flex-1">
+                  System Analytics
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setBYOKOpen(true)}
+              className="flex items-center h-10 w-full rounded-xl pl-3 pr-2.5 text-left text-[#9CA3AF] hover:text-[#EDEDED] hover:bg-[#121317] transition-all cursor-pointer"
+              title={isCollapsed ? 'AI Vault & BYOK' : undefined}
+            >
+              <KeyRound size={20} strokeWidth={1.75} className="text-[#6B7280]" />
+              {!isCollapsed && (
+                <span className="ml-3 text-xs tracking-tight truncate flex-1">
+                  AI Vault & BYOK
+                </span>
+              )}
+            </button>
+            <button
+              onClick={handleToggleDemo}
+              className={`flex items-center h-10 w-full rounded-xl pl-3 pr-2.5 text-left transition-all cursor-pointer ${
+                demoActive ? 'bg-[#FF5C1A]/15 text-[#FF5C1A] border border-[#FF5C1A]/30 font-semibold' : 'text-[#9CA3AF] hover:text-[#EDEDED] hover:bg-[#121317]'
+              }`}
+              title={isCollapsed ? (demoActive ? 'Reset Demo' : 'Load Demo Data') : undefined}
+            >
+              <Sparkles size={20} strokeWidth={1.75} className={demoActive ? 'text-[#FF5C1A]' : 'text-[#6B7280]'} />
+              {!isCollapsed && (
+                <span className="ml-3 text-xs tracking-tight truncate flex-1">
+                  {demoActive ? 'Demo Active (Reset)' : 'Load Demo Dataset'}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Bottom Profile / Quick Action Footer */}
-      <div className="p-3 border-t border-[#EADFCF] bg-[#F8F3EC] shrink-0">
+      {/* Bottom User Card in its own bordered container */}
+      <div className="p-3 border-t border-[rgba(255,255,255,0.08)] bg-[#0A0B0E] shrink-0">
         {!isCollapsed ? (
-          <div className="flex items-center justify-between">
+          <div className="p-2 rounded-xl bg-[#121317] border border-[rgba(255,255,255,0.08)] flex items-center justify-between">
             <button
               onClick={() => setActiveSidebarTab('settings')}
-              className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-[#EFE7DC] transition-colors cursor-pointer text-left"
+              className="flex items-center gap-2.5 hover:opacity-90 transition-opacity cursor-pointer text-left min-w-0"
             >
-              <div className="w-8 h-8 rounded-full bg-[#FFF0E4] border border-[#FDCBA7] text-[#F47B20] flex items-center justify-center text-xs font-bold shadow-xs">
+              <div className="w-8 h-8 rounded-lg bg-[#1A1B20] border border-[rgba(255,255,255,0.12)] ring-1 ring-white/5 text-[#EDEDED] flex items-center justify-center text-xs font-mono font-bold shrink-0">
                 NX
               </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-[#181512] leading-tight">
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-semibold text-white truncate">
                   Trainee OS
                 </span>
-                <span className="text-[10px] text-[#2E8555] font-semibold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#2E8555]" />
+                <span className="text-[10px] text-[#22C55E] font-medium flex items-center gap-1.5 font-mono">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] shadow-[0_0_8px_#22C55E]" />
                   Verified Ready
                 </span>
               </div>
@@ -297,17 +303,17 @@ export const AppSidebar: React.FC = () => {
 
             <button
               onClick={handleFullscreen}
-              className="p-1.5 rounded-lg text-[#999084] hover:text-[#181512] hover:bg-[#EFE7DC] transition-colors"
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-[#6B7280] hover:text-white hover:bg-[#1A1B20] transition-colors"
               title="Toggle Fullscreen"
             >
-              <Maximize2 size={14} />
+              <Maximize2 size={13} />
             </button>
           </div>
         ) : (
           <div className="flex justify-center">
             <button
               onClick={() => setActiveSidebarTab('settings')}
-              className="w-8 h-8 rounded-full bg-[#FFF0E4] border border-[#FDCBA7] text-[#F47B20] flex items-center justify-center text-xs font-bold shadow-xs"
+              className="w-8 h-8 rounded-lg bg-[#121317] border border-[rgba(255,255,255,0.08)] text-[#EDEDED] flex items-center justify-center text-xs font-mono font-bold"
               title="Settings"
             >
               NX

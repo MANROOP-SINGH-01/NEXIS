@@ -1,4 +1,4 @@
-import { AlertTriangle, Brain, ChevronDown, ChevronRight, Eye, Filter, MessageSquare, Pencil, Target } from 'lucide-react'
+import { AlertTriangle, Brain, ChevronDown, ChevronRight, Eye, Filter, MessageSquare, Pencil, Target, X, Activity } from 'lucide-react'
 import React, { useState } from 'react'
 import { getAllAgents } from '../data/agents'
 import { useCoreStore } from '../integration/store/coreStore'
@@ -23,42 +23,21 @@ const iconByAgent: Record<string, React.ComponentType<{ size?: number; className
   'Nexus-Director': Brain,
 }
 
-const statusStyles: Record<ForgeActivity['status'], string> = {
-  completed: 'bg-blue-50 text-blue-700 border-blue-100',
-  warning: 'bg-yellow-50 text-yellow-700 border-yellow-100',
-  success: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+// Color-coded agent telemetry accents (consistent with 3D avatars)
+const agentColorMap: Record<string, { bg: string; text: string; dot: string }> = {
+  'Nexus-Vision': { bg: 'bg-[#3B82F6]/15', text: 'text-[#3B82F6]', dot: '#3B82F6' },
+  'Nexus-Strategist': { bg: 'bg-[#A855F7]/15', text: 'text-[#A855F7]', dot: '#A855F7' },
+  'Nexus-Writer': { bg: 'bg-[#10B981]/15', text: 'text-[#10B981]', dot: '#10B981' },
+  'Nexus-Hunter': { bg: 'bg-[#F59E0B]/15', text: 'text-[#F59E0B]', dot: '#F59E0B' },
+  'Nexus-Mirror': { bg: 'bg-[#EC4899]/15', text: 'text-[#EC4899]', dot: '#EC4899' },
+  'Nexus-Director': { bg: 'bg-[#FF5C1A]/15', text: 'text-[#FF5C1A]', dot: '#FF5C1A' },
 }
 
-const DISCUSSION_SCRIPT = [
-  {
-    from: 'Nexus-Strategist',
-    to: 'Nexus-Writer',
-    action: 'JD Priority Sync',
-    details: 'Target role requires production-scale API ownership. Push quantified reliability + latency outcomes.',
-    status: 'completed' as const,
-  },
-  {
-    from: 'Nexus-Writer',
-    to: 'Nexus-Vision',
-    action: 'Bullet Clarity Check',
-    details: 'Requesting scan-order validation. Should top bullets lead with business impact before technical detail?',
-    status: 'completed' as const,
-  },
-  {
-    from: 'Nexus-Vision',
-    to: 'Nexus-Director',
-    action: 'Resume Scan Feedback',
-    details: 'Improved first-pass readability. Recommend condensing section headers for stronger recruiter skim speed.',
-    status: 'success' as const,
-  },
-  {
-    from: 'Nexus-Hunter',
-    to: 'Nexus-Strategist',
-    action: 'Market Signal Input',
-    details: 'Open roles weight distributed systems + observability evidence. Add concrete project proof in tailored resume.',
-    status: 'warning' as const,
-  },
-]
+const statusDotMap = {
+  completed: { dot: 'bg-[#3B82F6]', text: 'text-[#3B82F6]', label: 'COMPLETED' },
+  warning: { dot: 'bg-[#F59E0B]', text: 'text-[#F59E0B]', label: 'ATTENTION' },
+  success: { dot: 'bg-[#22C55E]', text: 'text-[#22C55E]', label: 'VERIFIED' },
+}
 
 function formatTime(ts: number): string {
   return new Date(ts).toLocaleTimeString('en-GB', {
@@ -68,46 +47,78 @@ function formatTime(ts: number): string {
   })
 }
 
-const ForgeActivityEntryView: React.FC<{ entry: ForgeActivity }> = ({ entry }) => {
+const ForgeActivityTimelineEntry: React.FC<{ entry: ForgeActivity; isLast: boolean }> = ({ entry, isLast }) => {
   const [isOpen, setIsOpen] = useState(false)
   const Icon = entry.icon
+  const agentColor = agentColorMap[entry.agent] || { bg: 'bg-white/10', text: 'text-white', dot: '#FFFFFF' }
+  const statusMeta = statusDotMap[entry.status] || statusDotMap.completed
 
   return (
-    <div className="flex flex-col gap-1.5 group border-b border-zinc-50 pb-3 last:border-0">
-      <button
-        onClick={() => setIsOpen((v) => !v)}
-        className="flex items-center justify-between text-left hover:bg-zinc-50/50 rounded p-1 transition-colors cursor-pointer"
-      >
-        <div className="flex items-start gap-2 min-w-0">
-          <div className="w-6 h-6 rounded-lg bg-zinc-100 text-zinc-600 flex items-center justify-center mt-0.5 shrink-0">
-            <Icon size={13} />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] font-black text-darkDelegation uppercase tracking-widest">{entry.agent}</span>
-              <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider border ${statusStyles[entry.status]}`}>
-                {entry.status}
+    <div className="relative flex items-start gap-3.5 group animate-in fade-in slide-in-from-top-2 duration-200">
+      {/* Vertical Connecting Timeline Line */}
+      {!isLast && (
+        <div className="absolute left-4 top-8 bottom-0 w-[1px] bg-[rgba(255,255,255,0.08)] pointer-events-none" />
+      )}
+
+      {/* Colored Icon Chip on Timeline */}
+      <div className={`relative z-10 w-8 h-8 rounded-lg ${agentColor.bg} ${agentColor.text} border border-white/5 flex items-center justify-center shrink-0 shadow-xs mt-0.5`}>
+        <Icon size={14} />
+      </div>
+
+      {/* Main Timeline Card Content */}
+      <div className="flex-1 min-w-0 pb-4">
+        <button
+          onClick={() => setIsOpen((v) => !v)}
+          className="w-full text-left p-2 -m-2 rounded-lg hover:bg-[#1A1B20]/60 transition-colors cursor-pointer group-hover:bg-[#1A1B20]/40"
+        >
+          <div className="flex items-center justify-between gap-2">
+            {/* Agent Name + Status Dot */}
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-xs font-mono font-bold text-white truncate">
+                {entry.agent}
+              </span>
+              <span className="flex items-center gap-1 text-[9px] font-mono font-medium">
+                <span className={`w-1.5 h-1.5 rounded-full ${statusMeta.dot}`} />
+                <span className={statusMeta.text}>{statusMeta.label}</span>
               </span>
             </div>
-            <p className="text-xs text-zinc-700 font-semibold mt-0.5">{entry.action}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 shrink-0 self-start mt-0.5">
-          <span className="text-[8px] font-mono text-zinc-400">{formatTime(entry.timestamp)}</span>
-          {isOpen ? <ChevronDown size={12} className="text-zinc-300" /> : <ChevronRight size={12} className="text-zinc-300" />}
-        </div>
-      </button>
-      {isOpen && (
-        <div className="ml-9 mr-1 p-2 rounded-lg border border-zinc-100 bg-white text-[11px] text-zinc-600 leading-relaxed animate-in fade-in slide-in-from-top-1 duration-200">
-          {entry.details}
-          {entry.status === 'warning' && (
-            <div className="mt-2 flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-yellow-700">
-              <AlertTriangle size={10} />
-              Needs Review
+
+            {/* Timestamp & Expand Indicator */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-[10px] font-mono text-[#6B7280]">
+                {formatTime(entry.timestamp)}
+              </span>
+              {isOpen ? (
+                <ChevronDown size={13} className="text-[#6B7280]" />
+              ) : (
+                <ChevronRight size={13} className="text-[#6B7280]" />
+              )}
             </div>
-          )}
-        </div>
-      )}
+          </div>
+
+          {/* Action Header */}
+          <p className="text-xs font-medium text-[#EDEDED] mt-1 tracking-tight">
+            {entry.action}
+          </p>
+        </button>
+
+        {/* Collapsible / Expandable Details */}
+        {isOpen ? (
+          <div className="mt-2 p-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#0A0B0E] text-[11px] font-mono text-[#9CA3AF] leading-relaxed animate-in fade-in slide-in-from-top-1 duration-150">
+            {entry.details}
+            {entry.status === 'warning' && (
+              <div className="mt-2 flex items-center gap-1.5 text-[9px] font-mono font-bold uppercase tracking-widest text-[#F59E0B]">
+                <AlertTriangle size={11} />
+                Requires Review
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="text-[11px] text-[#6B7280] line-clamp-1 mt-0.5 leading-relaxed font-mono">
+            {entry.details}
+          </p>
+        )}
+      </div>
     </div>
   )
 }
@@ -138,117 +149,131 @@ export function ActionLogPanel() {
     } as const
 
     const statusMap = {
-      positive: 'success',
-      warning: 'warning',
-      critical: 'warning',
-    } as const
+      positive: 'success' as const,
+      warning: 'warning' as const,
+      info: 'completed' as const,
+    }
 
-    const name = agentMap[entry.agentType]
+    const agentName = agentMap[entry.agentType] || 'Nexus-Director'
     return {
       id: entry.id,
       timestamp: entry.timestamp,
-      agent: name,
+      agent: agentName,
       action: entry.action,
       details: typeof entry.result === 'string' ? entry.result : JSON.stringify(entry.result),
-      status: statusMap[entry.impact],
-      icon: iconByAgent[name] || Eye,
+      status: statusMap[entry.impact] || 'completed',
+      icon: iconByAgent[agentName] || Brain,
     }
   })
 
-  const discussionEntries: ForgeActivity[] = DISCUSSION_SCRIPT.map((msg, i) => ({
-    id: `discussion-${i}`,
-    timestamp: Date.now() - (i + 1) * 90000,
-    agent: msg.from,
-    action: `${msg.action} -> ${msg.to}`,
-    details: msg.details,
-    status: msg.status,
-    icon: iconByAgent[msg.from] || Eye,
-  }))
-
-  const activityEntries = [...liveEntries, ...analysisEntries, ...discussionEntries].sort((a, b) => b.timestamp - a.timestamp)
+  // Combine and sort chronologically descending (newest first)
+  const allEntries = [...liveEntries, ...analysisEntries].sort((a, b) => b.timestamp - a.timestamp)
+  const activityEntries = filterAgent
+    ? allEntries.filter((e) => e.agent.toLowerCase().includes(filterAgent.name.toLowerCase()))
+    : allEntries
 
   return (
-    <div className="w-[300px] h-full bg-[#FBF8F3] border-r border-[#EADFCF] flex flex-col pointer-events-auto overflow-hidden shrink-0 relative select-none">
-      <div className="h-11 px-4 border-b border-[#EADFCF] flex items-center justify-between bg-[#F8F3EC] shrink-0 z-10">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-extrabold text-[#181512] font-['Space_Grotesk'] uppercase tracking-wider">Activity Feed</span>
-          {filterAgent && (
-            <div
-              className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold text-white uppercase tracking-tighter animate-in fade-in zoom-in duration-200"
-              style={{ backgroundColor: filterAgent.color }}
-            >
-              {filterAgent.name}
-              <button onClick={() => setLogOpen(true, null)} className="hover:scale-110 transition-transform cursor-pointer">x</button>
-            </div>
-          )}
+    <aside className="w-80 border-r border-[rgba(255,255,255,0.08)] bg-[#121317]/95 backdrop-blur-xl flex flex-col h-full z-20 shrink-0 font-sans shadow-lg overflow-hidden select-none">
+      {/* 1. Panel Header with 40px hit target actions */}
+      <div className="h-14 px-4 border-b border-[rgba(255,255,255,0.08)] bg-[#121317] flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-[#3B82F6]/15 text-[#3B82F6] flex items-center justify-center">
+            <Activity size={16} />
+          </div>
+          <div>
+            <span className="text-xs font-mono font-bold text-white uppercase tracking-wider block">
+              TELEMETRY FEED
+            </span>
+            <span className="text-[10px] font-mono text-[#6B7280]">
+              {filterAgent ? `Filter: ${filterAgent.name}` : 'Live Agent Operations'}
+            </span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          <div className="relative">
-            <button
-              onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
-              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isFilterMenuOpen || logFilterAgentIndex !== null ? 'bg-[#181512] text-white' : 'text-[#6A6359] hover:text-[#181512] hover:bg-[#EFE7DC]'}`}
-              title="Filter by agent"
-            >
-              <Filter size={13} />
-            </button>
+        <div className="flex items-center gap-1 relative">
+          {/* Filter button with 40px hit target */}
+          <button
+            onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
+            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+              filterAgent ? 'bg-[#FF5C1A]/20 text-[#FF5C1A]' : 'text-[#6B7280] hover:text-white hover:bg-[#1A1B20]'
+            }`}
+            title="Filter by Agent"
+            aria-label="Filter by Agent"
+          >
+            <Filter size={15} />
+          </button>
 
-            {isFilterMenuOpen && (
-              <>
-                <div className="fixed inset-0 z-20" onClick={() => setIsFilterMenuOpen(false)} />
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-[#EADFCF] rounded-xl shadow-xl z-30 py-1.5 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                  <button
-                    onClick={() => {
-                      setLogOpen(true, null)
-                      setIsFilterMenuOpen(false)
-                    }}
-                    className={`w-full px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#FBF8F3] transition-colors ${logFilterAgentIndex === null ? 'text-[#F47B20]' : 'text-[#6A6359]'}`}
-                  >
-                    <div className={`w-2 h-2 rounded-full ${logFilterAgentIndex === null ? 'bg-[#F47B20]' : 'bg-transparent border border-[#EADFCF]'}`} />
-                    All Agents
-                  </button>
-                  <div className="h-px bg-[#EADFCF] my-1" />
-                  {agents.map((agent) => (
-                    <button
-                      key={agent.index}
-                      onClick={() => {
-                        setLogOpen(true, agent.index)
-                        setIsFilterMenuOpen(false)
-                      }}
-                      className={`w-full px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#FBF8F3] transition-colors ${logFilterAgentIndex === agent.index ? 'text-[#181512]' : 'text-[#6A6359]'}`}
-                    >
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: agent.color }} />
-                      {agent.name}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-
+          {/* Close button with 40px hit target */}
           <button
             onClick={() => setLogOpen(false)}
-            className="p-1.5 text-[#999084] hover:text-[#181512] hover:bg-[#EFE7DC] rounded-lg transition-colors cursor-pointer"
-            title="Hide Log Panel"
+            className="w-10 h-10 rounded-lg flex items-center justify-center text-[#6B7280] hover:text-white hover:bg-[#1A1B20] transition-colors cursor-pointer"
+            title="Close Feed"
+            aria-label="Close Feed"
           >
-            ×
+            <X size={16} />
           </button>
+
+          {/* Dropdown Menu */}
+          {isFilterMenuOpen && (
+            <>
+              <div 
+                className="fixed inset-0 z-40" 
+                onClick={() => setIsFilterMenuOpen(false)} 
+              />
+              <div className="absolute right-0 top-11 w-48 bg-[#16171D] border border-[rgba(255,255,255,0.12)] rounded-xl shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <button
+                  onClick={() => {
+                    setLogOpen(true, null)
+                    setIsFilterMenuOpen(false)
+                  }}
+                  className={`w-full px-3.5 py-2 text-left text-xs font-mono font-medium flex items-center gap-2 hover:bg-[#1A1B20] transition-colors ${
+                    logFilterAgentIndex === null ? 'text-[#FF5C1A]' : 'text-[#9CA3AF]'
+                  }`}
+                >
+                  <div className={`w-2 h-2 rounded-full ${logFilterAgentIndex === null ? 'bg-[#FF5C1A]' : 'border border-white/20'}`} />
+                  All Agents
+                </button>
+                <div className="h-px bg-white/10 my-1" />
+                {agents.map((agent) => (
+                  <button
+                    key={agent.index}
+                    onClick={() => {
+                      setLogOpen(true, agent.index)
+                      setIsFilterMenuOpen(false)
+                    }}
+                    className={`w-full px-3.5 py-1.5 text-left text-xs font-mono font-medium flex items-center gap-2 hover:bg-[#1A1B20] transition-colors ${
+                      logFilterAgentIndex === agent.index ? 'text-white font-bold' : 'text-[#9CA3AF]'
+                    }`}
+                  >
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: agent.color }} />
+                    {agent.name}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="flex border-b border-[#EADFCF] bg-[#F8F3EC]">
-        <div className="flex-1 py-2 text-[10px] font-extrabold uppercase tracking-widest bg-white border-b-2 border-[#F47B20] text-[#F47B20] text-center">
-          Agent Discussion &amp; Telemetry
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 space-y-3.5 shadow-[inset_0_-20px_20px_-20px_rgba(0,0,0,0.03)]">
+      {/* 2. Scrollable Timeline Stream */}
+      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
         {activityEntries.length === 0 ? (
-          <p className="text-[#999084] text-[10px] font-bold uppercase tracking-widest text-center py-16">Awaiting actions...</p>
+          <div className="py-20 text-center">
+            <Activity size={24} className="mx-auto text-[#6B7280] opacity-40 mb-2" />
+            <p className="text-xs font-mono text-[#6B7280]">Awaiting live telemetry events...</p>
+          </div>
         ) : (
-          activityEntries.map((entry) => <ForgeActivityEntryView key={entry.id} entry={entry} />)
+          <div className="relative">
+            {activityEntries.map((entry, idx) => (
+              <ForgeActivityTimelineEntry
+                key={entry.id}
+                entry={entry}
+                isLast={idx === activityEntries.length - 1}
+              />
+            ))}
+          </div>
         )}
       </div>
-    </div>
+    </aside>
   )
 }

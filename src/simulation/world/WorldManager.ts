@@ -82,64 +82,64 @@ export class WorldManager {
               roughness = 0.25;
               metalness = 0.4;
               emissive = themeColor;
-              emissiveIntensity = 0.45;
+              emissiveIntensity = 0.55;
             } else if (isFloor) {
-              // Architectural concrete/tile floor with procedural grid & terrazzo
+              // Command-center dark grid floor with telemetry dots
               matColor = new THREE.Color(0xffffff);
               textureMap = floorTex;
-              roughness = 0.65;
-              metalness = 0.04;
+              roughness = 0.55;
+              metalness = 0.15;
             } else if (isCounter) {
-              // Modern architectural acoustic partition divider / low wall
-              matColor = new THREE.Color(0x334155);
-              roughness = 0.82;
-              metalness = 0.06;
+              // Dark architectural partition divider / low wall
+              matColor = new THREE.Color(0x1a1c24);
+              roughness = 0.65;
+              metalness = 0.2;
             } else if (isDesk) {
-              // Warm Scandinavian light oak with realistic wood grain
-              matColor = new THREE.Color(0xf1dfc6);
+              // Sleek dark walnut workstation desk
+              matColor = new THREE.Color(0x282c37);
               textureMap = woodTex;
-              roughness = 0.45;
-              metalness = 0.02;
+              roughness = 0.42;
+              metalness = 0.12;
             } else if (isChair) {
-              // Modern Herman Miller matte charcoal mesh task chairs
-              matColor = new THREE.Color(0x27272a);
-              roughness = 0.72;
-              metalness = 0.18;
+              // Modern matte charcoal mesh task chairs
+              matColor = new THREE.Color(0x16181f);
+              roughness = 0.65;
+              metalness = 0.25;
             } else if (isSofa) {
-              // Designer modern cognac leather lounge sofa
-              matColor = new THREE.Color(0xb45309);
-              roughness = 0.58;
-              metalness = 0.06;
+              // Executive dark leather lounge sofa
+              matColor = new THREE.Color(0x222530);
+              roughness = 0.55;
+              metalness = 0.15;
             } else if (isPlant) {
-              // Lush botanical emerald green foliage
-              matColor = new THREE.Color(0x15803d);
-              roughness = 0.48;
-              metalness = 0.04;
+              // Lush botanical deep emerald foliage
+              matColor = new THREE.Color(0x10b981);
+              roughness = 0.45;
+              metalness = 0.05;
             } else if (isBoard) {
               // Interactive sprint whiteboard with agile architecture diagrams
-              matColor = new THREE.Color(0xffffff);
+              matColor = new THREE.Color(0x1e222d);
               textureMap = boardTex;
-              roughness = 0.22;
-              metalness = 0.08;
+              roughness = 0.3;
+              metalness = 0.1;
             } else if (isCabinet) {
-              // Modern slate architectural credenza
-              matColor = new THREE.Color(0x475569);
-              roughness = 0.52;
-              metalness = 0.15;
+              // Slate architectural credenza
+              matColor = new THREE.Color(0x1c202a);
+              roughness = 0.5;
+              metalness = 0.25;
             } else if (isPC) {
-              // Space gray workstation chassis with glowing active terminal display
-              matColor = new THREE.Color(0x18181b);
-              roughness = 0.26;
-              metalness = 0.85;
-              emissive = new THREE.Color(0x0ea5e9);
-              emissiveIntensity = 0.75;
+              // Workstation chassis with glowing telemetry cyan terminal display
+              matColor = new THREE.Color(0x0f1117);
+              roughness = 0.2;
+              metalness = 0.9;
+              emissive = new THREE.Color(0x38bdf8);
+              emissiveIntensity = 0.95;
             } else if (isLamp) {
-              // Architectural matte black flexo lamp with warm incandescent bulb
-              matColor = new THREE.Color(0x18181b);
-              roughness = 0.32;
-              metalness = 0.65;
-              emissive = new THREE.Color(0xfef08a);
-              emissiveIntensity = 0.85;
+              // Architectural matte black flexo lamp with warm incandescent glow
+              matColor = new THREE.Color(0x12141a);
+              roughness = 0.3;
+              metalness = 0.7;
+              emissive = new THREE.Color(0xff5c1a);
+              emissiveIntensity = 0.75;
             }
 
             mesh.material = new THREE.MeshStandardNodeMaterial({

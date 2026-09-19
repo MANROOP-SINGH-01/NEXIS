@@ -35,41 +35,41 @@ export const PulseOverviewView: React.FC = () => {
 
   // Color generator for heatmap cell
   const getHeatmapColor = (score: number) => {
-    if (score >= 93) return 'bg-[#F47B20] text-white'; // Vivid orange
-    if (score >= 88) return 'bg-[#F8A059] text-white'; // Warm orange
-    if (score >= 82) return 'bg-[#FBC497] text-[#8C3A04]'; // Soft peach
-    if (score >= 75) return 'bg-[#FDE2CB] text-[#8C3A04]'; // Light ivory peach
-    return 'bg-[#F5EFE6] text-[#999084]'; // Neutral muted
+    if (score >= 93) return 'bg-[#FF5C1A] text-white shadow-[0_0_8px_rgba(255,92,26,0.4)]'; // Vivid brand orange
+    if (score >= 88) return 'bg-[#FF5C1A]/70 text-white'; // Warm orange
+    if (score >= 82) return 'bg-[#FF5C1A]/35 text-[#EDEDED]'; // Soft orange
+    if (score >= 75) return 'bg-[#3B82F6]/25 text-[#60A5FA]'; // Telemetry cyan
+    return 'bg-[#1A1B20] text-[#6E7681]'; // Neutral muted surface
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 bg-[#F8F3EC] custom-scrollbar">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 bg-[#0A0B0E] text-[#EDEDED] custom-scrollbar">
       {/* Top Header Row matching PulseAI Reference */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#181512] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#EDEDED] tracking-tight">
             Analytics Overview
           </h1>
-          <p className="text-xs sm:text-sm text-[#6A6359] mt-1 font-normal">
+          <p className="text-xs sm:text-sm text-[#8B949E] mt-1 font-normal">
             Real-time insights into your AI infrastructure and career orchestration performance.
           </p>
         </div>
 
         {/* Date Filter & Export Action Pills */}
         <div className="flex items-center gap-3 self-start md:self-auto">
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#EADFCF] text-xs font-medium text-[#6A6359] shadow-xs">
-            <Calendar className="w-3.5 h-3.5 text-[#999084]" />
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#121317] border border-white/8 text-xs font-mono text-[#8B949E] shadow-sm">
+            <Calendar className="w-3.5 h-3.5 text-[#6E7681]" />
             <span>Jan 08 - Feb 08</span>
           </div>
 
-          <button className="nx-btn-dark !py-1.5 !px-4 !text-xs shadow-sm">
+          <button className="h-[36px] px-4 rounded-[8px] bg-[#1A1B20] hover:bg-[#22242B] border border-white/10 text-xs font-semibold text-[#EDEDED] flex items-center gap-2 transition-all shadow-sm">
             <Download className="w-3.5 h-3.5" />
             <span>Export Report</span>
           </button>
         </div>
       </div>
 
-      {/* Row 1: The 3 PulseAI Metric & Trajectory Cards */}
+      {/* Row 1: The 3 Metric & Trajectory Cards */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
         {/* Card 1: Total Cost / Career Readiness */}
         <div className="md:col-span-3">
@@ -116,20 +116,20 @@ export const PulseOverviewView: React.FC = () => {
         </div>
 
         {/* Card 3: Total Requests & Monthly Projection Bar Chart */}
-        <div className="md:col-span-6 bg-white rounded-2xl border border-[#EADFCF] p-5 sm:p-6 shadow-[0_4px_20px_-2px_rgba(180,150,120,0.08)] flex flex-col justify-between">
+        <div className="md:col-span-6 bg-[#121317] rounded-[10px] border border-white/8 p-5 sm:p-6 shadow-[0_8px_24px_rgba(0,0,0,0.4)] flex flex-col justify-between">
           <div className="flex items-start justify-between">
             <div>
-              <span className="text-sm font-semibold text-[#181512] block tracking-tight">
+              <span className="text-xs font-bold text-[#8B949E] uppercase tracking-wider block font-mono">
                 Total Match Requests
               </span>
-              <span className="text-xs text-[#999084] font-medium block mt-0.5">
+              <span className="text-[11px] text-[#6E7681] font-medium block mt-0.5">
                 During this month
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono text-[#999084]">32k Cap</span>
-              <div className="w-7 h-7 rounded-full bg-[#FAF6F0] border border-[#EADFCF] flex items-center justify-center text-[#6A6359]">
-                <ArrowUpRight className="w-3.5 h-3.5" />
+              <span className="text-xs font-mono text-[#6E7681]">32k Cap</span>
+              <div className="w-7 h-7 rounded-full bg-[#1A1B20] border border-white/8 flex items-center justify-center text-[#8B949E]">
+                <ArrowUpRight className="w-3.5 h-3.5 text-[#22C55E]" />
               </div>
             </div>
           </div>
@@ -141,7 +141,7 @@ export const PulseOverviewView: React.FC = () => {
               <path
                 d="M 10 110 Q 120 100, 200 85 T 320 40 T 440 15"
                 fill="none"
-                stroke="#F47B20"
+                stroke="#FF5C1A"
                 strokeWidth="2"
                 strokeDasharray="4 3"
               />
@@ -158,26 +158,26 @@ export const PulseOverviewView: React.FC = () => {
             ].map((bar, idx) => (
               <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end relative group">
                 {bar.active && (
-                  <div className="absolute -top-7 bg-[#181512] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-md z-10 whitespace-nowrap">
+                  <div className="absolute -top-7 bg-[#0A0B0E] border border-white/10 text-white text-[10px] font-mono font-bold px-2 py-0.5 rounded shadow-md z-10 whitespace-nowrap">
                     {bar.tooltip}
                   </div>
                 )}
                 <div
                   style={{ height: bar.h }}
-                  className={`w-full max-w-[36px] rounded-t-lg transition-all duration-300 ${
+                  className={`w-full max-w-[36px] rounded-t-md transition-all duration-300 ${
                     bar.active
-                      ? 'bg-[#F47B20] shadow-md shadow-[#F47B20]/30'
-                      : 'bg-[#F5E6D8] hover:bg-[#FCD8BE]'
+                      ? 'bg-gradient-to-t from-[#E04006] to-[#FF5C1A] shadow-[0_0_16px_rgba(255,92,26,0.35)]'
+                      : 'bg-[#1A1B20] hover:bg-[#22242B]'
                   }`}
                 />
-                <span className="text-[10px] font-medium text-[#999084]">{bar.label}</span>
+                <span className="text-[10px] font-mono text-[#6E7681]">{bar.label}</span>
               </div>
             ))}
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-[#F5EFE6] text-xs">
-            <span className="text-[#999084]">Verified Pipeline</span>
-            <span className="text-[#F47B20] font-bold">29,420 Analyzed</span>
+          <div className="flex items-center justify-between pt-2 border-t border-white/8 text-xs font-mono">
+            <span className="text-[#6E7681]">Verified Pipeline</span>
+            <span className="text-[#FF5C1A] font-bold">29,420 Analyzed</span>
           </div>
         </div>
       </div>
@@ -185,24 +185,24 @@ export const PulseOverviewView: React.FC = () => {
       {/* Row 2: Token Usage Curve & Model Performance Matrix */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
         {/* Left Chart: Token Usage & Skill Growth Splines */}
-        <div className="md:col-span-6 bg-white rounded-2xl border border-[#EADFCF] p-5 sm:p-6 shadow-[0_4px_20px_-2px_rgba(180,150,120,0.08)] flex flex-col justify-between">
+        <div className="md:col-span-6 bg-[#121317] rounded-[10px] border border-white/8 p-5 sm:p-6 shadow-[0_8px_24px_rgba(0,0,0,0.4)] flex flex-col justify-between">
           <div className="flex items-start justify-between">
             <div>
-              <span className="text-sm font-semibold text-[#181512] block tracking-tight">
+              <span className="text-xs font-bold text-[#8B949E] uppercase tracking-wider block font-mono">
                 Skill Velocity & AI Tokens
               </span>
-              <span className="text-xs text-[#999084] font-medium block mt-0.5">
+              <span className="text-[11px] text-[#6E7681] font-medium block mt-0.5">
                 Tokens processed per hour across agent fleet
               </span>
             </div>
             {/* Legend Toggles */}
-            <div className="flex items-center gap-3 text-xs">
-              <span className="flex items-center gap-1 text-[#181512] font-semibold">
-                <span className="w-2 h-2 rounded-full bg-[#F47B20]" />
+            <div className="flex items-center gap-3 text-xs font-mono">
+              <span className="flex items-center gap-1.5 text-[#EDEDED] font-semibold">
+                <span className="w-2 h-2 rounded-full bg-[#FF5C1A] shadow-[0_0_6px_rgba(255,92,26,0.6)]" />
                 Total
               </span>
-              <span className="flex items-center gap-1 text-[#999084]">
-                <span className="w-2 h-2 rounded-full bg-[#E5DBCF]" />
+              <span className="flex items-center gap-1.5 text-[#6E7681]">
+                <span className="w-2 h-2 rounded-full bg-white/20" />
                 Prompt
               </span>
             </div>
@@ -212,16 +212,16 @@ export const PulseOverviewView: React.FC = () => {
           <div className="relative my-4 h-40">
             <svg className="w-full h-full overflow-visible" viewBox="0 0 500 150">
               {/* Horizontal Grid lines */}
-              <line x1="0" y1="30" x2="500" y2="30" stroke="#F5EFE6" strokeDasharray="3 3" />
-              <line x1="0" y1="70" x2="500" y2="70" stroke="#F5EFE6" strokeDasharray="3 3" />
-              <line x1="0" y1="110" x2="500" y2="110" stroke="#F5EFE6" strokeDasharray="3 3" />
+              <line x1="0" y1="30" x2="500" y2="30" stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
+              <line x1="0" y1="70" x2="500" y2="70" stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
+              <line x1="0" y1="110" x2="500" y2="110" stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
 
               {/* Dotted secondary curve */}
               <path
                 d="M 0 110 C 60 120, 100 80, 160 100 C 220 120, 260 90, 320 110 C 380 130, 420 80, 500 95"
                 fill="none"
-                stroke="#E5DBCF"
-                strokeWidth="2"
+                stroke="rgba(255,255,255,0.2)"
+                strokeWidth="1.5"
                 strokeDasharray="4 4"
               />
 
@@ -229,13 +229,13 @@ export const PulseOverviewView: React.FC = () => {
               <path
                 d="M 0 50 C 40 45, 80 85, 120 65 C 160 40, 200 105, 240 80 C 280 120, 320 40, 360 90 C 400 60, 440 70, 500 55"
                 fill="none"
-                stroke="#F47B20"
+                stroke="#FF5C1A"
                 strokeWidth="2.5"
               />
             </svg>
 
             {/* X-axis labels */}
-            <div className="flex justify-between text-[10px] text-[#999084] pt-1">
+            <div className="flex justify-between text-[10px] font-mono text-[#6E7681] pt-1">
               <span>0:00</span>
               <span>4:00</span>
               <span>8:00</span>
@@ -246,43 +246,43 @@ export const PulseOverviewView: React.FC = () => {
           </div>
 
           {/* Footer toggle switches */}
-          <div className="flex items-center gap-4 pt-3 border-t border-[#F5EFE6] text-xs">
+          <div className="flex items-center gap-4 pt-3 border-t border-white/8 text-xs font-mono">
             <button
               onClick={() => setActiveCurveToggle('tokens')}
-              className="flex items-center gap-1.5 cursor-pointer text-[#181512] font-semibold"
+              className="flex items-center gap-1.5 cursor-pointer text-[#EDEDED] font-semibold"
             >
-              <span className={`w-3.5 h-2 rounded-full ${activeCurveToggle === 'tokens' ? 'bg-[#F47B20]' : 'bg-[#E5DBCF]'}`} />
+              <span className={`w-3.5 h-2 rounded-full transition-colors ${activeCurveToggle === 'tokens' ? 'bg-[#FF5C1A]' : 'bg-white/20'}`} />
               <span>Tokens</span>
             </button>
             <button
               onClick={() => setActiveCurveToggle('cost')}
-              className="flex items-center gap-1.5 cursor-pointer text-[#6A6359]"
+              className="flex items-center gap-1.5 cursor-pointer text-[#8B949E] hover:text-[#EDEDED]"
             >
-              <span className={`w-3.5 h-2 rounded-full ${activeCurveToggle === 'cost' ? 'bg-[#F47B20]' : 'bg-[#E5DBCF]'}`} />
+              <span className={`w-3.5 h-2 rounded-full transition-colors ${activeCurveToggle === 'cost' ? 'bg-[#FF5C1A]' : 'bg-white/20'}`} />
               <span>Cost ($)</span>
             </button>
             <button
               onClick={() => setActiveCurveToggle('efficiency')}
-              className="flex items-center gap-1.5 cursor-pointer text-[#6A6359]"
+              className="flex items-center gap-1.5 cursor-pointer text-[#8B949E] hover:text-[#EDEDED]"
             >
-              <span className={`w-3.5 h-2 rounded-full ${activeCurveToggle === 'efficiency' ? 'bg-[#F47B20]' : 'bg-[#E5DBCF]'}`} />
+              <span className={`w-3.5 h-2 rounded-full transition-colors ${activeCurveToggle === 'efficiency' ? 'bg-[#FF5C1A]' : 'bg-white/20'}`} />
               <span>Efficiency</span>
             </button>
           </div>
         </div>
 
         {/* Right Chart: Model Performance / Market Match Heatmap */}
-        <div className="md:col-span-6 bg-white rounded-2xl border border-[#EADFCF] p-5 sm:p-6 shadow-[0_4px_20px_-2px_rgba(180,150,120,0.08)] flex flex-col justify-between">
+        <div className="md:col-span-6 bg-[#121317] rounded-[10px] border border-white/8 p-5 sm:p-6 shadow-[0_8px_24px_rgba(0,0,0,0.4)] flex flex-col justify-between">
           <div className="flex items-start justify-between">
             <div>
-              <span className="text-sm font-semibold text-[#181512] block tracking-tight">
+              <span className="text-xs font-bold text-[#8B949E] uppercase tracking-wider block font-mono">
                 Role Match Trajectory
               </span>
-              <span className="text-xs text-[#999084] font-medium block mt-0.5">
+              <span className="text-[11px] text-[#6E7681] font-medium block mt-0.5">
                 Market readiness vs Industry benchmarks
               </span>
             </div>
-            <div className="px-2.5 py-1 rounded-full bg-[#FAF6F0] border border-[#EADFCF] text-xs font-semibold text-[#6A6359]">
+            <div className="px-2.5 py-1 rounded-full bg-[#1A1B20] border border-white/8 text-xs font-mono font-semibold text-[#8B949E]">
               Monthly ▾
             </div>
           </div>
@@ -291,7 +291,7 @@ export const PulseOverviewView: React.FC = () => {
           <div className="my-3 space-y-2 overflow-x-auto custom-scrollbar">
             {MATRIX_ROLES.map((role) => (
               <div key={role.name} className="flex items-center gap-2 min-w-[380px]">
-                <span className="text-xs font-medium text-[#6A6359] w-28 truncate shrink-0">
+                <span className="text-xs font-mono text-[#8B949E] w-28 truncate shrink-0">
                   {role.name}
                 </span>
                 <div className="flex-1 grid grid-cols-12 gap-1.5">
@@ -309,7 +309,7 @@ export const PulseOverviewView: React.FC = () => {
             {/* Months Header row */}
             <div className="flex items-center gap-2 pt-1 min-w-[380px]">
               <span className="w-28 shrink-0" />
-              <div className="flex-1 grid grid-cols-12 gap-1.5 text-[10px] text-[#999084] text-center">
+              <div className="flex-1 grid grid-cols-12 gap-1.5 text-[10px] font-mono text-[#6E7681] text-center">
                 {MONTHS.map((m) => (
                   <span key={m}>{m}</span>
                 ))}
@@ -318,24 +318,24 @@ export const PulseOverviewView: React.FC = () => {
           </div>
 
           {/* Matrix Legend */}
-          <div className="flex items-center justify-between pt-3 border-t border-[#F5EFE6] text-xs">
+          <div className="flex items-center justify-between pt-3 border-t border-white/8 text-xs font-mono">
             <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1 text-[#6A6359]">
-                <span className="w-2.5 h-2.5 rounded bg-[#F47B20]" />
+              <span className="flex items-center gap-1.5 text-[#8B949E]">
+                <span className="w-2.5 h-2.5 rounded-sm bg-[#FF5C1A]" />
                 Top Fit (&gt;90%)
               </span>
-              <span className="flex items-center gap-1 text-[#6A6359]">
-                <span className="w-2.5 h-2.5 rounded bg-[#FBC497]" />
+              <span className="flex items-center gap-1.5 text-[#8B949E]">
+                <span className="w-2.5 h-2.5 rounded-sm bg-[#FF5C1A]/40" />
                 Medium Fit
               </span>
-              <span className="flex items-center gap-1 text-[#6A6359]">
-                <span className="w-2.5 h-2.5 rounded bg-[#F5EFE6]" />
+              <span className="flex items-center gap-1.5 text-[#6E7681]">
+                <span className="w-2.5 h-2.5 rounded-sm bg-[#1A1B20]" />
                 Stretch
               </span>
             </div>
             <button
               onClick={() => setActiveSidebarTab('job-matches')}
-              className="text-xs font-bold text-[#F47B20] hover:text-[#E36D13] flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-[#FF5C1A] hover:underline flex items-center gap-1 cursor-pointer font-mono"
             >
               <span>Explore Roles</span>
               <ChevronRight className="w-3.5 h-3.5" />

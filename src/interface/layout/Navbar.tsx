@@ -2,10 +2,8 @@ import React from 'react';
 import { 
   Sparkles, 
   Search,
-  Bell,
   Settings,
   LogOut,
-  LayoutDashboard,
   Briefcase,
   FileText,
   Target,
@@ -35,7 +33,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCommandBar, onOpenResumeFo
     (s) => s === 'working' || s === 'talking'
   ).length;
 
-  // PulseAI Horizontal Top Pill Tabs
+  // Segmented Pill Navigation Tabs
   const TOP_NAV_TABS: { id: ActiveSidebarTab; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: '3D Office', icon: <Bot className="w-3.5 h-3.5" /> },
     { id: 'career-health', label: 'Overview', icon: <Activity className="w-3.5 h-3.5" /> },
@@ -46,48 +44,31 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCommandBar, onOpenResumeFo
   ];
 
   return (
-    <header className="h-16 border-b border-[#EADFCF] bg-[#F8F3EC]/90 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between z-30 shrink-0 select-none">
-      {/* Left: Brand Identity */}
-      <div className="flex items-center gap-3">
+    <header className="h-16 border-b border-[rgba(255,255,255,0.08)] bg-[#0A0B0E]/85 backdrop-blur-[20px] pl-6 pr-6 flex items-center justify-between z-30 shrink-0 select-none">
+      {/* 1. Left Zone: Brand Identity Only (No crowding) */}
+      <div className="flex items-center">
         <div 
           onClick={() => setActiveSidebarTab('dashboard')} 
-          className="flex items-center gap-2.5 cursor-pointer group"
+          className="flex items-center gap-3 cursor-pointer group"
         >
-          {/* PulseAI Orange Rounded Icon */}
-          <div className="w-9 h-9 rounded-xl bg-[#F47B20] text-white flex items-center justify-center shadow-md shadow-[#F47B20]/25 group-hover:bg-[#E36D13] transition-all">
-            <Sparkles className="w-5 h-5 text-white" />
+          {/* Brand Icon */}
+          <div className="w-9 h-9 rounded-xl bg-[#FF5C1A] text-white flex items-center justify-center shadow-md shadow-[#FF5C1A]/20 group-hover:scale-105 transition-all">
+            <Sparkles className="w-4.5 h-4.5 text-white" />
           </div>
-          <div className="flex flex-col">
-            <span className="font-['Space_Grotesk'] font-extrabold text-base tracking-tight text-[#181512] flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
+            <span className="font-sans font-bold text-base tracking-tight text-white">
               NEXIS
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-[#FFF0E4] text-[#F47B20] border border-[#FDCBA7] font-semibold">
-                AI OS
-              </span>
+            </span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-[#FF5C1A]/10 text-[#FF5C1A] border border-[#FF5C1A]/30 font-semibold tracking-wider">
+              AI OS
             </span>
           </div>
-        </div>
-
-        <div className="h-4 w-[1px] bg-[#E5DBCF] mx-1 hidden lg:block" />
-
-        {/* Live Active Agents Pill */}
-        <div className="hidden xl:flex items-center">
-          {workingAgentsCount > 0 ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FFF0E4] text-[#C45709] border border-[#FDCBA7]">
-              <span className="w-2 h-2 rounded-full bg-[#F47B20] animate-pulse" />
-              {workingAgentsCount} AGENTS ACTIVE
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#E8F6EE] text-[#246B44] border border-[#BCE4CE]">
-              <span className="w-2 h-2 rounded-full bg-[#2E8555]" />
-              8 AGENTS READY
-            </span>
-          )}
         </div>
       </div>
 
-      {/* Center: PulseAI Capsule Navigation Tabs */}
+      {/* 2. Center Zone: Single Segmented Pill Control */}
       <div className="hidden md:flex items-center justify-center">
-        <div className="nx-nav-capsule">
+        <div className="bg-[#121317] border border-[rgba(255,255,255,0.08)] p-1 rounded-full inline-flex items-center gap-2 shadow-xs">
           {TOP_NAV_TABS.map((tab) => {
             const isActive = activeSidebarTab === tab.id;
             return (
@@ -106,8 +87,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCommandBar, onOpenResumeFo
                   const targetPath = tabToPathMap[tab.id] || `/${tab.id}`;
                   navigate(targetPath);
                 }}
-                className={`nx-nav-tab flex items-center gap-1.5 cursor-pointer ${
-                  isActive ? 'active' : ''
+                className={`px-4 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 cursor-pointer transition-all duration-150 whitespace-nowrap ${
+                  isActive
+                    ? 'bg-[#1A1B20] text-white font-semibold border-b-2 border-[#FF5C1A] shadow-xs'
+                    : 'text-[#9CA3AF] hover:text-white hover:bg-[#1A1B20]/50 border-b-2 border-transparent'
                 }`}
               >
                 {tab.icon}
@@ -118,94 +101,112 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCommandBar, onOpenResumeFo
         </div>
       </div>
 
-      {/* Right: Search Pill, Modals & Profile */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Soft Search Input Pill (Matching PulseAI "Q Search...") */}
+      {/* 3. Right Zone: Grouped Sub-clusters with 16-20px Gaps and Dividers */}
+      <div className="flex items-center gap-4">
+        {/* Cluster A: Fixed Width Search Bar (240px) */}
         <button
           onClick={onOpenCommandBar}
-          className="hidden sm:flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#EFE7DC] hover:bg-[#E8DFC0] border border-[#E4D9CC] text-xs text-[#6A6359] hover:text-[#181512] transition-colors cursor-pointer"
+          className="hidden sm:flex items-center justify-between w-[240px] h-9 px-3.5 rounded-lg bg-[#121317] hover:bg-[#1A1B20] border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.16)] text-xs text-[#9CA3AF] hover:text-white transition-all cursor-pointer shadow-2xs"
+          title="Search or jump to command (Ctrl+K)"
         >
-          <Search className="w-3.5 h-3.5 text-[#999084]" />
-          <span>Search...</span>
-          <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-white text-[#6A6359] rounded border border-[#E0D5C7] shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <Search className="w-3.5 h-3.5 text-[#6B7280]" />
+            <span className="text-[#6B7280]">Search...</span>
+          </div>
+          <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-[#0A0B0E] text-[#9CA3AF] rounded border border-[rgba(255,255,255,0.1)] opacity-70">
             Ctrl+K
           </kbd>
         </button>
 
-        {/* Mobile Search Icon Button */}
-        <button
-          onClick={onOpenCommandBar}
-          className="sm:hidden p-2 rounded-full text-[#6A6359] hover:text-[#181512] hover:bg-[#EFE7DC]"
-          aria-label="Search"
-        >
-          <Search className="w-4 h-4" />
-        </button>
+        {/* Vertical Divider */}
+        <div className="h-6 w-[1px] bg-white/10 hidden sm:block" />
 
-        {/* Government / Analytics Quick Launcher */}
-        <button
-          onClick={() => setAnalyticsDashboardOpen(true)}
-          className="p-2 rounded-full text-[#6A6359] hover:text-[#181512] hover:bg-[#EFE7DC] transition-colors"
-          title="Analytics Dashboard"
-          aria-label="Analytics Dashboard"
-        >
-          <BarChart3 className="w-4 h-4" />
-        </button>
-
-        {/* Settings Button */}
-        <button
-          onClick={() => setBYOKOpen(true)}
-          className="p-2 rounded-full text-[#6A6359] hover:text-[#181512] hover:bg-[#EFE7DC] transition-colors"
-          title="AI Keys & Settings"
-          aria-label="AI Keys & Settings"
-        >
-          <Settings className="w-4 h-4" />
-        </button>
-
-        {/* Resume Forge Button */}
-        {onOpenResumeForge && (
-          <button
-            onClick={onOpenResumeForge}
-            className="nx-btn-dark !py-1.5 !px-3.5 !text-xs hidden lg:inline-flex"
+        {/* Cluster B: Agent Count Pill & Utility Icons */}
+        <div className="flex items-center gap-2">
+          {/* Compact Agent Telemetry Pill */}
+          <div 
+            className="flex items-center gap-1.5 px-2.5 h-8 rounded-full bg-[#121317] border border-[rgba(255,255,255,0.08)] cursor-pointer"
+            title={workingAgentsCount > 0 ? `${workingAgentsCount} Agents Orchestrating Pipeline` : "8 Agents Ready in Active Mesh"}
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#F47B20]" />
-            <span>Resume Forge</span>
-          </button>
-        )}
-
-        {/* User Account / Profile */}
-        {user ? (
-          <div className="flex items-center gap-2 pl-2 border-l border-[#E5DBCF]">
-            <button
-              onClick={() => setActiveSidebarTab('profile')}
-              className="flex items-center gap-2 hover:bg-[#EFE7DC] px-2 py-1 rounded-xl transition-colors cursor-pointer"
-              title="View Candidate Profile"
-            >
-              <div className="w-7 h-7 rounded-full bg-[#FFF0E4] border border-[#FDCBA7] text-[#F47B20] flex items-center justify-center text-xs font-bold uppercase shadow-2xs">
-                {user.profile?.name ? user.profile.name.slice(0, 2) : 'PS'}
-              </div>
-              <span className="text-xs font-semibold text-[#181512] hidden xl:inline">
-                {user.profile?.name || 'Priya Sharma'}
-              </span>
-            </button>
-            <button
-              onClick={() => clearAuth()}
-              className="p-1.5 text-[#999084] hover:text-[#D9453B] hover:bg-[#FDEEED] rounded-full transition-colors cursor-pointer"
-              title="Sign Out"
-              aria-label="Sign Out"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            <span className={`w-2 h-2 rounded-full ${workingAgentsCount > 0 ? 'bg-[#FF5C1A] animate-pulse' : 'bg-[#22C55E]'}`} />
+            <span className="text-xs font-mono font-bold text-white">
+              {workingAgentsCount > 0 ? workingAgentsCount : 8}
+            </span>
+            <span className="text-[10px] font-mono text-[#6B7280] hidden lg:inline">
+              AGENTS
+            </span>
           </div>
-        ) : (
-          <div className="flex items-center gap-2 pl-2 border-l border-[#E5DBCF]">
+
+          {/* Analytics Button */}
+          <button
+            onClick={() => setAnalyticsDashboardOpen(true)}
+            className="w-9 h-9 rounded-lg bg-[#121317] hover:bg-[#1A1B20] border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.16)] text-[#9CA3AF] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            title="Analytics Telemetry Dashboard"
+            aria-label="Analytics Dashboard"
+          >
+            <BarChart3 className="w-4 h-4" />
+          </button>
+
+          {/* Settings / BYOK Button */}
+          <button
+            onClick={() => setBYOKOpen(true)}
+            className="w-9 h-9 rounded-lg bg-[#121317] hover:bg-[#1A1B20] border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.16)] text-[#9CA3AF] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            title="AI Vault & BYOK Settings"
+            aria-label="AI Keys & Settings"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Vertical Divider */}
+        <div className="h-6 w-[1px] bg-white/10 hidden lg:block" />
+
+        {/* Cluster C: Action Tier (Resume Forge + Sign In / User) */}
+        <div className="flex items-center gap-3">
+          {/* Secondary: Resume Forge Button */}
+          {onOpenResumeForge && (
+            <button
+              onClick={onOpenResumeForge}
+              className="h-9 px-4 rounded-lg bg-[#121317] hover:bg-[#1A1B20] border border-[rgba(255,255,255,0.12)] hover:border-[rgba(255,255,255,0.2)] text-xs font-medium text-white hidden lg:inline-flex items-center gap-2 transition-all cursor-pointer shadow-xs"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#FF5C1A]" />
+              <span>Resume Forge</span>
+            </button>
+          )}
+
+          {/* Primary: Sign In / User Profile */}
+          {user ? (
+            <div className="flex items-center gap-2 pl-1">
+              <button
+                onClick={() => setActiveSidebarTab('profile')}
+                className="flex items-center gap-2 h-9 px-2.5 rounded-lg bg-[#121317] hover:bg-[#1A1B20] border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.16)] transition-all cursor-pointer"
+                title="Candidate Profile"
+              >
+                <div className="w-6 h-6 rounded-full bg-[#FF5C1A]/15 border border-[#FF5C1A]/40 text-[#FF5C1A] flex items-center justify-center text-[10px] font-bold font-mono">
+                  {user.profile?.name ? user.profile.name.slice(0, 2).toUpperCase() : 'PS'}
+                </div>
+                <span className="text-xs font-medium text-[#EDEDED] hidden xl:inline">
+                  {user.profile?.name || 'Priya Sharma'}
+                </span>
+              </button>
+              <button
+                onClick={() => clearAuth()}
+                className="w-9 h-9 rounded-lg bg-[#121317] hover:bg-[#EF4444]/15 border border-[rgba(255,255,255,0.08)] hover:border-[#EF4444]/30 text-[#6B7280] hover:text-[#EF4444] flex items-center justify-center transition-colors cursor-pointer"
+                title="Sign Out"
+                aria-label="Sign Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
             <button
               onClick={() => navigate('/login')}
-              className="nx-btn-primary !py-1.5 !px-3.5 !text-xs cursor-pointer"
+              className="h-9 px-4 rounded-lg bg-[#FF5C1A] hover:bg-[#E04006] text-white text-xs font-semibold shadow-md shadow-[#FF5C1A]/20 transition-all cursor-pointer"
             >
               Sign In
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </header>
   );

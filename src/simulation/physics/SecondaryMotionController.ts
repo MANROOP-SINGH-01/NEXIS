@@ -235,6 +235,21 @@ export class SecondaryMotionController {
           targetDisplacement.x += Math.sin(t * 12.0) * 0.16 * flailAmp;
           targetDisplacement.z += Math.cos(t * 10.0) * 0.16 * flailAmp;
         }
+      } else {
+        // Normal gravity influence when grounded or moving
+        targetDisplacement.x += localGravity.z * (cfg.gravityInfluence * 0.015);
+        targetDisplacement.z -= localGravity.x * (cfg.gravityInfluence * 0.015);
+
+        // Organic idle micro-bobbing / sway when stationary so characters feel alive
+        if (bodyLinearVelocity.lengthSq() < 0.04) {
+          const timeSec = performance.now() * 0.0018;
+          if (key === 'head') {
+            targetDisplacement.x += Math.sin(timeSec * 2.0) * 0.025; // Gentle breathing nod
+            targetDisplacement.z += Math.cos(timeSec * 1.4) * 0.02;  // Subtle head tilt
+          } else if (key.startsWith('arm')) {
+            targetDisplacement.x += Math.sin(timeSec * 1.6) * 0.025; // Gentle arm sway
+          }
+        }
       }
 
       // Clamp target to max angular displacement
