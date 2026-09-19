@@ -135,32 +135,32 @@ export const LinkedInIntegrationView: React.FC = () => {
   const displayError = error || linkedInError;
 
   return (
-    <div className="flex-1 bg-[#F8F3EC] min-h-screen overflow-y-auto px-4 py-8 sm:p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto custom-scrollbar text-[#181512]">
+    <div className="flex-1 bg-[#0A0B0E] min-h-screen overflow-y-auto px-4 py-8 sm:p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto custom-scrollbar text-[#EDEDED]">
       {/* Toast Feedback */}
       {successToast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#181512] text-white font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 text-xs">
-          <CheckCircle2 size={16} className="text-[#1E7E50]" />
+        <div className="fixed bottom-6 right-6 z-50 bg-[#121317] border border-white/10 text-white font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 text-xs">
+          <CheckCircle2 size={16} className="text-[#22C55E]" />
           <span>{successToast}</span>
         </div>
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-[#EADFCF]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/8">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-[#0077B5]/10 border border-[#0077B5]/30 flex items-center justify-center shrink-0 shadow-xs">
-            <Linkedin size={24} className="text-[#0077B5]" />
+          <div className="w-12 h-12 rounded-2xl bg-[#0077B5]/15 border border-[#0077B5]/30 flex items-center justify-center shrink-0 shadow-xs text-[#0077B5]">
+            <Linkedin size={24} />
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FFF0E4] text-[#C45E0E] border border-[#F5C5A5]">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FF5C1A]/10 text-[#FF5C1A] border border-[#FF5C1A]/20 font-mono">
                 Identity & Network Ingestion
               </span>
-              <span className="text-[11px] font-bold text-[#7A7265]">• Warm Introduction Radar</span>
+              <span className="text-[11px] font-bold text-[#8B949E] font-mono">• Warm Introduction Radar</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-black text-[#181512] tracking-tight">
+            <h1 className="text-2xl md:text-3xl font-black text-[#EDEDED] tracking-tight">
               LinkedIn Integration
             </h1>
-            <p className="text-xs text-[#7A7265] mt-0.5 max-w-xl leading-relaxed">
+            <p className="text-xs text-[#8B949E] mt-0.5 max-w-xl leading-relaxed">
               Verify candidate identity via LinkedIn handle or single-click OAuth, and upload profile exports to automatically synthesize quantified STAR achievements into your resume.
             </p>
           </div>
@@ -170,9 +170,9 @@ export const LinkedInIntegrationView: React.FC = () => {
         <div className="flex flex-col gap-2 w-full md:w-auto">
           {isConnected ? (
             <div className="flex items-center gap-2">
-              <div className="px-3.5 py-2 bg-[#E8F8F0] border border-[#BDE8D3] rounded-xl flex items-center gap-2">
-                <CheckCircle2 size={15} className="text-[#1E7E50]" />
-                <span className="text-xs font-bold text-[#1E7E50]">@{verifiedHandle}</span>
+              <div className="px-3.5 py-2 bg-[#22C55E]/10 border border-[#22C55E]/20 rounded-xl flex items-center gap-2 font-mono">
+                <CheckCircle2 size={15} className="text-[#22C55E]" />
+                <span className="text-xs font-bold text-[#22C55E]">@{verifiedHandle}</span>
               </div>
               <button
                 onClick={() => {
@@ -181,7 +181,7 @@ export const LinkedInIntegrationView: React.FC = () => {
                   try { localStorage.removeItem('forge-linkedin-handle'); } catch {}
                   showToast('Disconnected LinkedIn identity');
                 }}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white hover:bg-[#FBF8F3] text-[#7A7265] text-xs font-bold rounded-xl transition-all border border-[#EADFCF] cursor-pointer shadow-xs"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#121317] hover:bg-[#1A1B20] text-[#8B949E] hover:text-[#EDEDED] text-xs font-bold rounded-xl transition-all border border-white/8 cursor-pointer shadow-xs"
               >
                 Disconnect
               </button>
@@ -200,62 +200,62 @@ export const LinkedInIntegrationView: React.FC = () => {
 
       {/* Stats row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-[#EADFCF] shadow-xs">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-[#7A7265]">Identity Status</p>
+        <div className="bg-[#121317] rounded-2xl p-5 border border-white/8 shadow-xs">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[#8B949E] font-mono">Identity Status</p>
           <div className="mt-2 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <span className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-[#1E7E50]' : 'bg-[#D7CABB]'}`} />
-              <span className="text-sm font-bold text-[#181512]">
+              <span className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-[#22C55E]' : 'bg-[#52525B]'}`} />
+              <span className="text-sm font-bold text-[#EDEDED]">
                 {isConnected ? 'LinkedIn Verified' : 'Not Connected'}
               </span>
             </div>
             {isConnected && (
-              <span className="text-[10px] font-mono text-[#1E7E50] bg-[#E8F8F0] border border-[#BDE8D3] px-2 py-0.5 rounded-full font-bold">Verified</span>
+              <span className="text-[10px] font-mono text-[#22C55E] bg-[#22C55E]/10 border border-[#22C55E]/20 px-2 py-0.5 rounded-full font-bold">Verified</span>
             )}
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-[#EADFCF] shadow-xs">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-[#7A7265]">Extracted Achievements</p>
+        <div className="bg-[#121317] rounded-2xl p-5 border border-white/8 shadow-xs">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[#8B949E] font-mono">Extracted Achievements</p>
           <div className="mt-2 flex items-center gap-2.5">
-            <FileText size={18} className="text-[#F47B20]" />
-            <span className="text-2xl font-black text-[#181512]">{resumeForgeItems.length > 0 ? resumeForgeItems.length : 3}</span>
-            <span className="text-xs text-[#7A7265] font-medium">STAR bullets</span>
+            <FileText size={18} className="text-[#FF5C1A]" />
+            <span className="text-2xl font-black text-[#EDEDED]">{resumeForgeItems.length > 0 ? resumeForgeItems.length : 3}</span>
+            <span className="text-xs text-[#8B949E] font-medium">STAR bullets</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-[#EADFCF] shadow-xs">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-[#7A7265]">Proof-of-Work Ledger</p>
+        <div className="bg-[#121317] rounded-2xl p-5 border border-white/8 shadow-xs">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[#8B949E] font-mono">Proof-of-Work Ledger</p>
           <div className="mt-2 flex items-center gap-2.5">
-            <ShieldCheck size={18} className="text-[#1E7E50]" />
-            <span className="text-2xl font-black text-[#181512]">{verifiedCount > 0 ? verifiedCount : 4}</span>
-            <span className="text-xs text-[#7A7265] font-medium">verified skills</span>
+            <ShieldCheck size={18} className="text-[#22C55E]" />
+            <span className="text-2xl font-black text-[#EDEDED]">{verifiedCount > 0 ? verifiedCount : 4}</span>
+            <span className="text-xs text-[#8B949E] font-medium">verified skills</span>
           </div>
         </div>
       </div>
 
       {/* Error display */}
       {displayError && (
-        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-xs font-bold text-rose-700 flex items-center gap-2">
-          <AlertCircle size={16} className="shrink-0 text-rose-500" />
+        <div className="bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-2xl p-4 text-xs font-bold text-[#EF4444] flex items-center gap-2">
+          <AlertCircle size={16} className="shrink-0 text-[#EF4444]" />
           <span>{displayError}</span>
         </div>
       )}
 
       {/* Zero-Cost Direct URL Verification Form */}
-      <div className="bg-white rounded-2xl p-6 border border-[#EADFCF] shadow-xs space-y-4">
+      <div className="bg-[#121317] rounded-2xl p-6 border border-white/8 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Link2 size={18} className="text-[#F47B20]" />
-            <h3 className="text-xs font-black text-[#181512] uppercase tracking-wider">
+            <Link2 size={18} className="text-[#FF5C1A]" />
+            <h3 className="text-xs font-black text-[#EDEDED] uppercase tracking-wider font-mono">
               Direct Profile URL Verification (Zero-Cost / No API Key Required)
             </h3>
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-[#1E7E50] bg-[#E8F8F0] border border-[#BDE8D3] px-2.5 py-0.5 rounded-full">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#22C55E] bg-[#22C55E]/10 border border-[#22C55E]/20 px-2.5 py-0.5 rounded-full font-mono">
             Zero Cost
           </span>
         </div>
-        <p className="text-xs text-[#7A7265]">
+        <p className="text-xs text-[#8B949E]">
           Provide your public LinkedIn handle or profile URL to establish candidate identity verification instantly.
         </p>
 
@@ -266,13 +266,13 @@ export const LinkedInIntegrationView: React.FC = () => {
               value={profileUrlInput}
               onChange={(e) => setProfileUrlInput(e.target.value)}
               placeholder="https://www.linkedin.com/in/yourname"
-              className="w-full bg-[#FBF8F3] border border-[#EADFCF] rounded-xl px-4 py-2.5 text-xs text-[#181512] placeholder-[#7A7265]/60 focus:outline-none focus:ring-2 focus:ring-[#F47B20] transition-all font-mono font-semibold"
+              className="w-full bg-[#0A0B0E] border border-white/12 rounded-xl px-4 py-2.5 text-xs text-[#EDEDED] placeholder-[#71717A] focus:outline-none focus:border-[#FF5C1A] transition-all font-mono font-semibold"
             />
           </div>
           <button
             type="submit"
             disabled={urlVerifying || !profileUrlInput.trim()}
-            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-[#F47B20] hover:bg-[#E9670B] disabled:opacity-50 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-[#FF5C1A] hover:bg-[#FF5C1A]/90 disabled:opacity-50 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs cursor-pointer"
           >
             {urlVerifying ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
             {urlVerifying ? 'Verifying...' : 'Verify Profile'}
@@ -281,16 +281,16 @@ export const LinkedInIntegrationView: React.FC = () => {
       </div>
 
       {/* Upload Zone (Profile PDF export) */}
-      <div className="bg-white rounded-2xl p-8 border-2 border-[#EADFCF] border-dashed text-center space-y-4 shadow-xs">
-        <div className="w-16 h-16 rounded-2xl bg-[#FFF0E4] border border-[#F5C5A5] flex items-center justify-center text-[#F47B20] mx-auto">
+      <div className="bg-[#121317] rounded-2xl p-8 border-2 border-white/10 border-dashed text-center space-y-4 shadow-xs">
+        <div className="w-16 h-16 rounded-2xl bg-[#FF5C1A]/10 border border-[#FF5C1A]/20 flex items-center justify-center text-[#FF5C1A] mx-auto">
           <UploadCloud size={30} />
         </div>
         <div>
-          <h3 className="text-base font-black text-[#181512]">
+          <h3 className="text-base font-black text-[#EDEDED]">
             Import LinkedIn Profile PDF
           </h3>
-          <p className="text-xs text-[#7A7265] mt-1 max-w-md mx-auto leading-relaxed">
-            Export your profile (<span className="font-semibold text-[#181512]">More &rarr; Save to PDF</span> on LinkedIn) and upload it here. Nexus-Writer extracts your work experience and drafts high-impact, quantified STAR resume bullet points.
+          <p className="text-xs text-[#8B949E] mt-1 max-w-md mx-auto leading-relaxed">
+            Export your profile (<span className="font-semibold text-[#EDEDED]">More &rarr; Save to PDF</span> on LinkedIn) and upload it here. Nexus-Writer extracts your work experience and drafts high-impact, quantified STAR resume bullet points.
           </p>
         </div>
 
@@ -305,9 +305,9 @@ export const LinkedInIntegrationView: React.FC = () => {
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={displayLoading}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-[#FBF8F3] border border-[#EADFCF] disabled:opacity-50 text-[#181512] text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs cursor-pointer"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-[#1A1B20] hover:bg-[#222329] border border-white/10 disabled:opacity-50 text-[#EDEDED] text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs cursor-pointer"
           >
-            <FileText size={16} className="text-[#F47B20]" />
+            <FileText size={16} className="text-[#FF5C1A]" />
             {displayLoading ? 'Processing PDF...' : 'Select LinkedIn PDF Export'}
           </button>
         </div>
@@ -315,12 +315,12 @@ export const LinkedInIntegrationView: React.FC = () => {
 
       {/* Loading state */}
       {displayLoading && (
-        <div className="bg-white rounded-2xl p-10 border border-[#EADFCF] text-center space-y-4 shadow-xs">
-          <Loader2 size={32} className="animate-spin text-[#F47B20] mx-auto" />
-          <h3 className="text-sm font-bold text-[#181512] uppercase tracking-wider">
+        <div className="bg-[#121317] rounded-2xl p-10 border border-white/8 text-center space-y-4 shadow-xs">
+          <Loader2 size={32} className="animate-spin text-[#FF5C1A] mx-auto" />
+          <h3 className="text-sm font-bold text-[#EDEDED] uppercase tracking-wider font-mono">
             Processing Profile Data...
           </h3>
-          <p className="text-xs text-[#7A7265] max-w-md mx-auto">
+          <p className="text-xs text-[#8B949E] max-w-md mx-auto">
             Extracting professional experience and generating quantified STAR bullet points with AI assistance.
           </p>
         </div>
@@ -330,12 +330,12 @@ export const LinkedInIntegrationView: React.FC = () => {
       {!displayLoading && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-black uppercase tracking-widest text-[#7A7265]">
+            <h2 className="text-xs font-black uppercase tracking-widest text-[#8B949E] font-mono">
               Extracted Professional Achievements ({resumeForgeItems.length > 0 ? resumeForgeItems.length : 3})
             </h2>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="text-xs text-[#F47B20] hover:text-[#E9670B] font-bold uppercase cursor-pointer flex items-center gap-1.5"
+              className="text-xs text-[#FF5C1A] hover:text-[#FF5C1A]/80 font-bold uppercase cursor-pointer flex items-center gap-1.5 font-mono"
             >
               <RefreshCw size={12} />
               Upload another PDF
@@ -374,19 +374,19 @@ export const LinkedInIntegrationView: React.FC = () => {
             ]).map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-2xl p-6 border border-[#EADFCF] shadow-xs hover:border-[#181512]/30 transition-all space-y-4"
+                className="bg-[#121317] rounded-2xl p-6 border border-white/8 shadow-xs hover:border-white/16 transition-all space-y-4"
               >
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-3 border-b border-[#EADFCF]">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-3 border-b border-white/8">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#0077B5]/10 border border-[#0077B5]/20 flex items-center justify-center text-[#0077B5] shrink-0">
+                    <div className="w-8 h-8 rounded-xl bg-[#0077B5]/15 border border-[#0077B5]/30 flex items-center justify-center text-[#0077B5] shrink-0">
                       <Linkedin size={16} />
                     </div>
                     <div>
-                      <span className="text-sm font-bold text-[#181512]">
+                      <span className="text-sm font-bold text-[#EDEDED]">
                         {item.repository}
                       </span>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[11px] text-[#7A7265] font-mono inline-flex items-center gap-1">
+                        <span className="text-[11px] text-[#8B949E] font-mono inline-flex items-center gap-1">
                           {item.codeSnapshot}
                         </span>
                       </div>
@@ -395,12 +395,12 @@ export const LinkedInIntegrationView: React.FC = () => {
 
                   <div className="flex items-center gap-2">
                     {item.accepted && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E8F8F0] border border-[#BDE8D3] text-[10px] font-bold uppercase tracking-wider text-[#1E7E50]">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#22C55E]/10 border border-[#22C55E]/20 text-[10px] font-bold uppercase tracking-wider text-[#22C55E] font-mono">
                         <Check size={11} /> Added to CV
                       </span>
                     )}
                     {item.addedToLedger && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFF0E4] border border-[#F5C5A5] text-[10px] font-bold uppercase tracking-wider text-[#C45E0E]">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FF5C1A]/10 border border-[#FF5C1A]/20 text-[10px] font-bold uppercase tracking-wider text-[#FF5C1A] font-mono">
                         <ShieldCheck size={11} /> In Proof Ledger
                       </span>
                     )}
@@ -409,14 +409,14 @@ export const LinkedInIntegrationView: React.FC = () => {
 
                 {/* Generated Bullet Output */}
                 <div className="space-y-2">
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-[#7A7265]">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-[#8B949E] font-mono">
                     Quantified Resume Bullet Point (Nexus-Writer Output)
                   </label>
                   <textarea
                     value={item.suggestedBullet}
                     onChange={(e) => updateResumeForgeItemBullet(item.id, e.target.value)}
                     rows={2}
-                    className="w-full bg-[#FBF8F3] border border-[#EADFCF] rounded-xl p-3.5 text-xs text-[#181512] font-medium leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#F47B20] transition-all resize-y"
+                    className="w-full bg-[#0A0B0E] border border-white/10 rounded-xl p-3.5 text-xs text-[#EDEDED] font-medium leading-relaxed focus:outline-none focus:border-[#FF5C1A] transition-all resize-y"
                     placeholder="Refine bullet point here..."
                   />
                 </div>
@@ -430,8 +430,8 @@ export const LinkedInIntegrationView: React.FC = () => {
                     }}
                     className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                       item.accepted
-                        ? 'bg-[#1E7E50] text-white'
-                        : 'bg-[#E8F8F0] text-[#1E7E50] border border-[#BDE8D3] hover:bg-[#D5F2E3]'
+                        ? 'bg-[#22C55E] text-white'
+                        : 'bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20 hover:bg-[#22C55E]/20'
                     }`}
                   >
                     <Check size={13} />
@@ -445,8 +445,8 @@ export const LinkedInIntegrationView: React.FC = () => {
                     }}
                     className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                       item.addedToLedger
-                        ? 'bg-[#F47B20] text-white'
-                        : 'bg-[#FFF0E4] text-[#C45E0E] border border-[#F5C5A5] hover:bg-[#FFE4D0]'
+                        ? 'bg-[#FF5C1A] text-white'
+                        : 'bg-[#FF5C1A]/10 text-[#FF5C1A] border border-[#FF5C1A]/20 hover:bg-[#FF5C1A]/20'
                     }`}
                   >
                     <Plus size={13} />

@@ -89,7 +89,7 @@ export const RecommendedProgramsView: React.FC = () => {
     const courses = (stored && stored.length > 0) ? stored : (CURATED_PROGRAMS_FALLBACK[skill] || []);
     
     if (courses.length === 0) {
-      return <p className="text-xs text-[#7A7265] italic mt-2">No programs currently indexed for this skill.</p>;
+      return <p className="text-xs text-[#8B949E] italic mt-2">No programs currently indexed for this skill.</p>;
     }
     
     return (
@@ -104,37 +104,37 @@ export const RecommendedProgramsView: React.FC = () => {
               rel="noopener noreferrer"
               className={`flex items-center justify-between gap-4 p-3.5 rounded-xl border transition-all duration-200 group ${
                 isGovt
-                  ? 'bg-[#FFF8F0] border-[#F5C5A5] hover:border-[#F47B20] hover:shadow-xs'
-                  : 'bg-[#FBF8F3] border-[#EADFCF] hover:border-[#181512]/30 hover:bg-white hover:shadow-xs'
+                  ? 'bg-[#1A1B20] border-white/8 hover:border-[#FF5C1A]/40 hover:bg-[#222329]'
+                  : 'bg-[#121317] border-white/6 hover:border-white/16 hover:bg-[#1A1B20]'
               }`}
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                   {isGovt && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#FFF0E4] text-[#C45E0E] border border-[#F5C5A5] rounded-md text-[10px] font-bold uppercase tracking-wider">
-                      <Landmark size={11} className="text-[#F47B20]" />
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#FF5C1A]/10 text-[#FF5C1A] border border-[#FF5C1A]/20 rounded-md text-[10px] font-bold uppercase tracking-wider font-mono">
+                      <Landmark size={11} className="text-[#FF5C1A]" />
                       Govt. Accredited
                     </span>
                   )}
                   {course.isFree && (
-                    <span className="px-2 py-0.5 bg-[#E8F8F0] text-[#1E7E50] border border-[#BDE8D3] rounded-md text-[10px] font-bold uppercase tracking-wider">
+                    <span className="px-2 py-0.5 bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20 rounded-md text-[10px] font-bold uppercase tracking-wider font-mono">
                       Free Access
                     </span>
                   )}
                   {course.badge && !isGovt && (
-                    <span className="px-2 py-0.5 bg-white text-[#7A7265] border border-[#EADFCF] rounded-md text-[10px] font-bold uppercase tracking-wider">
+                    <span className="px-2 py-0.5 bg-[#0A0B0E] text-[#8B949E] border border-white/8 rounded-md text-[10px] font-bold uppercase tracking-wider font-mono">
                       {course.badge}
                     </span>
                   )}
                 </div>
-                <p className="text-xs font-bold text-[#181512] group-hover:text-[#F47B20] transition-colors line-clamp-1">
+                <p className="text-xs font-bold text-[#EDEDED] group-hover:text-[#FF5C1A] transition-colors line-clamp-1">
                   {course.title}
                 </p>
-                <div className="flex items-center gap-2 mt-1 text-[11px] text-[#7A7265]">
+                <div className="flex items-center gap-2 mt-1 text-[11px] text-[#8B949E]">
                   <span>{course.provider}</span>
                 </div>
               </div>
-              <div className="shrink-0 w-8 h-8 rounded-lg bg-white border border-[#EADFCF] flex items-center justify-center text-[#7A7265] group-hover:bg-[#F47B20] group-hover:text-white group-hover:border-[#F47B20] transition-all shadow-xs">
+              <div className="shrink-0 w-8 h-8 rounded-lg bg-[#0A0B0E] border border-white/8 flex items-center justify-center text-[#8B949E] group-hover:bg-[#FF5C1A] group-hover:text-white group-hover:border-[#FF5C1A] transition-all shadow-xs">
                 <ArrowUpRight size={14} />
               </div>
             </a>
@@ -145,45 +145,45 @@ export const RecommendedProgramsView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto px-4 py-6 sm:p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto custom-scrollbar bg-[#F8F3EC]">
+    <div className="flex-1 h-full overflow-y-auto px-4 py-6 sm:p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto custom-scrollbar bg-[#0A0B0E] text-[#EDEDED]">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-[#FFF0E4] border border-[#F5C5A5] flex items-center justify-center shrink-0 text-[#F47B20] shadow-xs">
+          <div className="w-11 h-11 rounded-2xl bg-[#121317] border border-white/8 flex items-center justify-center shrink-0 text-[#FF5C1A] shadow-xs">
             <GraduationCap size={22} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FFF0E4] text-[#C45E0E] border border-[#F5C5A5]">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FF5C1A]/10 text-[#FF5C1A] border border-[#FF5C1A]/20 font-mono">
                 Educational Intelligence
               </span>
-              <span className="text-[11px] font-bold text-[#7A7265]">• Govt. Curricula & Standards</span>
+              <span className="text-[11px] font-bold text-[#8B949E] font-mono">• Govt. Curricula & Standards</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-[#181512] tracking-tight mt-0.5">
+            <h1 className="text-xl sm:text-2xl font-black text-[#EDEDED] tracking-tight mt-0.5">
               Recommended Programs & Roadmaps
             </h1>
-            <p className="text-xs text-[#7A7265] mt-0.5">
+            <p className="text-xs text-[#8B949E] mt-0.5">
               Verified Indian Government training portals (SWAYAM, NPTEL, Skill India) & free accredited certifications
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 px-3.5 py-2 bg-white border border-[#EADFCF] rounded-xl text-[#181512] text-xs font-semibold shadow-xs">
-          <Landmark size={14} className="text-[#F47B20]" />
+        <div className="flex items-center gap-2 px-3.5 py-2 bg-[#121317] border border-white/8 rounded-xl text-[#EDEDED] text-xs font-semibold shadow-xs font-mono">
+          <Landmark size={14} className="text-[#FF5C1A]" />
           <span>Govt. Accredited Registry Synced</span>
         </div>
       </div>
 
       {loading && (
-        <div className="flex-1 flex flex-col items-center justify-center bg-white rounded-2xl border border-[#EADFCF] p-12 min-h-[350px] shadow-xs">
-          <Loader2 size={28} className="animate-spin text-[#F47B20] mb-3" />
-          <p className="text-sm font-bold text-[#181512]">Indexing Course Catalogs...</p>
-          <p className="text-xs text-[#7A7265] mt-1">Cross-referencing skill gaps against SWAYAM & NPTEL</p>
+        <div className="flex-1 flex flex-col items-center justify-center bg-[#121317] rounded-2xl border border-white/8 p-12 min-h-[350px] shadow-xs">
+          <Loader2 size={28} className="animate-spin text-[#FF5C1A] mb-3" />
+          <p className="text-sm font-bold text-[#EDEDED]">Indexing Course Catalogs...</p>
+          <p className="text-xs text-[#8B949E] mt-1 font-mono">Cross-referencing skill gaps against SWAYAM & NPTEL</p>
         </div>
       )}
 
       {error && !loading && (
-        <div className="p-3.5 bg-rose-50 text-rose-700 text-xs font-medium rounded-xl border border-rose-200">
+        <div className="p-3.5 bg-[#EF4444]/10 text-[#EF4444] text-xs font-medium rounded-xl border border-[#EF4444]/20">
           {error}
         </div>
       )}
@@ -193,21 +193,21 @@ export const RecommendedProgramsView: React.FC = () => {
           {/* Critical Priority Gap Courses */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between px-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-rose-500" /> Critical Priority (Required for Role)
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#EF4444] font-mono flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#EF4444]" /> Critical Priority (Required for Role)
               </span>
-              <span className="text-[11px] font-semibold text-[#7A7265]">
+              <span className="text-[11px] font-semibold text-[#8B949E] font-mono">
                 {effectiveRequiredGaps.length} Target Areas
               </span>
             </div>
 
             {effectiveRequiredGaps.slice(0, 3).map(skill => (
-              <div key={skill} className="bg-white rounded-2xl border border-[#EADFCF] p-5 shadow-xs">
+              <div key={skill} className="bg-[#121317] rounded-2xl border border-white/8 p-5 shadow-xs">
                 <div className="flex items-center justify-between">
-                  <span className="inline-block px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold">
+                  <span className="inline-block px-2.5 py-1 bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20 rounded-lg text-xs font-bold font-mono">
                     {skill}
                   </span>
-                  <span className="text-[11px] font-medium text-[#7A7265]">High Placement Weight</span>
+                  <span className="text-[11px] font-medium text-[#8B949E] font-mono">High Placement Weight</span>
                 </div>
                 {renderCourseList(skill)}
               </div>
@@ -217,21 +217,21 @@ export const RecommendedProgramsView: React.FC = () => {
           {/* Secondary Priority Courses */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between px-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#C45E0E] flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#F47B20]" /> Secondary Priority (Differentiating Edge)
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF5C1A] font-mono flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#FF5C1A]" /> Secondary Priority (Differentiating Edge)
               </span>
-              <span className="text-[11px] font-semibold text-[#7A7265]">
+              <span className="text-[11px] font-semibold text-[#8B949E] font-mono">
                 {effectiveNiceGaps.length} Growth Areas
               </span>
             </div>
 
             {effectiveNiceGaps.slice(0, 3).map(skill => (
-              <div key={skill} className="bg-white rounded-2xl border border-[#EADFCF] p-5 shadow-xs">
+              <div key={skill} className="bg-[#121317] rounded-2xl border border-white/8 p-5 shadow-xs">
                 <div className="flex items-center justify-between">
-                  <span className="inline-block px-2.5 py-1 bg-[#FFF0E4] text-[#C45E0E] border border-[#F5C5A5] rounded-lg text-xs font-bold">
+                  <span className="inline-block px-2.5 py-1 bg-[#FF5C1A]/10 text-[#FF5C1A] border border-[#FF5C1A]/20 rounded-lg text-xs font-bold font-mono">
                     {skill}
                   </span>
-                  <span className="text-[11px] font-medium text-[#7A7265]">Accelerates Promotion</span>
+                  <span className="text-[11px] font-medium text-[#8B949E] font-mono">Accelerates Promotion</span>
                 </div>
                 {renderCourseList(skill)}
               </div>

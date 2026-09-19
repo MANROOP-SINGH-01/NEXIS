@@ -169,24 +169,24 @@ export const JobMatchesView: React.FC = () => {
     : currentJobs.filter(j => j.bucket === selectedBucket);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 bg-[#F8F3EC] custom-scrollbar">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 bg-[#0A0B0E] custom-scrollbar">
       {/* Header & Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#181512] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#EDEDED] tracking-tight">
               Job Intelligence & Match Radar
             </h1>
             <NexusBadge variant="orange" size="sm">
               {currentJobs.length} Live Postings
             </NexusBadge>
           </div>
-          <p className="text-xs sm:text-sm text-[#6A6359] font-normal">
-            Targeting: <span className="font-semibold text-[#181512]">{targetRole}</span> • Transparent fit ratings & warm referral detection.
+          <p className="text-xs sm:text-sm text-[#8B949E] font-normal">
+            Targeting: <span className="font-semibold text-[#EDEDED]">{targetRole}</span> • Transparent fit ratings & warm referral detection.
           </p>
         </div>
 
-        {/* PulseAI Capsule Mode Toggle */}
+        {/* Capsule Mode Toggle */}
         <div className="nx-nav-capsule">
           <button
             onClick={() => setMode('current')}
@@ -198,21 +198,21 @@ export const JobMatchesView: React.FC = () => {
             onClick={() => setMode('reachable')}
             className={`nx-nav-tab flex items-center gap-1.5 ${mode === 'reachable' ? 'active' : ''}`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#F47B20]" />
+            <Sparkles className="w-3.5 h-3.5 text-[#FF5C1A]" />
             <span>Reachable (Stretch)</span>
           </button>
         </div>
       </div>
 
       {trackFeedback && (
-        <div className="p-3.5 bg-[#E8F6EE] border border-[#BCE4CE] text-[#246B44] rounded-2xl text-xs flex items-center justify-between gap-3 animate-in slide-in-from-top-2">
+        <div className="p-3.5 bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] rounded-xl text-xs flex items-center justify-between gap-3 animate-in slide-in-from-top-2">
           <div className="flex items-center gap-2">
-            <CheckCircle2 size={16} className="text-[#2E8555]" />
+            <CheckCircle2 size={16} className="text-[#22C55E]" />
             <span className="font-medium">{trackFeedback}</span>
           </div>
           <button
             onClick={() => setActiveSidebarTab('application-tracker')}
-            className="px-3 py-1 bg-white hover:bg-[#F2ECE2] text-[#181512] border border-[#BCE4CE] rounded-full text-xs font-semibold transition-colors cursor-pointer"
+            className="px-3 py-1 bg-[#1A1B20] hover:bg-[#22242B] text-[#EDEDED] border border-white/12 rounded-full text-xs font-semibold transition-colors cursor-pointer"
           >
             View Pipeline →
           </button>
@@ -226,8 +226,8 @@ export const JobMatchesView: React.FC = () => {
             onClick={() => setSelectedBucket('ALL')}
             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               selectedBucket === 'ALL'
-                ? 'bg-[#181512] text-white shadow-xs'
-                : 'bg-white border border-[#EADFCF] text-[#6A6359] hover:text-[#181512] hover:bg-[#F7F2EA]'
+                ? 'bg-[#1A1B20] text-white border border-[#FF5C1A]/50 shadow-sm'
+                : 'bg-[#121317] border border-white/8 text-[#8B949E] hover:text-[#EDEDED] hover:bg-[#1A1B20]'
             }`}
           >
             All Matches ({bucketCounts.ALL})
@@ -236,58 +236,58 @@ export const JobMatchesView: React.FC = () => {
             onClick={() => setSelectedBucket('APPLY_NOW')}
             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
               selectedBucket === 'APPLY_NOW'
-                ? 'bg-[#2E8555] text-white shadow-xs'
-                : 'bg-[#E8F6EE] border border-[#BCE4CE] text-[#246B44] hover:bg-[#DCF2E4]'
+                ? 'bg-[#22C55E]/20 text-[#22C55E] border border-[#22C55E]/50 shadow-sm'
+                : 'bg-[#121317] border border-white/8 text-[#8B949E] hover:text-[#22C55E] hover:bg-[#1A1B20]'
             }`}
           >
-            <Flame size={13} />
+            <Flame size={13} className="text-[#22C55E]" />
             Apply Now ({bucketCounts.APPLY_NOW})
           </button>
           <button
             onClick={() => setSelectedBucket('LEARN_THEN_APPLY')}
             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
               selectedBucket === 'LEARN_THEN_APPLY'
-                ? 'bg-[#F47B20] text-white shadow-xs'
-                : 'bg-[#FFF0E4] border border-[#FDCBA7] text-[#C45709] hover:bg-[#FFE6D3]'
+                ? 'bg-[#FF5C1A]/20 text-[#FF5C1A] border border-[#FF5C1A]/50 shadow-sm'
+                : 'bg-[#121317] border border-white/8 text-[#8B949E] hover:text-[#FF5C1A] hover:bg-[#1A1B20]'
             }`}
           >
-            <Sparkles size={13} />
+            <Sparkles size={13} className="text-[#FF5C1A]" />
             Learn Then Apply ({bucketCounts.LEARN_THEN_APPLY})
           </button>
           <button
             onClick={() => setSelectedBucket('STRETCH')}
             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
               selectedBucket === 'STRETCH'
-                ? 'bg-[#C98218] text-white shadow-xs'
-                : 'bg-[#FEF6E9] border border-[#F8DFAC] text-[#A6690E] hover:bg-[#FDECCE]'
+                ? 'bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/50 shadow-sm'
+                : 'bg-[#121317] border border-white/8 text-[#8B949E] hover:text-[#F59E0B] hover:bg-[#1A1B20]'
             }`}
           >
-            <Target size={13} />
+            <Target size={13} className="text-[#F59E0B]" />
             Stretch ({bucketCounts.STRETCH})
           </button>
         </div>
       )}
 
       {loading && (
-        <div className="bg-white rounded-2xl border border-[#EADFCF] p-12 text-center min-h-[350px] flex flex-col items-center justify-center shadow-xs">
-          <Loader2 size={32} className="animate-spin text-[#F47B20] mb-3" />
-          <p className="text-base font-bold text-[#181512]">Scanning Live Market Pipelines...</p>
-          <p className="text-xs text-[#999084] mt-1">Calculating multi-signal fit scores & warm referral connections</p>
+        <div className="bg-[#121317] rounded-[10px] border border-white/8 p-12 text-center min-h-[350px] flex flex-col items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
+          <Loader2 size={32} className="animate-spin text-[#FF5C1A] mb-3" />
+          <p className="text-base font-bold text-[#EDEDED]">Scanning Live Market Pipelines...</p>
+          <p className="text-xs text-[#8B949E] mt-1 font-mono">Calculating multi-signal fit scores & warm referral connections</p>
         </div>
       )}
 
       {error && !loading && (
-        <div className="p-4 bg-[#FDEEED] text-[#B83128] text-xs rounded-2xl border border-[#F7BEBA] flex items-center gap-2.5">
-          <AlertTriangle size={16} className="text-[#D9453B] shrink-0" />
+        <div className="p-4 bg-[#EF4444]/10 text-[#EF4444] text-xs rounded-xl border border-[#EF4444]/20 flex items-center gap-2.5">
+          <AlertTriangle size={16} className="text-[#EF4444] shrink-0" />
           <span className="font-medium">{error}</span>
         </div>
       )}
 
       {!loading && !error && currentJobs.length === 0 && (
-        <div className="bg-white rounded-2xl border border-dashed border-[#D7CABB] p-12 text-center min-h-[350px] flex flex-col items-center justify-center">
-          <Target size={36} className="text-[#999084] mb-3" />
-          <p className="text-base font-bold text-[#181512]">No Direct Matches in Current Cache</p>
-          <p className="text-xs text-[#6A6359] mt-1 max-w-sm">
+        <div className="bg-[#121317] rounded-[10px] border border-dashed border-white/12 p-12 text-center min-h-[350px] flex flex-col items-center justify-center">
+          <Target size={36} className="text-[#8B949E] mb-3" />
+          <p className="text-base font-bold text-[#EDEDED]">No Direct Matches in Current Cache</p>
+          <p className="text-xs text-[#8B949E] mt-1 max-w-sm">
             Run the 3D Agent Mesh or update your Target Role in Settings to scan fresh partner job postings.
           </p>
         </div>
@@ -302,37 +302,37 @@ export const JobMatchesView: React.FC = () => {
             return (
               <div
                 key={job.id}
-                className="bg-white rounded-2xl border border-[#EADFCF] p-6 shadow-[0_4px_20px_-2px_rgba(180,150,120,0.08)] flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-[0_8px_28px_-4px_rgba(180,150,120,0.12)] transition-all duration-200"
+                className="bg-[#121317] rounded-[10px] border border-white/8 p-6 shadow-[0_8px_24px_rgba(0,0,0,0.4)] flex flex-col justify-between hover:-translate-y-0.5 hover:border-white/16 hover:shadow-[0_12px_32px_rgba(0,0,0,0.6)] transition-all duration-200"
               >
                 <div>
                   {/* Top Badges */}
                   <div className="flex items-center justify-between gap-2 flex-wrap mb-3.5">
                     <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-tight ${
                       job.bucket === 'APPLY_NOW'
-                        ? 'bg-[#E8F6EE] text-[#246B44] border border-[#BCE4CE]'
+                        ? 'bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30'
                         : job.bucket === 'LEARN_THEN_APPLY'
-                        ? 'bg-[#FFF0E4] text-[#C45709] border border-[#FDCBA7]'
+                        ? 'bg-[#FF5C1A]/15 text-[#FF5C1A] border border-[#FF5C1A]/30'
                         : job.bucket === 'STRETCH'
-                        ? 'bg-[#FEF6E9] text-[#A6690E] border border-[#F8DFAC]'
-                        : 'bg-[#F4EDE3] text-[#575047] border border-[#E5DBCF]'
+                        ? 'bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30'
+                        : 'bg-[#1A1B20] text-[#8B949E] border border-white/8'
                     }`}>
                       {job.bucket === 'APPLY_NOW' ? '🔥 Apply Now' : job.bucket === 'LEARN_THEN_APPLY' ? '⚡ Learn Then Apply' : job.bucket === 'STRETCH' ? '🎯 Stretch' : 'Moderate Match'}
                     </span>
 
                     <div className="flex items-center gap-1.5">
                       {job.isLikelyGhost && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] bg-[#FDEEED] text-[#B83128] border border-[#F7BEBA] flex items-center gap-1">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30 flex items-center gap-1">
                           <Clock size={10} />
                           Stale (&gt;45d)
                         </span>
                       )}
                       {job.isDirectAts && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FFF0E4] text-[#C45709] border border-[#FDCBA7]">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#3B82F6]/15 text-[#3B82F6] border border-[#3B82F6]/30">
                           Direct ATS
                         </span>
                       )}
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FAF6F0] text-[#181512] border border-[#EADFCF]">
-                        <ShieldCheck size={12} className="text-[#2E8555]" />
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-[#1A1B20] text-[#EDEDED] border border-white/8">
+                        <ShieldCheck size={12} className="text-[#22C55E]" />
                         {job.trustPercent ?? 85}% Trust
                       </span>
                     </div>
@@ -340,53 +340,53 @@ export const JobMatchesView: React.FC = () => {
 
                   {/* Job Title & Company */}
                   <div className="mb-3.5">
-                    <h2 className="text-lg font-bold text-[#181512] leading-snug hover:text-[#F47B20] transition-colors">
+                    <h2 className="text-lg font-bold text-[#EDEDED] leading-snug hover:text-[#FF5C1A] transition-colors">
                       {job.title}
                     </h2>
-                    <div className="flex items-center gap-2 text-xs text-[#6A6359] mt-1 font-medium">
-                      <Building size={13} className="text-[#999084]" />
-                      <span className="font-semibold text-[#181512]">{job.company}</span>
-                      <span className="w-1 h-1 rounded-full bg-[#D7CABB]" />
-                      <span className="capitalize">{job.source}</span>
+                    <div className="flex items-center gap-2 text-xs text-[#8B949E] mt-1 font-medium">
+                      <Building size={13} className="text-[#8B949E]" />
+                      <span className="font-semibold text-[#EDEDED]">{job.company}</span>
+                      <span className="w-1 h-1 rounded-full bg-white/20" />
+                      <span className="capitalize font-mono">{job.source}</span>
                     </div>
                   </div>
 
                   {/* Multi-Signal Breakdown Box */}
-                  <div className="bg-[#FAF6F0] rounded-xl p-3 border border-[#EADFCF] mb-3.5">
+                  <div className="bg-[#1A1B20] rounded-[8px] p-3 border border-white/8 mb-3.5">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#999084]">Multi-Signal Overlap</span>
-                      <span className="text-xs font-bold text-[#F47B20]">{job.overallScore ?? job.alignmentScore}% Composite</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">Multi-Signal Overlap</span>
+                      <span className="text-xs font-mono font-bold text-[#FF5C1A]">{job.overallScore ?? job.alignmentScore}% Composite</span>
                     </div>
                     <div className="grid grid-cols-4 gap-2 text-center">
-                      <div className="p-1.5 rounded-lg bg-white border border-[#E5DBCF] shadow-2xs">
-                        <p className="text-[9px] text-[#999084] font-medium uppercase">Skills</p>
-                        <p className="text-xs font-bold text-[#2E8555]">{job.skillScore ?? 85}%</p>
+                      <div className="p-1.5 rounded-lg bg-[#121317] border border-white/8">
+                        <p className="text-[9px] text-[#8B949E] font-medium uppercase font-mono">Skills</p>
+                        <p className="text-xs font-mono font-bold text-[#22C55E]">{job.skillScore ?? 85}%</p>
                       </div>
-                      <div className="p-1.5 rounded-lg bg-white border border-[#E5DBCF] shadow-2xs">
-                        <p className="text-[9px] text-[#999084] font-medium uppercase">Exp</p>
-                        <p className="text-xs font-bold text-[#3A7BD5]">{job.experienceScore ?? 80}%</p>
+                      <div className="p-1.5 rounded-lg bg-[#121317] border border-white/8">
+                        <p className="text-[9px] text-[#8B949E] font-medium uppercase font-mono">Exp</p>
+                        <p className="text-xs font-mono font-bold text-[#3B82F6]">{job.experienceScore ?? 80}%</p>
                       </div>
-                      <div className="p-1.5 rounded-lg bg-white border border-[#E5DBCF] shadow-2xs">
-                        <p className="text-[9px] text-[#999084] font-medium uppercase">Title</p>
-                        <p className="text-xs font-bold text-[#C45709]">{job.titleScore ?? 75}%</p>
+                      <div className="p-1.5 rounded-lg bg-[#121317] border border-white/8">
+                        <p className="text-[9px] text-[#8B949E] font-medium uppercase font-mono">Title</p>
+                        <p className="text-xs font-mono font-bold text-[#FF5C1A]">{job.titleScore ?? 75}%</p>
                       </div>
-                      <div className="p-1.5 rounded-lg bg-white border border-[#E5DBCF] shadow-2xs">
-                        <p className="text-[9px] text-[#999084] font-medium uppercase">Project</p>
-                        <p className="text-xs font-bold text-[#C98218]">{job.projectScore ?? 70}%</p>
+                      <div className="p-1.5 rounded-lg bg-[#121317] border border-white/8">
+                        <p className="text-[9px] text-[#8B949E] font-medium uppercase font-mono">Project</p>
+                        <p className="text-xs font-mono font-bold text-[#F59E0B]">{job.projectScore ?? 70}%</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Transparent Fit Evaluation from Proficiently Architecture */}
+                  {/* Transparent Fit Evaluation */}
                   {job.fitEvaluation && (
                     <div className={`rounded-xl p-3 border mb-3.5 text-xs ${
                       job.fitEvaluation.rating === 'HIGH'
-                        ? 'bg-[#E8F6EE] border-[#BCE4CE] text-[#246B44]'
+                        ? 'bg-[#22C55E]/10 border-[#22C55E]/20 text-[#22C55E]'
                         : job.fitEvaluation.rating === 'MEDIUM'
-                        ? 'bg-[#FEF6E9] border-[#F8DFAC] text-[#A6690E]'
+                        ? 'bg-[#F59E0B]/10 border-[#F59E0B]/20 text-[#F59E0B]'
                         : job.fitEvaluation.rating === 'SKIP'
-                        ? 'bg-[#FDEEED] border-[#F7BEBA] text-[#B83128]'
-                        : 'bg-[#FAF6F0] border-[#EADFCF] text-[#575047]'
+                        ? 'bg-[#EF4444]/10 border-[#EF4444]/20 text-[#EF4444]'
+                        : 'bg-[#1A1B20] border-white/8 text-[#EDEDED]'
                     }`}>
                       <div className="flex items-center justify-between font-bold mb-1">
                         <span className="flex items-center gap-1.5 uppercase text-[11px] tracking-tight">
@@ -395,13 +395,13 @@ export const JobMatchesView: React.FC = () => {
                           {job.fitEvaluation.rating === 'LOW' && '⚠️ Stretch Target'}
                           {job.fitEvaluation.rating === 'SKIP' && '⛔ Dealbreaker Disqualification'}
                         </span>
-                        <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/80 font-bold">
+                        <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/10 text-white font-mono font-bold">
                           {job.fitEvaluation.scorePercent}/100
                         </span>
                       </div>
 
                       {job.fitEvaluation.dealbreakersTriggered.length > 0 && (
-                        <p className="text-[11px] text-[#B83128] font-medium mt-1">
+                        <p className="text-[11px] text-[#EF4444] font-medium mt-1">
                           Dealbreaker: {job.fitEvaluation.dealbreakersTriggered.join(', ')}
                         </p>
                       )}
@@ -416,16 +416,16 @@ export const JobMatchesView: React.FC = () => {
 
                   {/* Warm Referral Connection Banner */}
                   {job.networkMatches && job.networkMatches.length > 0 && (
-                    <div className="p-3 bg-[#F8F2FC] border border-[#E2D4F0] rounded-xl mb-3.5 flex items-center justify-between gap-3 text-xs">
+                    <div className="p-3 bg-[#7C3AED]/10 border border-[#7C3AED]/20 rounded-xl mb-3.5 flex items-center justify-between gap-3 text-xs">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-[#EADDFA] text-[#6B2FB5] flex items-center justify-center font-bold text-xs shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-[#7C3AED]/25 text-[#A78BFA] flex items-center justify-center font-bold text-xs shrink-0">
                           {job.networkMatches[0].name.slice(0, 1)}
                         </div>
                         <div>
-                          <p className="font-bold text-[#4B1E82] leading-tight">
+                          <p className="font-bold text-[#EDEDED] leading-tight">
                             {job.networkMatches[0].name} ({job.networkMatches[0].position})
                           </p>
-                          <p className="text-[10px] text-[#7E4DBB] font-medium">
+                          <p className="text-[10px] text-[#A78BFA] font-medium">
                             Connection at {job.company}
                           </p>
                         </div>
@@ -436,7 +436,7 @@ export const JobMatchesView: React.FC = () => {
                           const msg = generateWarmOutreachMessage(contact, job.title, workHistoryProfile.candidateName);
                           setWarmOutreachModal({ contact, jobTitle: job.title, message: msg });
                         }}
-                        className="px-3 py-1.5 rounded-full bg-[#6B2FB5] hover:bg-[#582596] text-white text-[11px] font-bold whitespace-nowrap transition-colors cursor-pointer shadow-xs"
+                        className="px-3 py-1.5 rounded-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-[11px] font-bold whitespace-nowrap transition-colors cursor-pointer shadow-xs"
                       >
                         Draft Intro →
                       </button>
@@ -444,26 +444,26 @@ export const JobMatchesView: React.FC = () => {
                   )}
 
                   {/* Nexus Match Reason */}
-                  <p className="text-xs text-[#6A6359] leading-relaxed mb-4 line-clamp-2 font-normal">
+                  <p className="text-xs text-[#8B949E] leading-relaxed mb-4 line-clamp-2 font-normal">
                     {job.nexusMatchReason}
                   </p>
                 </div>
 
                 {/* Card Actions: Primary Orange + Secondary Pill */}
-                <div className="flex items-center gap-2 pt-3 border-t border-[#F5EFE6]">
+                <div className="flex items-center gap-2 pt-3 border-t border-white/8">
                   <button
                     onClick={() => handleTrackApplication(job)}
                     disabled={isTracked || isSaving}
-                    className={`nx-btn-secondary !py-2 !px-3.5 !text-xs flex-1 ${isTracked ? '!bg-[#E8F6EE] !text-[#246B44] !border-[#BCE4CE]' : ''}`}
+                    className={`nx-btn-secondary !py-2 !px-3.5 !text-xs flex-1 ${isTracked ? '!bg-[#22C55E]/15 !text-[#22C55E] !border-[#22C55E]/30' : ''}`}
                   >
                     {isTracked ? (
                       <>
-                        <Check size={13} className="text-[#2E8555]" />
+                        <Check size={13} className="text-[#22C55E]" />
                         <span>Tracked</span>
                       </>
                     ) : (
                       <>
-                        <BookmarkPlus size={13} className="text-[#6A6359]" />
+                        <BookmarkPlus size={13} className="text-[#8B949E]" />
                         <span>Track</span>
                       </>
                     )}
@@ -483,7 +483,7 @@ export const JobMatchesView: React.FC = () => {
                       setStructuredResume({ targetJD: `${job.title} at ${job.company}\n\nNexus Match Reason: ${job.nexusMatchReason}` });
                       setActiveSidebarTab('skill-gaps');
                     }}
-                    className="p-2 bg-white hover:bg-[#F2ECE2] text-[#6A6359] hover:text-[#181512] rounded-full border border-[#EADFCF] transition-colors"
+                    className="p-2 bg-[#1A1B20] hover:bg-[#22242B] text-[#8B949E] hover:text-[#EDEDED] rounded-full border border-white/8 transition-colors cursor-pointer"
                     title="Generate Reverse Resume"
                   >
                     <Repeat size={14} />
@@ -507,16 +507,16 @@ export const JobMatchesView: React.FC = () => {
 
       {/* Warm Outreach Modal */}
       {warmOutreachModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-          <div className="bg-[#FFFDF9] border border-[#EADFCF] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl p-6 font-sans space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#F0E6D8]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="bg-[#121317] border border-white/12 rounded-[12px] w-full max-w-lg overflow-hidden shadow-[0_16px_36px_rgba(0,0,0,0.6)] p-6 font-sans space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/8">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-[#FFF0E4] border border-[#FDCBA7] text-[#F47B20]">
+                <div className="p-2 rounded-xl bg-[#FF5C1A]/15 border border-[#FF5C1A]/30 text-[#FF5C1A]">
                   <Users className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-[#181512]">Warm Referral Intro Draft</h3>
-                  <p className="text-xs text-[#6A6359]">To {warmOutreachModal.contact.name} at {warmOutreachModal.contact.company}</p>
+                  <h3 className="text-base font-bold text-[#EDEDED]">Warm Referral Intro Draft</h3>
+                  <p className="text-xs text-[#8B949E]">To {warmOutreachModal.contact.name} at {warmOutreachModal.contact.company}</p>
                 </div>
               </div>
               <button
@@ -524,18 +524,18 @@ export const JobMatchesView: React.FC = () => {
                   setWarmOutreachModal(null);
                   setCopiedOutreach(false);
                 }}
-                className="p-1.5 rounded-full text-[#999084] hover:text-[#181512] hover:bg-[#F2ECE2]"
+                className="p-1.5 rounded-full text-[#8B949E] hover:text-[#EDEDED] hover:bg-[#1A1B20] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#FAF6F0] border border-[#EADFCF] font-sans text-xs text-[#181512] whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
+            <div className="p-4 rounded-xl bg-[#0A0B0E] border border-white/8 font-mono text-xs text-[#EDEDED] whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
               {warmOutreachModal.message}
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <span className="text-[11px] text-[#999084]">
+              <span className="text-[11px] text-[#8B949E] font-mono">
                 {warmOutreachModal.contact.linkedinUrl ? 'Verified LinkedIn connection' : 'Internal network contact'}
               </span>
               <button

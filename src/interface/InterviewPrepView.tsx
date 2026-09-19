@@ -9,9 +9,9 @@ import { getAuthHeaders } from '../integration/store/authStore';
 import { CandidateSkill } from '../types';
 
 const CATEGORY_STYLES: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  'technical': { label: 'Technical Core', color: '#C45E0E', bg: '#FFF0E4', border: '#F5C5A5' },
-  'behavioral': { label: 'Behavioral & Leadership', color: '#1E7E50', bg: '#E8F8F0', border: '#BDE8D3' },
-  'system-design': { label: 'System Architecture', color: '#2B6CB0', bg: '#EBF4FF', border: '#BEE3F8' },
+  'technical': { label: 'Technical Core', color: '#FF5C1A', bg: 'rgba(255, 92, 26, 0.1)', border: 'rgba(255, 92, 26, 0.2)' },
+  'behavioral': { label: 'Behavioral & Leadership', color: '#22C55E', bg: 'rgba(34, 197, 94, 0.1)', border: 'rgba(34, 197, 94, 0.2)' },
+  'system-design': { label: 'System Architecture', color: '#3B82F6', bg: 'rgba(59, 130, 246, 0.1)', border: 'rgba(59, 130, 246, 0.2)' },
 };
 
 interface FocusArea { category: string; topic: string; why: string; tip: string; }
@@ -90,30 +90,30 @@ export const InterviewPrepView: React.FC = () => {
   }, [skillProfile?.jd_role_title, currentResume.targetJD]);
 
   return (
-    <div className="flex-1 bg-[#F8F3EC] min-h-screen overflow-y-auto px-4 py-8 sm:p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto custom-scrollbar text-[#181512]">
+    <div className="flex-1 bg-[#0A0B0E] min-h-screen overflow-y-auto px-4 py-8 sm:p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto custom-scrollbar text-[#EDEDED]">
       
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-[#FFF0E4] border border-[#F5C5A5] flex items-center justify-center shrink-0 shadow-xs">
-            <MessageSquare size={22} className="text-[#F47B20]" />
+          <div className="w-12 h-12 rounded-2xl bg-[#121317] border border-white/8 flex items-center justify-center shrink-0 shadow-xs text-[#FF5C1A]">
+            <MessageSquare size={22} />
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FFF0E4] text-[#C45E0E] border border-[#F5C5A5]">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FF5C1A]/10 text-[#FF5C1A] border border-[#FF5C1A]/20 font-mono">
                 Cognitive Interview Simulator
               </span>
               {brief.isRealTime && (
-                <span className="px-2 py-0.5 bg-[#E8F8F0] border border-[#BDE8D3] text-[#1E7E50] font-bold rounded-full text-[9px] uppercase tracking-widest">
+                <span className="px-2 py-0.5 bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] font-bold rounded-full text-[9px] uppercase tracking-widest font-mono">
                   Live AI Active
                 </span>
               )}
             </div>
-            <h1 className="text-2xl md:text-3xl font-black text-[#181512] tracking-tight">Interview Studio</h1>
-            <p className="text-xs text-[#7A7265] font-medium mt-0.5 flex flex-wrap items-center gap-2">
-              <span className="text-[#181512] font-semibold">{seniority}</span>
-              <span className="w-1 h-1 rounded-full bg-[#D7CABB]" />
-              <span className="text-[#F47B20] font-bold">{roleTitle}</span>
+            <h1 className="text-2xl md:text-3xl font-black text-[#EDEDED] tracking-tight">Interview Studio</h1>
+            <p className="text-xs text-[#8B949E] font-medium mt-0.5 flex flex-wrap items-center gap-2 font-mono">
+              <span className="text-[#EDEDED] font-semibold">{seniority}</span>
+              <span className="w-1 h-1 rounded-full bg-white/20" />
+              <span className="text-[#FF5C1A] font-bold">{roleTitle}</span>
             </p>
           </div>
         </div>
@@ -122,14 +122,14 @@ export const InterviewPrepView: React.FC = () => {
           <button
             onClick={fetchRealTimeBrief}
             disabled={loading}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-white border border-[#EADFCF] text-[#181512] hover:border-[#181512]/30 hover:bg-[#FBF8F3] transition-all cursor-pointer shadow-xs disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-[#121317] border border-white/8 text-[#EDEDED] hover:bg-[#1A1B20] transition-all cursor-pointer shadow-xs disabled:opacity-50"
           >
-            {loading ? <Loader2 size={14} className="animate-spin text-[#F47B20]" /> : <RefreshCw size={14} />}
+            {loading ? <Loader2 size={14} className="animate-spin text-[#FF5C1A]" /> : <RefreshCw size={14} />}
             Regenerate
           </button>
           <button
             onClick={() => setNexusMirrorOpen(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#F47B20] hover:bg-[#E9670B] transition-all shadow-xs cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#FF5C1A] hover:bg-[#FF5C1A]/90 transition-all shadow-xs cursor-pointer"
           >
             <Sparkles size={15} />
             Launch Nexus-Mirror
@@ -138,16 +138,16 @@ export const InterviewPrepView: React.FC = () => {
       </div>
 
       {loading && (
-        <div className="flex-1 flex flex-col items-center justify-center bg-white rounded-3xl border border-[#EADFCF] shadow-xs min-h-[400px]">
-          <Loader2 size={36} className="animate-spin text-[#F47B20] mb-4" />
-          <p className="text-sm font-bold text-[#181512] tracking-tight">Synthesizing role-specific interview matrix...</p>
-          <p className="text-xs text-[#7A7265] mt-1">Cross-referencing gap vulnerabilities against {roleTitle}</p>
+        <div className="flex-1 flex flex-col items-center justify-center bg-[#121317] rounded-3xl border border-white/8 shadow-xs min-h-[400px]">
+          <Loader2 size={36} className="animate-spin text-[#FF5C1A] mb-4" />
+          <p className="text-sm font-bold text-[#EDEDED] tracking-tight">Synthesizing role-specific interview matrix...</p>
+          <p className="text-xs text-[#8B949E] mt-1 font-mono">Cross-referencing gap vulnerabilities against {roleTitle}</p>
         </div>
       )}
 
       {error && !loading && (
-        <div className="p-4 bg-rose-50 text-rose-700 text-xs rounded-2xl border border-rose-200 font-medium flex items-center gap-2">
-          <AlertTriangle size={16} className="text-rose-500" />
+        <div className="p-4 bg-[#EF4444]/10 text-[#EF4444] text-xs rounded-2xl border border-[#EF4444]/20 font-medium flex items-center gap-2">
+          <AlertTriangle size={16} className="text-[#EF4444]" />
           <span>{error}</span>
         </div>
       )}
@@ -158,27 +158,27 @@ export const InterviewPrepView: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Strength to lead with */}
             {brief.key_strength_to_lead_with && (
-              <div className="rounded-3xl border border-[#F5C5A5] p-6 flex flex-col gap-3 bg-[#FFF8F0] shadow-xs relative overflow-hidden">
+              <div className="rounded-3xl border border-[#FF5C1A]/20 p-6 flex flex-col gap-3 bg-[#121317] shadow-xs relative overflow-hidden">
                 <div className="flex items-center gap-2 mb-1">
-                  <Trophy size={18} className="text-[#F47B20]" />
-                  <p className="text-xs font-bold uppercase tracking-widest text-[#C45E0E]">
+                  <Trophy size={18} className="text-[#FF5C1A]" />
+                  <p className="text-xs font-bold uppercase tracking-widest text-[#FF5C1A] font-mono">
                     Lead With This (Primary Edge)
                   </p>
                 </div>
-                <p className="text-sm font-semibold text-[#181512] leading-relaxed">{brief.key_strength_to_lead_with}</p>
+                <p className="text-sm font-semibold text-[#EDEDED] leading-relaxed">{brief.key_strength_to_lead_with}</p>
               </div>
             )}
 
             {/* Overall readiness note */}
             {brief.overall_readiness_note && (
-              <div className="rounded-3xl border border-[#EADFCF] bg-white shadow-xs p-6 flex flex-col gap-3">
+              <div className="rounded-3xl border border-white/8 bg-[#121317] shadow-xs p-6 flex flex-col gap-3">
                 <div className="flex items-center gap-2 mb-1">
-                  <Activity size={18} className="text-[#1E7E50]" />
-                  <p className="text-xs font-bold uppercase tracking-widest text-[#1E7E50]">
+                  <Activity size={18} className="text-[#22C55E]" />
+                  <p className="text-xs font-bold uppercase tracking-widest text-[#22C55E] font-mono">
                     Readiness Assessment
                   </p>
                 </div>
-                <p className="text-sm font-medium text-[#7A7265] leading-relaxed">{brief.overall_readiness_note}</p>
+                <p className="text-sm font-medium text-[#8B949E] leading-relaxed">{brief.overall_readiness_note}</p>
               </div>
             )}
           </div>
@@ -187,27 +187,27 @@ export const InterviewPrepView: React.FC = () => {
             {/* Focus areas */}
             {Array.isArray(brief.focus_areas) && brief.focus_areas.length > 0 && (
               <div className="flex flex-col gap-4">
-                <p className="text-xs font-bold uppercase tracking-widest text-[#7A7265] px-1 flex items-center gap-2">
-                  <BookOpen size={14} className="text-[#F47B20]" /> Critical Focus Vectors
+                <p className="text-xs font-bold uppercase tracking-widest text-[#8B949E] px-1 flex items-center gap-2 font-mono">
+                  <BookOpen size={14} className="text-[#FF5C1A]" /> Critical Focus Vectors
                 </p>
                 <div className="flex flex-col gap-4">
                   {brief.focus_areas.map((area, i) => {
                     const style = CATEGORY_STYLES[area.category] || CATEGORY_STYLES['technical'];
                     return (
-                      <div key={i} className="bg-white rounded-3xl border border-[#EADFCF] p-6 shadow-xs hover:border-[#181512]/30 transition-all">
+                      <div key={i} className="bg-[#121317] rounded-3xl border border-white/8 p-6 shadow-xs hover:border-white/16 transition-all">
                         <div className="flex items-center gap-3 mb-3">
                           <span
-                            className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider"
+                            className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider font-mono"
                             style={{ color: style.color, background: style.bg, border: `1px solid ${style.border}` }}
                           >
                             {style.label}
                           </span>
-                          <span className="text-sm font-bold text-[#181512]">{area.topic}</span>
+                          <span className="text-sm font-bold text-[#EDEDED]">{area.topic}</span>
                         </div>
-                        <p className="text-xs text-[#7A7265] mb-4 leading-relaxed">{area.why}</p>
-                        <div className="flex items-start gap-3 bg-[#FBF8F3] rounded-2xl p-4 border border-[#EADFCF]">
-                          <Lightbulb size={16} className="shrink-0 text-[#F47B20] mt-0.5" />
-                          <p className="text-xs text-[#181512] font-medium leading-relaxed">{area.tip}</p>
+                        <p className="text-xs text-[#8B949E] mb-4 leading-relaxed">{area.why}</p>
+                        <div className="flex items-start gap-3 bg-[#0A0B0E] rounded-2xl p-4 border border-white/6">
+                          <Lightbulb size={16} className="shrink-0 text-[#FF5C1A] mt-0.5" />
+                          <p className="text-xs text-[#EDEDED] font-medium leading-relaxed">{area.tip}</p>
                         </div>
                       </div>
                     );
@@ -219,24 +219,24 @@ export const InterviewPrepView: React.FC = () => {
             {/* Gap-specific topics */}
             {Array.isArray(brief.gap_topics) && brief.gap_topics.length > 0 && (
               <div className="flex flex-col gap-4">
-                <p className="text-xs font-bold uppercase tracking-widest text-[#7A7265] px-1 flex items-center gap-2">
-                  <AlertTriangle size={14} className="text-[#C45E0E]" /> Anticipated Pressure Points
+                <p className="text-xs font-bold uppercase tracking-widest text-[#8B949E] px-1 flex items-center gap-2 font-mono">
+                  <AlertTriangle size={14} className="text-[#F59E0B]" /> Anticipated Pressure Points
                 </p>
                 <div className="flex flex-col gap-4">
                   {brief.gap_topics.map((topic, i) => (
-                    <div key={i} className="bg-white rounded-3xl border border-[#EADFCF] p-6 shadow-xs hover:border-[#181512]/30 transition-all">
+                    <div key={i} className="bg-[#121317] rounded-3xl border border-white/8 p-6 shadow-xs hover:border-white/16 transition-all">
                       <div className="flex items-center gap-2 mb-3">
-                        <span className="w-7 h-7 rounded-xl bg-[#FFF0E4] flex items-center justify-center shrink-0 border border-[#F5C5A5]">
-                          <AlertTriangle size={13} className="text-[#F47B20]" />
+                        <span className="w-7 h-7 rounded-xl bg-[#FF5C1A]/10 flex items-center justify-center shrink-0 border border-[#FF5C1A]/20">
+                          <AlertTriangle size={13} className="text-[#FF5C1A]" />
                         </span>
-                        <span className="text-sm font-bold text-[#181512]">{topic.skill}</span>
+                        <span className="text-sm font-bold text-[#EDEDED]">{topic.skill}</span>
                       </div>
-                      <p className="text-xs text-[#181512] mb-4 italic leading-relaxed border-l-2 border-[#F47B20] pl-3 bg-[#FFF8F0] py-2 rounded-r-lg">
+                      <p className="text-xs text-[#EDEDED] mb-4 italic leading-relaxed border-l-2 border-[#FF5C1A] pl-3 bg-[#0A0B0E] py-2 rounded-r-lg font-mono text-[11px]">
                         "{topic.likely_question_angle}"
                       </p>
-                      <div className="flex items-start gap-3 bg-[#FBF8F3] rounded-2xl p-4 border border-[#EADFCF]">
-                        <ChevronRight size={16} className="shrink-0 text-[#F47B20] mt-0.5" />
-                        <p className="text-xs text-[#7A7265] font-medium leading-relaxed">{topic.prep_suggestion}</p>
+                      <div className="flex items-start gap-3 bg-[#0A0B0E] rounded-2xl p-4 border border-white/6">
+                        <ChevronRight size={16} className="shrink-0 text-[#FF5C1A] mt-0.5" />
+                        <p className="text-xs text-[#8B949E] font-medium leading-relaxed">{topic.prep_suggestion}</p>
                       </div>
                     </div>
                   ))}
@@ -246,21 +246,21 @@ export const InterviewPrepView: React.FC = () => {
           </div>
 
           {/* CTA to launch full mock */}
-          <div className="mt-4 rounded-3xl p-8 flex flex-col sm:flex-row items-center justify-between gap-6 bg-[#FFF8F0] border border-[#F5C5A5] shadow-xs">
+          <div className="mt-4 rounded-3xl p-8 flex flex-col sm:flex-row items-center justify-between gap-6 bg-[#121317] border border-white/8 shadow-xs">
             <div className="flex-1">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FFF0E4] text-[#C45E0E] border border-[#F5C5A5]">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FF5C1A]/10 text-[#FF5C1A] border border-[#FF5C1A]/20 font-mono">
                 Interactive Speech & Cadence
               </span>
-              <h3 className="text-xl font-black text-[#181512] mt-2 mb-1">
+              <h3 className="text-xl font-black text-[#EDEDED] mt-2 mb-1">
                 Real-Time Voice & Behavioral Simulation
               </h3>
-              <p className="text-sm text-[#7A7265] font-medium max-w-xl">
+              <p className="text-sm text-[#8B949E] font-medium max-w-xl">
                 Nexus-Mirror simulates adaptive technical interrogations, analyzes verbal cadence, and gives live feedback on answer conciseness.
               </p>
             </div>
             <button
               onClick={() => setNexusMirrorOpen(true)}
-              className="shrink-0 inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-[#F47B20] hover:bg-[#E9670B] transition-all shadow-xs cursor-pointer"
+              className="shrink-0 inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-[#FF5C1A] hover:bg-[#FF5C1A]/90 transition-all shadow-xs cursor-pointer"
             >
               <Sparkles size={16} />
               Launch Nexus-Mirror

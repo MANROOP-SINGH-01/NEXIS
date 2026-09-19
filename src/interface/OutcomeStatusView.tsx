@@ -32,11 +32,11 @@ function formatEmploymentStatus(status: string | null): string {
 
 function getStatusBadgeStyle(status: string | null): { bg: string; text: string; border: string } {
   switch (status) {
-    case 'EMPLOYED': return { bg: 'bg-[#E8F8F0]', text: 'text-[#1E7E50]', border: 'border-[#BDE8D3]' };
-    case 'SELF_EMPLOYED': return { bg: 'bg-[#FFF0E4]', text: 'text-[#C45E0E]', border: 'border-[#F5C5A5]' };
-    case 'SEARCHING': return { bg: 'bg-[#FEF3C7]', text: 'text-[#B45309]', border: 'border-[#FDE68A]' };
-    case 'IN_TRAINING': return { bg: 'bg-[#EBF4FF]', text: 'text-[#2B6CB0]', border: 'border-[#BEE3F8]' };
-    default: return { bg: 'bg-[#FBF8F3]', text: 'text-[#7A7265]', border: 'border-[#EADFCF]' };
+    case 'EMPLOYED': return { bg: 'bg-[#22C55E]/10', text: 'text-[#22C55E]', border: 'border-[#22C55E]/20' };
+    case 'SELF_EMPLOYED': return { bg: 'bg-[#FF5C1A]/10', text: 'text-[#FF5C1A]', border: 'border-[#FF5C1A]/20' };
+    case 'SEARCHING': return { bg: 'bg-[#F59E0B]/10', text: 'text-[#F59E0B]', border: 'border-[#F59E0B]/20' };
+    case 'IN_TRAINING': return { bg: 'bg-[#3B82F6]/10', text: 'text-[#3B82F6]', border: 'border-[#3B82F6]/20' };
+    default: return { bg: 'bg-[#1A1B20]', text: 'text-[#8B949E]', border: 'border-white/8' };
   }
 }
 
@@ -295,23 +295,23 @@ export const OutcomeStatusView: React.FC = () => {
   const effectiveHistory = outcomeHistory.length > 0 ? outcomeHistory : (isDemoMode() ? DEFAULT_OUTCOMES : []);
 
   return (
-    <div className="flex-1 bg-[#F8F3EC] min-h-screen overflow-y-auto px-4 py-8 sm:p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto custom-scrollbar text-[#181512]">
+    <div className="flex-1 bg-[#0A0B0E] min-h-screen overflow-y-auto px-4 py-8 sm:p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto custom-scrollbar text-[#EDEDED]">
       
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-[#FFF0E4] border border-[#F5C5A5] flex items-center justify-center shrink-0 shadow-xs">
-            <Award size={24} className="text-[#F47B20]" />
+          <div className="w-12 h-12 rounded-2xl bg-[#121317] border border-white/8 flex items-center justify-center shrink-0 shadow-xs text-[#FF5C1A]">
+            <Award size={24} />
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FFF0E4] text-[#C45E0E] border border-[#F5C5A5]">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FF5C1A]/10 text-[#FF5C1A] border border-[#FF5C1A]/20 font-mono">
                 Placement & Corroboration
               </span>
-              <span className="text-[11px] font-bold text-[#7A7265]">• DPDP Audit Ledger</span>
+              <span className="text-[11px] font-bold text-[#8B949E] font-mono">• DPDP Audit Ledger</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-black text-[#181512] tracking-tight">Career Outcomes & Evidence</h1>
-            <p className="text-xs text-[#7A7265] font-medium mt-0.5">
+            <h1 className="text-2xl md:text-3xl font-black text-[#EDEDED] tracking-tight">Career Outcomes & Evidence</h1>
+            <p className="text-xs text-[#8B949E] font-medium mt-0.5">
               Self-report employment transitions & request employer verification • {traineeName}
             </p>
           </div>
@@ -320,37 +320,37 @@ export const OutcomeStatusView: React.FC = () => {
         <button
           onClick={fetchHistory}
           disabled={loadingHistory}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-white border border-[#EADFCF] text-[#181512] hover:border-[#181512]/30 hover:bg-[#FBF8F3] transition-all cursor-pointer shadow-xs disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-[#121317] border border-white/8 text-[#EDEDED] hover:bg-[#1A1B20] transition-all cursor-pointer shadow-xs disabled:opacity-50"
         >
-          <RefreshCw size={14} className={loadingHistory ? 'animate-spin text-[#F47B20]' : ''} />
+          <RefreshCw size={14} className={loadingHistory ? 'animate-spin text-[#FF5C1A]' : ''} />
           <span>Sync Status</span>
         </button>
       </div>
 
       {/* Form Card: Self-Report Status */}
-      <div className="bg-white rounded-3xl border border-[#EADFCF] shadow-xs p-6 md:p-8 relative overflow-hidden">
-        <div className="flex items-center justify-between gap-2 mb-6 pb-4 border-b border-[#EADFCF]">
+      <div className="bg-[#121317] rounded-3xl border border-white/8 shadow-xs p-6 md:p-8 relative overflow-hidden">
+        <div className="flex items-center justify-between gap-2 mb-6 pb-4 border-b border-white/8">
           <div className="flex items-center gap-2">
-            <Send size={16} className="text-[#F47B20]" />
-            <h2 className="text-xs font-black text-[#181512] tracking-wider uppercase">
+            <Send size={16} className="text-[#FF5C1A]" />
+            <h2 className="text-xs font-black text-[#EDEDED] tracking-wider uppercase font-mono">
               Record Employment Milestone
             </h2>
           </div>
-          <span className="text-[10px] bg-[#FBF8F3] text-[#7A7265] font-mono font-bold px-2.5 py-1 rounded-md border border-[#EADFCF]">
+          <span className="text-[10px] bg-[#0A0B0E] text-[#8B949E] font-mono font-bold px-2.5 py-1 rounded-md border border-white/8">
             DPDP Compliant
           </span>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-rose-50 text-rose-700 text-xs rounded-xl border border-rose-200 font-medium flex items-center gap-3">
-            <AlertCircle size={16} className="shrink-0 text-rose-500" />
+          <div className="mb-6 p-4 bg-[#EF4444]/10 text-[#EF4444] text-xs rounded-xl border border-[#EF4444]/20 font-medium flex items-center gap-3">
+            <AlertCircle size={16} className="shrink-0 text-[#EF4444]" />
             <span>{error}</span>
           </div>
         )}
 
         {successMessage && (
-          <div className="mb-6 p-4 bg-[#E8F8F0] text-[#1E7E50] text-xs rounded-xl border border-[#BDE8D3] font-bold flex items-center gap-3">
-            <CheckCircle2 size={16} className="shrink-0 text-[#1E7E50]" />
+          <div className="mb-6 p-4 bg-[#22C55E]/10 text-[#22C55E] text-xs rounded-xl border border-[#22C55E]/20 font-bold flex items-center gap-3 font-mono">
+            <CheckCircle2 size={16} className="shrink-0 text-[#22C55E]" />
             <span>{successMessage}</span>
           </div>
         )}
@@ -359,11 +359,11 @@ export const OutcomeStatusView: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
             
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold text-[#7A7265] uppercase tracking-wider">Employment Status *</label>
+              <label className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wider font-mono">Employment Status *</label>
               <select
                 value={employmentStatus}
                 onChange={(e) => setEmploymentStatus(e.target.value)}
-                className="w-full bg-[#FBF8F3] border border-[#EADFCF] rounded-xl px-4 py-2.5 text-sm text-[#181512] font-semibold focus:outline-none focus:ring-2 focus:ring-[#F47B20] transition-all cursor-pointer"
+                className="w-full bg-[#0A0B0E] border border-white/12 rounded-xl px-4 py-2.5 text-sm text-[#EDEDED] font-semibold focus:outline-none focus:border-[#FF5C1A] transition-all cursor-pointer"
               >
                 <option value="EMPLOYED">Employed</option>
                 <option value="SELF_EMPLOYED">Self-Employed / Freelancer</option>
@@ -375,25 +375,25 @@ export const OutcomeStatusView: React.FC = () => {
 
             {employmentStatus === 'EMPLOYED' && (
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-bold text-[#7A7265] uppercase tracking-wider">Employer / Company Name *</label>
+                <label className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wider font-mono">Employer / Company Name *</label>
                 <div className="relative">
-                  <Building size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7A7265]" />
+                  <Building size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#71717A]" />
                   <input
                     type="text" value={employerName} onChange={(e) => setEmployerName(e.target.value)}
                     placeholder="e.g. Razorpay, Swiggy, Google" required
-                    className="w-full bg-[#FBF8F3] border border-[#EADFCF] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#181512] font-semibold focus:outline-none focus:ring-2 focus:ring-[#F47B20] placeholder-[#7A7265]/60 transition-all"
+                    className="w-full bg-[#0A0B0E] border border-white/12 rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#EDEDED] font-semibold focus:outline-none focus:border-[#FF5C1A] placeholder-[#71717A] transition-all"
                   />
                 </div>
               </div>
             )}
 
             <div>
-              <label className="text-[11px] font-bold text-[#7A7265] uppercase tracking-wider mb-1.5 block">Monthly Compensation</label>
+              <label className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wider mb-1.5 block font-mono">Monthly Compensation</label>
               <div className="relative">
-                <DollarSign size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7A7265]" />
+                <DollarSign size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#71717A]" />
                 <select
                   value={wageBand} onChange={(e) => setWageBand(e.target.value)}
-                  className="w-full bg-[#FBF8F3] border border-[#EADFCF] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#181512] font-semibold focus:outline-none focus:ring-2 focus:ring-[#F47B20] transition-all cursor-pointer"
+                  className="w-full bg-[#0A0B0E] border border-white/12 rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#EDEDED] font-semibold focus:outline-none focus:border-[#FF5C1A] transition-all cursor-pointer font-mono"
                 >
                   <option value="0-10k">₹0 – ₹10,000 / month</option>
                   <option value="10-20k">₹10,000 – ₹20,000 / month</option>
@@ -404,12 +404,12 @@ export const OutcomeStatusView: React.FC = () => {
 
             {(employmentStatus === 'EMPLOYED' || employmentStatus === 'SELF_EMPLOYED') && (
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-bold text-[#7A7265] uppercase tracking-wider">Relevance to Training *</label>
+                <label className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wider font-mono">Relevance to Training *</label>
                 <div className="relative">
-                  <Compass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7A7265]" />
+                  <Compass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#71717A]" />
                   <select
                     value={roleRelevance} onChange={(e) => setRoleRelevance(e.target.value)} required
-                    className="w-full bg-[#FBF8F3] border border-[#EADFCF] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#181512] font-semibold focus:outline-none focus:ring-2 focus:ring-[#F47B20] transition-all cursor-pointer"
+                    className="w-full bg-[#0A0B0E] border border-white/12 rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#EDEDED] font-semibold focus:outline-none focus:border-[#FF5C1A] transition-all cursor-pointer font-mono"
                   >
                     <option value="DIRECTLY_RELATED">Directly Related</option>
                     <option value="SOMEWHAT_RELATED">Somewhat Related</option>
@@ -421,24 +421,24 @@ export const OutcomeStatusView: React.FC = () => {
 
             {employmentStatus === 'SELF_EMPLOYED' && (
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-bold text-[#7A7265] uppercase tracking-wider">Business Type / Domain</label>
+                <label className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wider font-mono">Business Type / Domain</label>
                 <input
                   type="text" value={selfEmploymentType} onChange={(e) => setSelfEmploymentType(e.target.value)}
                   placeholder="e.g. Freelance Web Developer"
-                  className="w-full bg-[#FBF8F3] border border-[#EADFCF] rounded-xl px-4 py-2.5 text-sm text-[#181512] font-semibold focus:outline-none focus:ring-2 focus:ring-[#F47B20] placeholder-[#7A7265]/60 transition-all"
+                  className="w-full bg-[#0A0B0E] border border-white/12 rounded-xl px-4 py-2.5 text-sm text-[#EDEDED] font-semibold focus:outline-none focus:border-[#FF5C1A] placeholder-[#71717A] transition-all"
                 />
               </div>
             )}
 
             {(employmentStatus === 'EMPLOYED' || employmentStatus === 'SELF_EMPLOYED') && (
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-bold text-[#7A7265] uppercase tracking-wider">Placement District (Optional)</label>
+                <label className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wider font-mono">Placement District (Optional)</label>
                 <div className="relative">
-                  <MapPin size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7A7265]" />
+                  <MapPin size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#71717A]" />
                   <input
                     type="text" value={placementDistrict} onChange={(e) => setPlacementDistrict(e.target.value)}
                     placeholder="e.g. Bengaluru, Pune, Delhi NCR"
-                    className="w-full bg-[#FBF8F3] border border-[#EADFCF] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#181512] font-semibold focus:outline-none focus:ring-2 focus:ring-[#F47B20] placeholder-[#7A7265]/60 transition-all"
+                    className="w-full bg-[#0A0B0E] border border-white/12 rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#EDEDED] font-semibold focus:outline-none focus:border-[#FF5C1A] placeholder-[#71717A] transition-all"
                   />
                 </div>
               </div>
@@ -446,18 +446,18 @@ export const OutcomeStatusView: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-[#7A7265] uppercase tracking-wider">Milestone Context & Projects</label>
+            <label className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wider font-mono">Milestone Context & Projects</label>
             <textarea
               value={notes} onChange={(e) => setNotes(e.target.value)}
               placeholder="Any details about role level, project scope, or onboarding dates..." rows={3}
-              className="w-full bg-[#FBF8F3] border border-[#EADFCF] rounded-xl px-4 py-3 text-sm text-[#181512] font-medium focus:outline-none focus:ring-2 focus:ring-[#F47B20] placeholder-[#7A7265]/60 transition-all resize-y"
+              className="w-full bg-[#0A0B0E] border border-white/12 rounded-xl px-4 py-3 text-sm text-[#EDEDED] font-medium focus:outline-none focus:border-[#FF5C1A] placeholder-[#71717A] transition-all resize-y"
             />
           </div>
 
           <div className="flex justify-end pt-2">
             <button
               type="submit" disabled={submitting}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#F47B20] hover:bg-[#E9670B] text-white rounded-xl text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#FF5C1A] hover:bg-[#FF5C1A]/90 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-xs disabled:opacity-50 cursor-pointer"
             >
               {submitting ? (
                 <><Loader2 size={16} className="animate-spin" /> Recording Milestone...</>
@@ -471,22 +471,22 @@ export const OutcomeStatusView: React.FC = () => {
 
       {verificationFeedback && (
         <div className={`p-5 rounded-2xl border text-sm font-medium flex items-start gap-4 shadow-xs ${
-          verificationFeedback.type === 'success' ? 'bg-[#E8F8F0] text-[#1E7E50] border-[#BDE8D3]' :
-          verificationFeedback.type === 'consent_warning' ? 'bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]' :
-          'bg-rose-50 text-rose-700 border-rose-200'
+          verificationFeedback.type === 'success' ? 'bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20' :
+          verificationFeedback.type === 'consent_warning' ? 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20' :
+          'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20'
         }`}>
-          {verificationFeedback.type === 'success' && <CheckCircle2 size={20} className="text-[#1E7E50] shrink-0" />}
-          {verificationFeedback.type === 'consent_warning' && <AlertTriangle size={20} className="text-[#B45309] shrink-0" />}
-          {verificationFeedback.type === 'error' && <AlertCircle size={20} className="text-rose-500 shrink-0" />}
+          {verificationFeedback.type === 'success' && <CheckCircle2 size={20} className="text-[#22C55E] shrink-0" />}
+          {verificationFeedback.type === 'consent_warning' && <AlertTriangle size={20} className="text-[#F59E0B] shrink-0" />}
+          {verificationFeedback.type === 'error' && <AlertCircle size={20} className="text-[#EF4444] shrink-0" />}
           <div className="flex-1">
             <p className="leading-relaxed font-semibold">{verificationFeedback.message}</p>
             {verificationFeedback.link && (
-              <a href={verificationFeedback.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 mt-2 font-bold text-[#F47B20] hover:underline">
+              <a href={verificationFeedback.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 mt-2 font-bold text-[#FF5C1A] hover:underline">
                 Open Verification Portal <ExternalLink size={14} />
               </a>
             )}
           </div>
-          <button onClick={() => setVerificationFeedback(null)} className="text-[#7A7265] hover:text-[#181512] p-1 cursor-pointer"><X size={16} /></button>
+          <button onClick={() => setVerificationFeedback(null)} className="text-[#8B949E] hover:text-[#EDEDED] p-1 cursor-pointer"><X size={16} /></button>
         </div>
       )}
 
@@ -494,23 +494,23 @@ export const OutcomeStatusView: React.FC = () => {
       <div className="flex flex-col gap-4 mt-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Clock size={16} className="text-[#F47B20]" />
-            <h2 className="text-xs font-black text-[#181512] uppercase tracking-widest">
+            <Clock size={16} className="text-[#FF5C1A]" />
+            <h2 className="text-xs font-black text-[#EDEDED] uppercase tracking-widest font-mono">
               Outcome Audit History & Corroboration
             </h2>
           </div>
-          <span className="text-xs font-bold text-[#7A7265] font-mono">
+          <span className="text-xs font-bold text-[#8B949E] font-mono">
             {effectiveHistory.length} {effectiveHistory.length === 1 ? 'Record' : 'Records'}
           </span>
         </div>
 
         {effectiveHistory.length === 0 && !loadingHistory && (
-          <div className="bg-white rounded-3xl border border-[#EADFCF] shadow-xs p-12 text-center flex flex-col items-center">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-[#FBF8F3] border border-[#EADFCF]">
-              <Award size={32} className="text-[#7A7265]" />
+          <div className="bg-[#121317] rounded-3xl border border-white/8 shadow-xs p-12 text-center flex flex-col items-center">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-[#0A0B0E] border border-white/8">
+              <Award size={32} className="text-[#71717A]" />
             </div>
-            <h3 className="text-lg font-bold text-[#181512] mb-2">No outcome records yet</h3>
-            <p className="text-sm text-[#7A7265] max-w-sm font-medium leading-relaxed">
+            <h3 className="text-lg font-bold text-[#EDEDED] mb-2">No outcome records yet</h3>
+            <p className="text-sm text-[#8B949E] max-w-sm font-medium leading-relaxed">
               Self-report your current transition status above to start your verified track record.
             </p>
           </div>
@@ -525,42 +525,42 @@ export const OutcomeStatusView: React.FC = () => {
               const isEmployed = item.employmentStatus === 'EMPLOYED';
 
               return (
-                <div key={item.id} className="bg-white rounded-3xl border border-[#EADFCF] shadow-xs p-6 flex flex-col gap-4 hover:border-[#181512]/30 transition-all duration-300">
+                <div key={item.id} className="bg-[#121317] rounded-3xl border border-white/8 shadow-xs p-6 flex flex-col gap-4 hover:border-white/16 transition-all duration-300">
                   <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
                     <div className="flex items-center gap-3">
-                      <span className="text-base font-bold text-[#181512] tracking-tight">
+                      <span className="text-base font-bold text-[#EDEDED] tracking-tight">
                         {formatCheckinType(item.checkinType)}
                       </span>
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md border ${
-                        item.status === 'COMPLETED' ? 'bg-[#E8F8F0] text-[#1E7E50] border-[#BDE8D3]' : 'bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]'
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md border font-mono ${
+                        item.status === 'COMPLETED' ? 'bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20' : 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20'
                       }`}>
                         {item.status}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs font-semibold text-[#7A7265] bg-[#FBF8F3] border border-[#EADFCF] px-3 py-1.5 rounded-xl font-mono">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-[#8B949E] bg-[#0A0B0E] border border-white/8 px-3 py-1.5 rounded-xl font-mono">
                       <Calendar size={13} />
                       {new Date(respondedDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                     </div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border ${badge.bg} ${badge.text} ${badge.border}`}>
+                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border font-mono ${badge.bg} ${badge.text} ${badge.border}`}>
                       <Briefcase size={14} /> {formatEmploymentStatus(item.employmentStatus)}
                     </div>
                     {item.employerName && (
-                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#FBF8F3] border border-[#EADFCF] text-[#181512]">
-                        <Building size={14} className="text-[#F47B20]" /> {item.employerName}
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#0A0B0E] border border-white/8 text-[#EDEDED]">
+                        <Building size={14} className="text-[#FF5C1A]" /> {item.employerName}
                       </div>
                     )}
                     {item.wageBand && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#FBF8F3] border border-[#EADFCF] text-[#181512] font-mono">
-                        <DollarSign size={14} className="text-[#1E7E50]" /> ₹{item.wageBand}
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#0A0B0E] border border-white/8 text-[#EDEDED] font-mono">
+                        <DollarSign size={14} className="text-[#22C55E]" /> ₹{item.wageBand}
                       </div>
                     )}
                     {item.roleRelevance && (
-                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border ${
-                        item.roleRelevance === 'DIRECTLY_RELATED' ? 'bg-[#E8F8F0] text-[#1E7E50] border-[#BDE8D3]' :
-                        item.roleRelevance === 'SOMEWHAT_RELATED' ? 'bg-[#FFF0E4] text-[#C45E0E] border-[#F5C5A5]' : 'bg-[#FBF8F3] text-[#7A7265] border-[#EADFCF]'
+                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border font-mono ${
+                        item.roleRelevance === 'DIRECTLY_RELATED' ? 'bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20' :
+                        item.roleRelevance === 'SOMEWHAT_RELATED' ? 'bg-[#FF5C1A]/10 text-[#FF5C1A] border-[#FF5C1A]/20' : 'bg-[#0A0B0E] text-[#8B949E] border-white/8'
                       }`}>
                         <Compass size={14} /> {formatRelevanceLabel(item.roleRelevance)}
                       </div>
@@ -568,32 +568,32 @@ export const OutcomeStatusView: React.FC = () => {
                   </div>
 
                   {item.notes && (
-                    <div className="p-4 bg-[#FBF8F3] rounded-xl border border-[#EADFCF] text-sm text-[#181512] leading-relaxed italic">
+                    <div className="p-4 bg-[#0A0B0E] rounded-xl border border-white/6 text-sm text-[#EDEDED] leading-relaxed italic">
                       "{item.notes}"
                     </div>
                   )}
 
                   {isEmployed && (
-                    <div className="pt-4 border-t border-[#EADFCF] mt-1">
+                    <div className="pt-4 border-t border-white/8 mt-1">
                       {verification ? (
-                        <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-[#FBF8F3] rounded-2xl border border-[#EADFCF]">
+                        <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-[#0A0B0E] rounded-2xl border border-white/8">
                           <div className="flex flex-wrap items-center gap-3">
-                            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border ${
-                              verification.status === 'CONFIRMED' ? 'bg-[#E8F8F0] text-[#1E7E50] border-[#BDE8D3]' :
-                              verification.status === 'DENIED' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]'
+                            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border font-mono ${
+                              verification.status === 'CONFIRMED' ? 'bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20' :
+                              verification.status === 'DENIED' ? 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20' : 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20'
                             }`}>
                               {verification.status === 'CONFIRMED' && <ShieldCheck size={15} />}
                               {verification.status === 'DENIED' && <XCircle size={15} />}
                               {verification.status === 'PENDING' && <Clock size={15} />}
                               <span>{verification.status === 'CONFIRMED' ? 'Employer Verified' : verification.status === 'DENIED' ? 'Employer Denied' : 'Verification Pending'}</span>
                             </div>
-                            <span className="text-xs text-[#7A7265] font-medium flex items-center gap-1.5">
-                              <Mail size={13} className="text-[#7A7265]" />
-                              <code className="bg-white px-2 py-0.5 rounded border border-[#EADFCF] text-[#181512] font-mono">{verification.employerContactEmail}</code>
+                            <span className="text-xs text-[#8B949E] font-medium flex items-center gap-1.5">
+                              <Mail size={13} className="text-[#71717A]" />
+                              <code className="bg-[#121317] px-2 py-0.5 rounded border border-white/8 text-[#EDEDED] font-mono">{verification.employerContactEmail}</code>
                             </span>
                           </div>
                           {verification.status === 'PENDING' && (
-                            <a href={`/verify/${verification.verificationToken}`} target="_blank" rel="noreferrer" className="text-xs font-bold text-[#F47B20] hover:underline flex items-center gap-1.5">
+                            <a href={`/verify/${verification.verificationToken}`} target="_blank" rel="noreferrer" className="text-xs font-bold text-[#FF5C1A] hover:underline flex items-center gap-1.5 font-mono">
                               Preview Link <ExternalLink size={13} />
                             </a>
                           )}
@@ -601,29 +601,29 @@ export const OutcomeStatusView: React.FC = () => {
                       ) : (
                         <div>
                           {requestingVerificationId === item.id ? (
-                            <div className="p-5 bg-[#FBF8F3] rounded-2xl border border-[#F5C5A5]">
+                            <div className="p-5 bg-[#0A0B0E] rounded-2xl border border-[#FF5C1A]/30">
                               <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-bold text-[#181512] flex items-center gap-2">
-                                  <ShieldCheck size={18} className="text-[#F47B20]" /> Request Employer Attestation
+                                <span className="text-sm font-bold text-[#EDEDED] flex items-center gap-2">
+                                  <ShieldCheck size={18} className="text-[#FF5C1A]" /> Request Employer Attestation
                                 </span>
-                                <button onClick={() => setRequestingVerificationId(null)} className="text-xs text-[#7A7265] hover:text-[#181512] font-bold p-1 cursor-pointer"><X size={16}/></button>
+                                <button onClick={() => setRequestingVerificationId(null)} className="text-xs text-[#8B949E] hover:text-[#EDEDED] font-bold p-1 cursor-pointer"><X size={16}/></button>
                               </div>
-                              <p className="text-xs text-[#7A7265] mb-4">Send an automated, 1-click verification link to your HR or supervisor's work email.</p>
+                              <p className="text-xs text-[#8B949E] mb-4">Send an automated, 1-click verification link to your HR or supervisor's work email.</p>
                               <div className="flex flex-col sm:flex-row gap-3">
                                 <div className="relative flex-1">
-                                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7A7265]" />
+                                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#71717A]" />
                                   <input 
                                     type="email" 
                                     placeholder="hr@company.com" 
                                     value={employerEmailInput[item.id] || ''} 
                                     onChange={(e) => setEmployerEmailInput((prev) => ({...prev, [item.id]: e.target.value}))} 
-                                    className="w-full bg-white border border-[#EADFCF] rounded-xl pl-10 pr-4 py-2.5 text-sm font-semibold text-[#181512] focus:ring-2 focus:ring-[#F47B20] outline-none placeholder-[#7A7265]/60" 
+                                    className="w-full bg-[#121317] border border-white/12 rounded-xl pl-10 pr-4 py-2.5 text-sm font-semibold text-[#EDEDED] focus:border-[#FF5C1A] outline-none placeholder-[#71717A]" 
                                   />
                                 </div>
                                 <button 
                                   disabled={verifyingSubmitting} 
                                   onClick={() => handleRequestVerification(item.id)} 
-                                  className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-[#F47B20] hover:bg-[#E9670B] text-white text-xs font-bold rounded-xl transition-all disabled:opacity-50 shrink-0 cursor-pointer shadow-xs"
+                                  className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-[#FF5C1A] hover:bg-[#FF5C1A]/90 text-white text-xs font-bold rounded-xl transition-all disabled:opacity-50 shrink-0 cursor-pointer shadow-xs"
                                 >
                                   {verifyingSubmitting ? <><Loader2 size={15} className="animate-spin" /> Sending...</> : <><Send size={15} /> Send Request</>}
                                 </button>
@@ -631,10 +631,10 @@ export const OutcomeStatusView: React.FC = () => {
                             </div>
                           ) : (
                             <div className="flex items-center justify-between">
-                              <span className="text-xs text-[#7A7265] font-medium">Unverified Self-Reported Claim</span>
+                              <span className="text-xs text-[#8B949E] font-medium font-mono">Unverified Self-Reported Claim</span>
                               <button 
                                 onClick={() => { setRequestingVerificationId(item.id); setVerificationFeedback(null); }} 
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#FFF0E4] hover:bg-[#FFE4D0] text-[#C45E0E] border border-[#F5C5A5] rounded-xl text-xs font-bold transition-all cursor-pointer"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF5C1A]/10 hover:bg-[#FF5C1A]/20 text-[#FF5C1A] border border-[#FF5C1A]/20 rounded-xl text-xs font-bold transition-all cursor-pointer font-mono"
                               >
                                 <ShieldCheck size={15} /> Request Verification
                               </button>
@@ -651,33 +651,33 @@ export const OutcomeStatusView: React.FC = () => {
         )}
 
         {traineeProfile?.consent?.GOVT_CROSS_CHECK?.granted && govtChecks.length > 0 && (
-          <div className="mt-8 pt-8 border-t border-[#EADFCF]">
+          <div className="mt-8 pt-8 border-t border-white/8">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#FFF0E4] border border-[#F5C5A5] flex items-center justify-center text-[#F47B20]">
+                <div className="w-10 h-10 rounded-xl bg-[#FF5C1A]/10 border border-[#FF5C1A]/20 flex items-center justify-center text-[#FF5C1A]">
                   <Landmark size={20} />
                 </div>
                 <div>
-                  <h2 className="text-xs font-black text-[#181512] uppercase tracking-widest flex items-center gap-2">
-                    National Registry Cross-Checks <span className="text-[9px] bg-[#FFF0E4] text-[#C45E0E] border border-[#F5C5A5] px-2 py-0.5 rounded-md">BETA</span>
+                  <h2 className="text-xs font-black text-[#EDEDED] uppercase tracking-widest flex items-center gap-2 font-mono">
+                    National Registry Cross-Checks <span className="text-[9px] bg-[#FF5C1A]/10 text-[#FF5C1A] border border-[#FF5C1A]/20 px-2 py-0.5 rounded-md">BETA</span>
                   </h2>
-                  <p className="text-xs text-[#7A7265] mt-0.5">Government-level corroboration telemetry (e-Shram / UDYAM)</p>
+                  <p className="text-xs text-[#8B949E] mt-0.5">Government-level corroboration telemetry (e-Shram / UDYAM)</p>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {govtChecks.map((item) => (
-                <div key={item.id} className="bg-white rounded-2xl border border-[#EADFCF] p-5 flex flex-col gap-3 shadow-xs">
+                <div key={item.id} className="bg-[#121317] rounded-2xl border border-white/8 p-5 flex flex-col gap-3 shadow-xs">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-[#181512]">{item.source === 'ESHRAM' ? 'e-Shram Registry' : 'UDYAM Portal'}</span>
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md border ${
-                      item.matchFound ? 'bg-[#E8F8F0] text-[#1E7E50] border-[#BDE8D3]' : 'bg-[#FBF8F3] text-[#7A7265] border-[#EADFCF]'
+                    <span className="text-sm font-bold text-[#EDEDED]">{item.source === 'ESHRAM' ? 'e-Shram Registry' : 'UDYAM Portal'}</span>
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md border font-mono ${
+                      item.matchFound ? 'bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20' : 'bg-[#0A0B0E] text-[#8B949E] border-white/8'
                     }`}>
                       {item.matchFound ? `Match Found (${Math.round((item.matchConfidence || 0.8) * 100)}%)` : 'No Record Found'}
                     </span>
                   </div>
-                  <p className="text-xs text-[#7A7265] bg-[#FBF8F3] p-3 rounded-xl border border-[#EADFCF] leading-relaxed font-medium">
+                  <p className="text-xs text-[#8B949E] bg-[#0A0B0E] p-3 rounded-xl border border-white/6 leading-relaxed font-medium font-mono">
                     {item.matchedRecordSummary || 'No corroborating record summary.'}
                   </p>
                 </div>

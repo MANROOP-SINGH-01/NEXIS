@@ -45,17 +45,17 @@ export const MobileNav: React.FC = () => {
       {drawerOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex flex-col justify-end">
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             onClick={() => setDrawerOpen(false)}
           />
-          <div className="relative bg-white border-t border-[#EADFCF] rounded-t-3xl p-5 shadow-2xl z-10 max-h-[70vh] overflow-y-auto custom-scrollbar">
-            <div className="flex items-center justify-between pb-4 border-b border-[#EADFCF]">
-              <span className="text-sm font-bold text-[#181512]">
+          <div className="relative bg-[#121317] border-t border-white/10 rounded-t-3xl p-5 shadow-2xl z-10 max-h-[70vh] overflow-y-auto custom-scrollbar text-[#EDEDED]">
+            <div className="flex items-center justify-between pb-4 border-b border-white/8">
+              <span className="text-sm font-bold text-[#EDEDED]">
                 All Modules & Capabilities
               </span>
               <button
                 onClick={() => setDrawerOpen(false)}
-                className="p-1 rounded-lg text-[#7A7265] hover:text-[#181512] cursor-pointer"
+                className="p-1 rounded-lg text-[#8B949E] hover:text-[#EDEDED] cursor-pointer transition-colors"
               >
                 <X size={18} />
               </button>
@@ -70,13 +70,13 @@ export const MobileNav: React.FC = () => {
                       setActiveSidebarTab(tab.id);
                       setDrawerOpen(false);
                     }}
-                    className={`flex items-center gap-2.5 p-3 rounded-xl border text-left text-xs font-bold transition-all cursor-pointer ${
+                    className={`flex items-center gap-2.5 p-3 rounded-xl border text-left text-xs font-semibold transition-all cursor-pointer ${
                       isActive
-                        ? 'bg-[#FFF0E4] border-[#F5C5A5] text-[#C45E0E]'
-                        : 'bg-[#FBF8F3] border-[#EADFCF] text-[#181512] hover:bg-white'
+                        ? 'bg-[#FF5C1A]/15 border-[#FF5C1A]/30 text-[#FF5C1A]'
+                        : 'bg-[#1A1B20] border-white/8 text-[#EDEDED] hover:bg-white/5'
                     }`}
                   >
-                    <span className={isActive ? 'text-[#F47B20]' : 'text-[#7A7265]'}>{tab.icon}</span>
+                    <span className={isActive ? 'text-[#FF5C1A]' : 'text-[#8B949E]'}>{tab.icon}</span>
                     <span className="truncate">{tab.label}</span>
                   </button>
                 );
@@ -87,7 +87,7 @@ export const MobileNav: React.FC = () => {
       )}
 
       {/* Bottom Floating/Docked Nav Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#FBF8F3]/95 backdrop-blur-xl border-t border-[#EADFCF] px-2 flex items-center justify-around z-40">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#0D0E13]/95 backdrop-blur-xl border-t border-white/8 px-2 flex items-center justify-around z-40">
         {mainTabs.map((tab) => {
           const isActive = activeSidebarTab === tab.id;
           return (
@@ -95,13 +95,13 @@ export const MobileNav: React.FC = () => {
               key={tab.id}
               onClick={() => setActiveSidebarTab(tab.id)}
               className={`flex flex-col items-center justify-center flex-1 py-1 transition-all cursor-pointer ${
-                isActive ? 'text-[#F47B20] font-bold' : 'text-[#7A7265] hover:text-[#181512]'
+                isActive ? 'text-[#FF5C1A] font-semibold' : 'text-[#8B949E] hover:text-[#EDEDED]'
               }`}
             >
               <div className="relative">
                 {tab.icon}
                 {isActive && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#F47B20] rounded-full" />
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#FF5C1A] rounded-full" />
                 )}
               </div>
               <span className="text-[10px] tracking-tight mt-1">{tab.label}</span>
@@ -113,7 +113,7 @@ export const MobileNav: React.FC = () => {
         <button
           onClick={() => setDrawerOpen(true)}
           className={`flex flex-col items-center justify-center flex-1 py-1 transition-all cursor-pointer ${
-            drawerOpen ? 'text-[#F47B20]' : 'text-[#7A7265] hover:text-[#181512]'
+            drawerOpen ? 'text-[#FF5C1A]' : 'text-[#8B949E] hover:text-[#EDEDED]'
           }`}
         >
           <Menu size={20} />

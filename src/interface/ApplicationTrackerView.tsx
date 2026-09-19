@@ -55,12 +55,12 @@ const DEMO_APPLICATIONS = [
 ];
 
 const COLUMNS = [
-  { id: 'SAVED', title: 'Saved', color: 'text-[#575047] bg-[#F4EDE3] border-[#E5DBCF]' },
-  { id: 'APPLIED', title: 'Applied', color: 'text-[#C45709] bg-[#FFF0E4] border-[#FDCBA7]' },
-  { id: 'ASSESSMENT', title: 'Assessment', color: 'text-[#6B2FB5] bg-[#F8F2FC] border-[#E2D4F0]' },
-  { id: 'INTERVIEW', title: 'Interview', color: 'text-[#A6690E] bg-[#FEF6E9] border-[#F8DFAC]' },
-  { id: 'OFFER', title: 'Offer', color: 'text-[#246B44] bg-[#E8F6EE] border-[#BCE4CE]' },
-  { id: 'REJECTED', title: 'Rejected', color: 'text-[#B83128] bg-[#FDEEED] border-[#F7BEBA]' }
+  { id: 'SAVED', title: 'Saved', color: 'text-[#8B949E] bg-[#1A1B20] border-white/10' },
+  { id: 'APPLIED', title: 'Applied', color: 'text-[#FF5C1A] bg-[#FF5C1A]/10 border-[#FF5C1A]/20' },
+  { id: 'ASSESSMENT', title: 'Assessment', color: 'text-[#A78BFA] bg-[#A78BFA]/10 border-[#A78BFA]/20' },
+  { id: 'INTERVIEW', title: 'Interview', color: 'text-[#F59E0B] bg-[#F59E0B]/10 border-[#F59E0B]/20' },
+  { id: 'OFFER', title: 'Offer', color: 'text-[#22C55E] bg-[#22C55E]/10 border-[#22C55E]/20' },
+  { id: 'REJECTED', title: 'Rejected', color: 'text-[#EF4444] bg-[#EF4444]/10 border-[#EF4444]/20' }
 ];
 
 export const ApplicationTrackerView: React.FC = () => {
@@ -135,18 +135,18 @@ export const ApplicationTrackerView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto px-4 py-6 sm:p-8 flex flex-col gap-6 max-w-[1500px] w-full mx-auto custom-scrollbar bg-[#F8F3EC]">
+    <div className="flex-1 h-full overflow-y-auto px-4 py-6 sm:p-8 flex flex-col gap-6 max-w-[1500px] w-full mx-auto custom-scrollbar bg-[#0A0B0E] text-[#EDEDED]">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-1">
         <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[#FFF0E4] border border-[#FDCBA7] flex items-center justify-center shrink-0 text-[#F47B20] shadow-xs">
+          <div className="w-10 h-10 rounded-xl bg-[#121317] border border-white/8 flex items-center justify-center shrink-0 text-[#FF5C1A] shadow-xs">
             <Briefcase size={20} />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#181512] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#EDEDED] tracking-tight">
               Application Pipeline Tracker
             </h1>
-            <p className="text-xs sm:text-sm text-[#6A6359] font-normal">
+            <p className="text-xs sm:text-sm text-[#8B949E] font-normal">
               Live progression Kanban across your active job applications
             </p>
           </div>
@@ -155,16 +155,16 @@ export const ApplicationTrackerView: React.FC = () => {
         <button
           onClick={fetchApplications}
           disabled={loading}
-          className="nx-btn-secondary !py-2 !px-4 !text-xs cursor-pointer"
+          className="nx-btn-secondary !py-2 !px-4 !text-xs cursor-pointer border-white/10 bg-[#121317] text-[#EDEDED] hover:bg-[#1A1B20]"
         >
-          <RefreshCw size={13} className={loading ? 'animate-spin text-[#F47B20]' : ''} />
+          <RefreshCw size={13} className={loading ? 'animate-spin text-[#FF5C1A]' : ''} />
           <span>Refresh Board</span>
         </button>
       </div>
 
       {error && (
-        <div className="p-3.5 bg-[#FDEEED] text-[#B83128] text-xs rounded-2xl border border-[#F7BEBA] flex items-center gap-2">
-          <AlertCircle size={15} className="text-[#D9453B] shrink-0" />
+        <div className="p-3.5 bg-[#EF4444]/10 text-[#EF4444] text-xs rounded-2xl border border-[#EF4444]/20 flex items-center gap-2">
+          <AlertCircle size={15} className="text-[#EF4444] shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -177,55 +177,55 @@ export const ApplicationTrackerView: React.FC = () => {
             <div key={col.id} className="min-w-[280px] w-[280px] flex flex-col gap-3 snap-center">
               {/* Column Header */}
               <div className="flex items-center justify-between px-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#181512]">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#8B949E] font-mono">
                   {col.title}
                 </span>
-                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${col.color}`}>
+                <span className={`text-[11px] font-bold font-mono px-2.5 py-0.5 rounded-full border ${col.color}`}>
                   {colApps.length}
                 </span>
               </div>
 
               {/* Column Dropzone / Container */}
-              <div className="flex-1 bg-[#FAF6F0] border border-[#EADFCF] rounded-2xl p-3 flex flex-col gap-2.5 min-h-[420px]">
+              <div className="flex-1 bg-[#121317] border border-white/8 rounded-2xl p-3 flex flex-col gap-2.5 min-h-[420px]">
                 {colApps.map(app => (
                   <div
                     key={app.id}
-                    className="bg-white p-4 rounded-xl border border-[#EADFCF] shadow-[0_2px_8px_rgba(180,150,120,0.06)] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(180,150,120,0.12)] transition-all duration-200 relative group"
+                    className="bg-[#1A1B20] p-4 rounded-xl border border-white/8 shadow-[0_2px_8px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 hover:border-white/16 hover:shadow-[0_6px_16px_rgba(0,0,0,0.5)] transition-all duration-200 relative group"
                   >
                     {updating === app.id && (
-                      <div className="absolute inset-0 bg-white/80 backdrop-blur-xs z-10 flex items-center justify-center rounded-xl">
-                        <Loader2 className="animate-spin text-[#F47B20]" size={20} />
+                      <div className="absolute inset-0 bg-[#121317]/80 backdrop-blur-xs z-10 flex items-center justify-center rounded-xl">
+                        <Loader2 className="animate-spin text-[#FF5C1A]" size={20} />
                       </div>
                     )}
                     
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <h4 className="font-bold text-[#181512] text-sm leading-snug">
+                      <h4 className="font-bold text-[#EDEDED] text-sm leading-snug">
                         {app.jobTitle || app.role || 'Senior Engineer'}
                       </h4>
                       {(app.fitScore || app.alignmentScore) && (
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#FFF0E4] border border-[#FDCBA7] text-[#C45709] shrink-0">
+                        <span className="text-[11px] font-bold font-mono px-2 py-0.5 rounded-full bg-[#FF5C1A]/10 border border-[#FF5C1A]/20 text-[#FF5C1A] shrink-0">
                           {app.fitScore || app.alignmentScore}%
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-[#6A6359] font-medium mb-2 truncate">
+                    <p className="text-xs text-[#8B949E] font-medium mb-2 truncate">
                       {app.companyName || app.company || 'Partner Org'}
                     </p>
                     {app.notes && (
-                      <p className="text-[11px] text-[#8C8275] leading-relaxed mb-3 line-clamp-2 bg-[#FAF6F0] p-2 rounded-lg border border-[#EADFCF]">
+                      <p className="text-[11px] text-[#A1A1AA] leading-relaxed mb-3 line-clamp-2 bg-[#0A0B0E] p-2.5 rounded-lg border border-white/6 font-mono text-[10.5px]">
                         {app.notes}
                       </p>
                     )}
                     
-                    <div className="flex items-center gap-2 pt-2 border-t border-[#F5EFE6]">
-                      <span className="text-[10px] uppercase font-bold text-[#999084] flex-1">Stage:</span>
+                    <div className="flex items-center gap-2 pt-2 border-t border-white/8">
+                      <span className="text-[10px] uppercase font-bold text-[#71717A] flex-1 font-mono tracking-wider">Stage:</span>
                       <select
-                        className="text-xs bg-[#FAF6F0] border border-[#D7CABB] text-[#181512] font-semibold rounded-lg px-2 py-1 outline-none cursor-pointer hover:border-[#F47B20]"
+                        className="text-xs bg-[#0A0B0E] border border-white/12 text-[#EDEDED] font-semibold rounded-lg px-2.5 py-1 outline-none cursor-pointer hover:border-[#FF5C1A] transition-colors focus:border-[#FF5C1A]"
                         value={app.status}
                         onChange={(e) => updateStatus(app.id, e.target.value)}
                       >
                         {COLUMNS.map(c => (
-                          <option key={c.id} value={c.id}>{c.title}</option>
+                          <option key={c.id} value={c.id} className="bg-[#121317] text-[#EDEDED]">{c.title}</option>
                         ))}
                       </select>
                     </div>
@@ -233,9 +233,9 @@ export const ApplicationTrackerView: React.FC = () => {
                 ))}
                 
                 {colApps.length === 0 && (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center p-6 border border-dashed border-[#D7CABB] rounded-xl">
-                    <Briefcase size={20} className="text-[#999084] mb-2" />
-                    <p className="text-xs text-[#999084] font-medium">No items in {col.title}</p>
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-6 border border-dashed border-white/10 rounded-xl">
+                    <Briefcase size={20} className="text-[#52525B] mb-2" />
+                    <p className="text-xs text-[#71717A] font-medium">No items in {col.title}</p>
                   </div>
                 )}
               </div>

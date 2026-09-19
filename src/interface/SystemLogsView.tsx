@@ -350,96 +350,95 @@ export const SystemLogsView: React.FC = () => {
   });
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#F8F3EC] p-4 sm:p-6 lg:p-8 select-none">
+    <div className="flex-1 overflow-y-auto bg-[#0A0B0E] p-4 sm:p-6 lg:p-8 select-none text-[#EDEDED]">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#EADFCF]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-white/8">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#F47B20] font-['Space_Grotesk']">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#FF5C1A] font-mono">
                 Infrastructure Telemetry
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#E8F6EE] text-[#246B44] border border-[#BCE4CE]">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20 font-mono">
                 ALL SYSTEMS HEALTHY
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#181512] font-['Space_Grotesk'] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#EDEDED] tracking-tight">
               API Health & Agent Telemetry
             </h1>
-            <p className="text-xs sm:text-sm text-[#6A6359] mt-0.5">
+            <p className="text-xs sm:text-sm text-[#8B949E] mt-0.5">
               Live service status, OpenAI-compatible FreeLLMAPI router inspection, and agent execution logs.
             </p>
           </div>
 
           <div className="flex items-center gap-2 self-start sm:self-auto">
-            <NexusButton
-              variant="secondary"
-              size="sm"
-              icon={<RefreshCw className={`w-3.5 h-3.5 ${isDiagnosing ? 'animate-spin text-[#F47B20]' : ''}`} />}
+            <button
               onClick={runHealthChecks}
               disabled={isDiagnosing}
+              className="nx-btn-secondary !py-2 !px-4 !text-xs cursor-pointer border-white/10 bg-[#121317] text-[#EDEDED] hover:bg-[#1A1B20] inline-flex items-center gap-2 rounded-xl font-bold"
             >
-              {isDiagnosing ? 'Checking...' : 'Run Diagnostics'}
-            </NexusButton>
+              <RefreshCw className={`w-3.5 h-3.5 ${isDiagnosing ? 'animate-spin text-[#FF5C1A]' : ''}`} />
+              <span>{isDiagnosing ? 'Checking...' : 'Run Diagnostics'}</span>
+            </button>
           </div>
         </div>
 
         {/* Quick Health Status Metrics Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          <NexusCard className="p-4 flex items-center gap-3 bg-white">
-            <div className="w-10 h-10 rounded-xl bg-[#E8F6EE] text-[#2E8555] flex items-center justify-center shrink-0">
+          <div className="p-4 rounded-2xl flex items-center gap-3 bg-[#121317] border border-white/8 shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] flex items-center justify-center shrink-0">
               <Server className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-[11px] font-bold text-[#6A6359] uppercase tracking-wider">Core API Server</div>
-              <div className="text-base font-extrabold text-[#181512] font-['Space_Grotesk'] flex items-center gap-1.5 mt-0.5">
+              <div className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wider font-mono">Core API Server</div>
+              <div className="text-base font-extrabold text-[#EDEDED] flex items-center gap-1.5 mt-0.5 font-mono">
                 Port 8787
-                <span className="w-2 h-2 rounded-full bg-[#2E8555] animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
               </div>
-              <div className="text-[10px] text-[#2E8555] font-semibold">Online &amp; Responsive</div>
+              <div className="text-[10px] text-[#22C55E] font-semibold font-mono">Online &amp; Responsive</div>
             </div>
-          </NexusCard>
+          </div>
 
-          <NexusCard className="p-4 flex items-center gap-3 bg-white">
-            <div className="w-10 h-10 rounded-xl bg-[#FFF0E4] text-[#F47B20] flex items-center justify-center shrink-0">
+          <div className="p-4 rounded-2xl flex items-center gap-3 bg-[#121317] border border-white/8 shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-[#FF5C1A]/10 border border-[#FF5C1A]/20 text-[#FF5C1A] flex items-center justify-center shrink-0">
               <Zap className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-[11px] font-bold text-[#6A6359] uppercase tracking-wider">FreeLLMAPI Router</div>
-              <div className="text-base font-extrabold text-[#181512] font-['Space_Grotesk'] flex items-center gap-1.5 mt-0.5">
+              <div className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wider font-mono">FreeLLMAPI Router</div>
+              <div className="text-base font-extrabold text-[#EDEDED] flex items-center gap-1.5 mt-0.5 font-mono">
                 Port 31415
-                <span className="w-2 h-2 rounded-full bg-[#F47B20] animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-[#FF5C1A] animate-pulse" />
               </div>
-              <div className="text-[10px] text-[#C45709] font-semibold">Gemini Flash Fallback Active</div>
+              <div className="text-[10px] text-[#FF5C1A] font-semibold font-mono">Gemini Flash Fallback Active</div>
             </div>
-          </NexusCard>
+          </div>
 
-          <NexusCard className="p-4 flex items-center gap-3 bg-white">
-            <div className="w-10 h-10 rounded-xl bg-[#EFE7DC] text-[#181512] flex items-center justify-center shrink-0">
-              <Bot className="w-5 h-5 text-[#181512]" />
+          <div className="p-4 rounded-2xl flex items-center gap-3 bg-[#121317] border border-white/8 shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-[#1A1B20] border border-white/8 text-[#EDEDED] flex items-center justify-center shrink-0">
+              <Bot className="w-5 h-5 text-[#EDEDED]" />
             </div>
             <div>
-              <div className="text-[11px] font-bold text-[#6A6359] uppercase tracking-wider">Agent Mesh Hub</div>
-              <div className="text-base font-extrabold text-[#181512] font-['Space_Grotesk'] flex items-center gap-1.5 mt-0.5">
+              <div className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wider font-mono">Agent Mesh Hub</div>
+              <div className="text-base font-extrabold text-[#EDEDED] flex items-center gap-1.5 mt-0.5 font-mono">
                 6 Active Units
-                <span className="w-2 h-2 rounded-full bg-[#2E8555]" />
+                <span className="w-2 h-2 rounded-full bg-[#22C55E]" />
               </div>
-              <div className="text-[10px] text-[#6A6359] font-semibold">SSE Telemetry Synchronized</div>
+              <div className="text-[10px] text-[#8B949E] font-semibold font-mono">SSE Telemetry Synced</div>
             </div>
-          </NexusCard>
+          </div>
 
-          <NexusCard className="p-4 flex items-center gap-3 bg-white">
-            <div className="w-10 h-10 rounded-xl bg-[#E8F6EE] text-[#2E8555] flex items-center justify-center shrink-0">
+          <div className="p-4 rounded-2xl flex items-center gap-3 bg-[#121317] border border-white/8 shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] flex items-center justify-center shrink-0">
               <Shield className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-[11px] font-bold text-[#6A6359] uppercase tracking-wider">Auth &amp; Privacy</div>
-              <div className="text-base font-extrabold text-[#181512] font-['Space_Grotesk'] flex items-center gap-1.5 mt-0.5">
+              <div className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wider font-mono">Auth &amp; Privacy</div>
+              <div className="text-base font-extrabold text-[#EDEDED] flex items-center gap-1.5 mt-0.5 font-mono">
                 DPDP Ready
               </div>
-              <div className="text-[10px] text-[#2E8555] font-semibold">OTP + JWT Resilient</div>
+              <div className="text-[10px] text-[#22C55E] font-semibold font-mono">OTP + JWT Resilient</div>
             </div>
-          </NexusCard>
+          </div>
         </div>
 
         {/* View Tabs */}
@@ -457,40 +456,40 @@ export const SystemLogsView: React.FC = () => {
         {/* TAB 1: API HEALTH CHECKS */}
         {activeTab === 'health' && (
           <div className="space-y-4">
-            <NexusCard className="p-5 bg-white">
+            <div className="p-5 bg-[#121317] border border-white/8 rounded-2xl shadow-xs">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-sm font-bold text-[#181512] font-['Space_Grotesk']">
+                  <h3 className="text-sm font-bold text-[#EDEDED]">
                     Backend Service Endpoints Status
                   </h3>
-                  <p className="text-xs text-[#6A6359] mt-0.5">
+                  <p className="text-xs text-[#8B949E] mt-0.5 font-mono">
                     Last audited {lastCheckTime.toLocaleTimeString()} with sub-50ms latency targets.
                   </p>
                 </div>
-                <NexusBadge variant="success" size="sm">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20 font-mono">
                   {endpoints.filter((e) => e.status === 'healthy').length} / {endpoints.length} OPERATIONAL
-                </NexusBadge>
+                </span>
               </div>
 
-              <div className="divide-y divide-[#EADFCF]">
+              <div className="divide-y divide-white/8">
                 {endpoints.map((ep, idx) => (
                   <div key={idx} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 first:pt-0 last:pb-0">
                     <div className="flex items-start gap-3 min-w-0">
                       <div className="mt-0.5 shrink-0">
                         {ep.status === 'healthy' ? (
-                          <div className="w-6 h-6 rounded-full bg-[#E8F6EE] text-[#2E8555] flex items-center justify-center">
+                          <div className="w-6 h-6 rounded-full bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20 flex items-center justify-center">
                             <CheckCircle2 className="w-3.5 h-3.5" />
                           </div>
                         ) : ep.status === 'warning' ? (
-                          <div className="w-6 h-6 rounded-full bg-[#FFF0E4] text-[#C45709] flex items-center justify-center">
+                          <div className="w-6 h-6 rounded-full bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20 flex items-center justify-center">
                             <AlertTriangle className="w-3.5 h-3.5" />
                           </div>
                         ) : ep.status === 'checking' ? (
-                          <div className="w-6 h-6 rounded-full bg-[#EFE7DC] text-[#6A6359] flex items-center justify-center animate-spin">
+                          <div className="w-6 h-6 rounded-full bg-[#1A1B20] text-[#8B949E] border border-white/10 flex items-center justify-center animate-spin">
                             <RefreshCw className="w-3.5 h-3.5" />
                           </div>
                         ) : (
-                          <div className="w-6 h-6 rounded-full bg-[#FDEEED] text-[#D9453B] flex items-center justify-center">
+                          <div className="w-6 h-6 rounded-full bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20 flex items-center justify-center">
                             <AlertCircle className="w-3.5 h-3.5" />
                           </div>
                         )}
@@ -498,27 +497,27 @@ export const SystemLogsView: React.FC = () => {
 
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-bold text-[#181512]">{ep.name}</span>
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#EFE7DC] text-[#6A6359] font-semibold">
+                          <span className="text-xs font-bold text-[#EDEDED]">{ep.name}</span>
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#0A0B0E] border border-white/8 text-[#8B949E] font-semibold">
                             {ep.method} {ep.url}
                           </span>
                         </div>
-                        <p className="text-xs text-[#6A6359] mt-0.5 truncate">{ep.details}</p>
+                        <p className="text-xs text-[#8B949E] mt-0.5 truncate font-mono text-[11px]">{ep.details}</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
                       {ep.latencyMs !== undefined && (
-                        <span className="text-xs font-mono font-bold text-[#2E8555] bg-[#E8F6EE] px-2 py-0.5 rounded border border-[#BCE4CE]">
+                        <span className="text-xs font-mono font-bold text-[#22C55E] bg-[#22C55E]/10 px-2 py-0.5 rounded border border-[#22C55E]/20">
                           {ep.latencyMs}ms
                         </span>
                       )}
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border font-mono ${
                         ep.status === 'healthy' 
-                          ? 'bg-[#E8F6EE] text-[#246B44] border-[#BCE4CE]' 
+                          ? 'bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20' 
                           : ep.status === 'warning'
-                          ? 'bg-[#FFF0E4] text-[#C45709] border-[#FDCBA7]'
-                          : 'bg-[#FDEEED] text-[#B83129] border-[#F5C2BE]'
+                          ? 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20'
+                          : 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20'
                       }`}>
                         {ep.status}
                       </span>
@@ -526,17 +525,17 @@ export const SystemLogsView: React.FC = () => {
                   </div>
                 ))}
               </div>
-            </NexusCard>
+            </div>
 
             {/* Diagnostics Details Card */}
-            <NexusCard className="p-5 bg-white">
-              <h3 className="text-sm font-bold text-[#181512] font-['Space_Grotesk'] mb-2">
+            <div className="p-5 bg-[#121317] border border-white/8 rounded-2xl shadow-xs">
+              <h3 className="text-sm font-bold text-[#EDEDED] mb-2 font-mono">
                 Resilience &amp; Failover Architecture
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-[#6A6359]">
-                <div className="p-3 rounded-xl bg-[#FBF8F3] border border-[#EADFCF]">
-                  <div className="font-bold text-[#181512] mb-1 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#2E8555]" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-[#8B949E]">
+                <div className="p-3.5 rounded-xl bg-[#0A0B0E] border border-white/6">
+                  <div className="font-bold text-[#EDEDED] mb-1 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#22C55E]" />
                     In-Memory DB Timeout Guard
                   </div>
                   <p className="leading-relaxed">
@@ -544,9 +543,9 @@ export const SystemLogsView: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="p-3 rounded-xl bg-[#FBF8F3] border border-[#EADFCF]">
-                  <div className="font-bold text-[#181512] mb-1 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#2E8555]" />
+                <div className="p-3.5 rounded-xl bg-[#0A0B0E] border border-white/6">
+                  <div className="font-bold text-[#EDEDED] mb-1 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#22C55E]" />
                     FreeLLMAPI Port 31415 Proxy
                   </div>
                   <p className="leading-relaxed">
@@ -554,9 +553,9 @@ export const SystemLogsView: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="p-3 rounded-xl bg-[#FBF8F3] border border-[#EADFCF]">
-                  <div className="font-bold text-[#181512] mb-1 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#2E8555]" />
+                <div className="p-3.5 rounded-xl bg-[#0A0B0E] border border-white/6">
+                  <div className="font-bold text-[#EDEDED] mb-1 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#22C55E]" />
                     Instant Dev OTP Codes
                   </div>
                   <p className="leading-relaxed">
@@ -564,30 +563,30 @@ export const SystemLogsView: React.FC = () => {
                   </p>
                 </div>
               </div>
-            </NexusCard>
+            </div>
           </div>
         )}
 
         {/* TAB 2: FREELLMAPI CONSOLE */}
         {activeTab === 'freellm' && (
           <div className="space-y-4">
-            <NexusCard className="p-5 bg-white">
+            <div className="p-5 bg-[#121317] border border-white/8 rounded-2xl shadow-xs">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-sm font-bold text-[#181512] font-['Space_Grotesk'] flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-[#F47B20]" />
+                  <h3 className="text-sm font-bold text-[#EDEDED] flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-[#FF5C1A]" />
                     FreeLLMAPI Interactive Test Bench
                   </h3>
-                  <p className="text-xs text-[#6A6359] mt-0.5">
-                    Directly query the local OpenAI-compatible endpoint at <code className="font-mono bg-[#EFE7DC] px-1 rounded">http://127.0.0.1:31415/v1</code>.
+                  <p className="text-xs text-[#8B949E] mt-0.5 font-mono">
+                    Directly query the local OpenAI-compatible endpoint at <code className="font-mono bg-[#0A0B0E] px-1 py-0.5 rounded border border-white/8 text-[#FF5C1A]">http://127.0.0.1:31415/v1</code>.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-[#6A6359]">Target Model:</span>
+                  <span className="text-xs text-[#8B949E] font-mono">Target Model:</span>
                   <select
                     value={selectedModel}
                     onChange={(e) => setSelectedModel(e.target.value)}
-                    className="text-xs font-mono font-bold bg-[#EFE7DC] border border-[#E4D9CC] rounded-lg px-2.5 py-1 text-[#181512]"
+                    className="text-xs font-mono font-bold bg-[#0A0B0E] border border-white/12 rounded-lg px-2.5 py-1 text-[#EDEDED]"
                   >
                     <option value="auto">auto (Default)</option>
                     <option value="gemini-3.6-flash">gemini-3.6-flash</option>
@@ -600,7 +599,7 @@ export const SystemLogsView: React.FC = () => {
 
               {/* Input Area */}
               <div className="space-y-3">
-                <label className="block text-xs font-bold text-[#181512]">
+                <label className="block text-xs font-bold text-[#8B949E] uppercase tracking-wider font-mono">
                   Test Prompt Payload:
                 </label>
                 <div className="relative">
@@ -608,40 +607,39 @@ export const SystemLogsView: React.FC = () => {
                     value={testPrompt}
                     onChange={(e) => setTestPrompt(e.target.value)}
                     rows={3}
-                    className="w-full text-xs font-mono p-3 bg-[#FBF8F3] border border-[#EADFCF] rounded-xl focus:outline-none focus:border-[#F47B20] text-[#181512] resize-none"
+                    className="w-full text-xs font-mono p-3 bg-[#0A0B0E] border border-white/12 rounded-xl focus:outline-none focus:border-[#FF5C1A] text-[#EDEDED] resize-none"
                     placeholder="Enter prompt..."
                   />
                   <div className="absolute right-2 bottom-2 flex items-center gap-2">
-                    <NexusButton
-                      variant="primary"
-                      size="sm"
-                      icon={<Play className={`w-3.5 h-3.5 ${llmTesting ? 'animate-spin' : ''}`} />}
+                    <button
                       onClick={handleRunLlmTest}
                       disabled={llmTesting}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-[#FF5C1A] hover:bg-[#FF5C1A]/90 text-white cursor-pointer transition-all shadow-xs"
                     >
-                      {llmTesting ? 'Inferring...' : 'Send Query'}
-                    </NexusButton>
+                      <Play className={`w-3.5 h-3.5 ${llmTesting ? 'animate-spin' : ''}`} />
+                      <span>{llmTesting ? 'Inferring...' : 'Send Query'}</span>
+                    </button>
                   </div>
                 </div>
               </div>
 
               {/* Output Result */}
               {llmResult && (
-                <div className="mt-5 p-4 rounded-xl bg-[#FBF8F3] border border-[#EADFCF] space-y-2 animate-in fade-in duration-200">
+                <div className="mt-5 p-4 rounded-xl bg-[#0A0B0E] border border-white/8 space-y-2 animate-in fade-in duration-200">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-[#2E8555] flex items-center gap-1.5">
+                    <span className="font-bold text-[#22C55E] flex items-center gap-1.5 font-mono">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       Inference Successful
                     </span>
                     <div className="flex items-center gap-3">
                       {llmLatency !== null && (
-                        <span className="font-mono font-bold text-[#6A6359]">
+                        <span className="font-mono font-bold text-[#8B949E]">
                           Latency: {llmLatency}ms
                         </span>
                       )}
                       <button
                         onClick={() => copyToClipboard(llmResult.content, 'llm-res')}
-                        className="text-xs text-[#F47B20] hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                        className="text-xs text-[#FF5C1A] hover:underline font-bold flex items-center gap-1 cursor-pointer font-mono"
                       >
                         {copiedId === 'llm-res' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                         {copiedId === 'llm-res' ? 'Copied' : 'Copy'}
@@ -649,12 +647,12 @@ export const SystemLogsView: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="p-3 bg-white rounded-lg border border-[#EADFCF] text-xs font-sans text-[#181512] leading-relaxed whitespace-pre-wrap">
+                  <div className="p-3 bg-[#121317] rounded-lg border border-white/6 text-xs text-[#EDEDED] leading-relaxed whitespace-pre-wrap font-mono">
                     {llmResult.content}
                   </div>
 
                   {llmResult.usage && (
-                    <div className="flex items-center gap-4 text-[10px] font-mono text-[#6A6359] pt-1">
+                    <div className="flex items-center gap-4 text-[10px] font-mono text-[#8B949E] pt-1">
                       <span>Prompt tokens: {llmResult.usage.prompt_tokens}</span>
                       <span>Completion tokens: {llmResult.usage.completion_tokens}</span>
                       <span>Total tokens: {llmResult.usage.total_tokens}</span>
@@ -664,31 +662,31 @@ export const SystemLogsView: React.FC = () => {
               )}
 
               {llmError && (
-                <div className="mt-4 p-3 rounded-xl bg-[#FDEEED] border border-[#F5C2BE] text-xs text-[#D9453B] flex items-center gap-2">
+                <div className="mt-4 p-3 rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/20 text-xs text-[#EF4444] flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{llmError}</span>
                 </div>
               )}
-            </NexusCard>
+            </div>
           </div>
         )}
 
         {/* TAB 3: LIVE TELEMETRY LOGS */}
         {activeTab === 'telemetry' && (
           <div className="space-y-4">
-            <NexusCard className="p-5 bg-white">
+            <div className="p-5 bg-[#121317] border border-white/8 rounded-2xl shadow-xs">
               {/* Filter and Search Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#EADFCF]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/8">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-bold text-[#6A6359] uppercase tracking-wider">Filter Agent:</span>
+                  <span className="text-xs font-bold text-[#8B949E] uppercase tracking-wider font-mono">Filter Agent:</span>
                   {(['all', 'director', 'vision', 'strategist', 'writer', 'hunter', 'mirror'] as const).map((agent) => (
                     <button
                       key={agent}
                       onClick={() => setLogFilter(agent)}
-                      className={`text-xs px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+                      className={`text-xs px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider transition-colors cursor-pointer font-mono ${
                         logFilter === agent
-                          ? 'bg-[#181512] text-white'
-                          : 'bg-[#EFE7DC] text-[#6A6359] hover:text-[#181512]'
+                          ? 'bg-[#FF5C1A] text-white shadow-xs'
+                          : 'bg-[#1A1B20] text-[#8B949E] hover:text-[#EDEDED]'
                       }`}
                     >
                       {agent}
@@ -697,21 +695,21 @@ export const SystemLogsView: React.FC = () => {
                 </div>
 
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#999084]" />
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#71717A]" />
                   <input
                     type="text"
                     placeholder="Search logs..."
                     value={logSearch}
                     onChange={(e) => setLogSearch(e.target.value)}
-                    className="pl-8 pr-3 py-1.5 text-xs bg-[#FBF8F3] border border-[#EADFCF] rounded-lg focus:outline-none focus:border-[#F47B20] text-[#181512] w-48 sm:w-60"
+                    className="pl-8 pr-3 py-1.5 text-xs bg-[#0A0B0E] border border-white/12 rounded-lg focus:outline-none focus:border-[#FF5C1A] text-[#EDEDED] w-48 sm:w-60 font-mono"
                   />
                 </div>
               </div>
 
               {/* Log stream items */}
-              <div className="divide-y divide-[#EADFCF] max-h-[500px] overflow-y-auto mt-2">
+              <div className="divide-y divide-white/8 max-h-[500px] overflow-y-auto mt-2 custom-scrollbar">
                 {filteredLogs.length === 0 ? (
-                  <div className="py-12 text-center text-[#999084] text-xs">
+                  <div className="py-12 text-center text-[#71717A] text-xs font-mono">
                     No active agent telemetry events recorded yet. Agents log actions automatically during pipeline runs.
                   </div>
                 ) : (
@@ -719,26 +717,26 @@ export const SystemLogsView: React.FC = () => {
                     <div key={log.id} className="py-3 flex flex-col gap-1.5 first:pt-2 last:pb-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#F47B20]">
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#FF5C1A] font-mono">
                             Nexus-{log.agentType.toUpperCase()}
                           </span>
-                          <span className={`text-[9px] font-bold uppercase px-1.5 py-0.2 rounded border ${
+                          <span className={`text-[9px] font-bold uppercase px-1.5 py-0.2 rounded border font-mono ${
                             log.impact === 'positive'
-                              ? 'bg-[#E8F6EE] text-[#246B44] border-[#BCE4CE]'
+                              ? 'bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20'
                               : log.impact === 'warning'
-                              ? 'bg-[#FFF0E4] text-[#C45709] border-[#FDCBA7]'
-                              : 'bg-[#FDEEED] text-[#B83129] border-[#F5C2BE]'
+                              ? 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20'
+                              : 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20'
                           }`}>
                             {log.impact}
                           </span>
                         </div>
-                        <span className="text-[10px] font-mono text-[#999084]">
+                        <span className="text-[10px] font-mono text-[#71717A]">
                           {new Date(log.timestamp).toLocaleTimeString()}
                         </span>
                       </div>
-                      <p className="text-xs font-bold text-[#181512]">{log.action}</p>
+                      <p className="text-xs font-bold text-[#EDEDED]">{log.action}</p>
                       {log.result && (
-                        <div className="p-2 bg-[#FBF8F3] rounded border border-[#EADFCF] text-[11px] font-mono text-[#6A6359] leading-relaxed whitespace-pre-wrap">
+                        <div className="p-2 bg-[#0A0B0E] rounded border border-white/6 text-[11px] font-mono text-[#8B949E] leading-relaxed whitespace-pre-wrap">
                           {typeof log.result === 'string' ? log.result : JSON.stringify(log.result, null, 2)}
                         </div>
                       )}
@@ -746,18 +744,18 @@ export const SystemLogsView: React.FC = () => {
                   ))
                 )}
               </div>
-            </NexusCard>
+            </div>
           </div>
         )}
 
         {/* TAB 4: AGENT DISCUSSION SCRIPT */}
         {activeTab === 'discussion' && (
           <div className="space-y-4">
-            <NexusCard className="p-5 bg-white">
-              <h3 className="text-sm font-bold text-[#181512] font-['Space_Grotesk'] mb-2">
+            <div className="p-5 bg-[#121317] border border-white/8 rounded-2xl shadow-xs">
+              <h3 className="text-sm font-bold text-[#EDEDED] mb-2 font-mono">
                 Autonomous Inter-Agent Handoff Stream
               </h3>
-              <p className="text-xs text-[#6A6359] mb-4">
+              <p className="text-xs text-[#8B949E] mb-4">
                 Chronological record of autonomous agent deliberations across JD analysis, bullet rewriting, visual audits, and search filtering.
               </p>
 
@@ -765,32 +763,32 @@ export const SystemLogsView: React.FC = () => {
                 {DISCUSSION_SCRIPT.map((item, idx) => (
                   <div
                     key={idx}
-                    className="p-3.5 rounded-xl border border-[#EADFCF] bg-[#FBF8F3] flex flex-col gap-1.5"
+                    className="p-3.5 rounded-xl border border-white/8 bg-[#0A0B0E] flex flex-col gap-1.5"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-black text-[#181512] font-['Space_Grotesk']">
+                        <span className="text-xs font-bold text-[#EDEDED] font-mono">
                           {item.from}
                         </span>
-                        <span className="text-[10px] font-bold text-[#999084]">→</span>
-                        <span className="text-xs font-black text-[#F47B20] font-['Space_Grotesk']">
+                        <span className="text-[10px] font-bold text-[#71717A]">→</span>
+                        <span className="text-xs font-bold text-[#FF5C1A] font-mono">
                           {item.to}
                         </span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#E8F6EE] text-[#246B44] border border-[#BCE4CE]">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20 font-mono">
                           {item.action}
                         </span>
                       </div>
-                      <span className="text-[10px] font-mono text-[#999084]">
+                      <span className="text-[10px] font-mono text-[#71717A]">
                         {new Date(item.timestamp).toLocaleTimeString()}
                       </span>
                     </div>
-                    <p className="text-xs text-[#6A6359] leading-relaxed">
+                    <p className="text-xs text-[#8B949E] leading-relaxed">
                       {item.details}
                     </p>
                   </div>
                 ))}
               </div>
-            </NexusCard>
+            </div>
           </div>
         )}
       </div>
