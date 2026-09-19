@@ -144,7 +144,7 @@ export class GrabController {
     // Strict Office 3D Model Bounding Box Clamp: prevent escaping outside room borders
     targetBodyPos.x = THREE.MathUtils.clamp(targetBodyPos.x, OFFICE_BOUNDS.minX, OFFICE_BOUNDS.maxX);
     targetBodyPos.z = THREE.MathUtils.clamp(targetBodyPos.z, OFFICE_BOUNDS.minZ, OFFICE_BOUNDS.maxZ);
-    targetBodyPos.y = THREE.MathUtils.clamp(targetBodyPos.y, minDangleHeight, OFFICE_BOUNDS.maxHeldY ?? 0.90);
+    targetBodyPos.y = THREE.MathUtils.clamp(targetBodyPos.y, minDangleHeight, OFFICE_BOUNDS.maxHeldY ?? 1.20);
 
     this.grabInfo.targetPointWorld.copy(targetBodyPos);
 
@@ -196,8 +196,8 @@ export class GrabController {
       releaseVelocity.z *= scale;
     }
 
-    // Suppress upward fling completely: characters must never fly into the air when unheld!
-    releaseVelocity.y = Math.min(0.2, Math.max(-10.0, releaseVelocity.y));
+    // Natural upward fling cap: characters can be tossed gently but never rocket out of the diorama
+    releaseVelocity.y = Math.min(2.0, Math.max(-10.0, releaseVelocity.y));
 
     this.grabInfo = null;
     this.hasPrevTarget = false;

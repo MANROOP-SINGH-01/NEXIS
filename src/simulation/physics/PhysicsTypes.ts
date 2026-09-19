@@ -94,8 +94,8 @@ export const OFFICE_BOUNDS = {
   minZ: -3.90,
   maxZ: 3.90,
   floorY: 0.0,
-  ceilY: 1.35,
-  maxHeldY: 0.90,
+  ceilY: 3.50,
+  maxHeldY: 1.20,
 };
 
 /**

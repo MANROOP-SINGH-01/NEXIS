@@ -136,7 +136,7 @@ export class PhysicalInteractionController {
     if (releaseData) {
       // Transfer smoothed pointer velocity into rigid body (capped so characters never rocket upward)
       this.physics.linearVelocity.copy(releaseData.releaseVelocity);
-      this.physics.linearVelocity.y = Math.min(0.2, this.physics.linearVelocity.y);
+      this.physics.linearVelocity.y = Math.min(2.0, this.physics.linearVelocity.y);
 
       // Inject angular momentum proportional to lateral fling
       this.physics.angularVelocity.set(
