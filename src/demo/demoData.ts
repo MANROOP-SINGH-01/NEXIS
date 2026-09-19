@@ -6,7 +6,7 @@
 import { useCoreStore } from '../integration/store/coreStore';
 import { useUiStore } from '../integration/store/uiStore';
 
-const DEMO_RESUME = `PRIYA SHARMA
+export const DEMO_RESUME = `PRIYA SHARMA
 Senior Software Engineer | Bengaluru, India
 priya.sharma@email.com | +91-98765-43210 | github.com/priyasharma
 
@@ -33,7 +33,7 @@ SKILLS
 React, TypeScript, Node.js, Python, PostgreSQL, Redis, Docker, AWS, Kubernetes, 
 TensorFlow, System Design, Microservices, GraphQL, CI/CD`;
 
-const DEMO_JD = `Senior Full-Stack Engineer — Razorpay
+export const DEMO_JD = `Senior Full-Stack Engineer — Razorpay
 Location: Bengaluru | Experience: 4-7 years
 
 We're looking for engineers who can build reliable, scalable payment infrastructure.

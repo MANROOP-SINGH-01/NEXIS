@@ -17,7 +17,6 @@ import BYOKModal from './interface/BYOKModal';
 import NexusHunterModal from './interface/NexusHunterModal';
 import { OutputReviewModal } from './interface/OutputReviewModal';
 import NexusMirrorModal from './interface/NexusMirrorModal';
-import PhaseOneControlPanel from './interface/PhaseOneControlPanel';
 import ResumeForgeModal from './interface/ResumeForgeModal';
 import { ApplicationPreparationModal } from './interface/ApplicationPreparationModal';
 import SimulationView from './interface/SimulationView';
@@ -184,11 +183,6 @@ const Workspace: React.FC = () => {
   return (
     <SceneContext.Provider value={sceneManager}>
       <Shell isFullscreen={isFullscreen}>
-        {/* Top Control Panel (when viewing 3D Agent Dashboard) */}
-        {!isFullscreen && viewMode !== 'design' && activeSidebarTab === 'dashboard' && (
-          <PhaseOneControlPanel />
-        )}
-
         {/* Dynamic Views Area */}
         <div className="relative flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-transparent">
           {activeSidebarTab === 'profile' && <CandidateProfileView />}
