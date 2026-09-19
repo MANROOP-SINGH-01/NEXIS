@@ -120,14 +120,14 @@ export function ActionLogPanel() {
 
   const filterAgent = logFilterAgentIndex !== null ? agents.find((a) => a.index === logFilterAgentIndex) ?? null : null
 
-  const analysisEntries: ForgeActivity[] = hasResumeAnalysis && resumeAnalysis
-    ? resumeAnalysis.activityFeed.map((entry) => ({
+  const analysisEntries: ForgeActivity[] = hasResumeAnalysis && resumeAnalysis?.activityFeed
+    ? (resumeAnalysis.activityFeed || []).map((entry) => ({
       ...entry,
       icon: iconByAgent[entry.agent] || Eye,
     }))
     : []
 
-  const liveEntries: ForgeActivity[] = nexusActivityLog.map((entry) => {
+  const liveEntries: ForgeActivity[] = (nexusActivityLog || []).map((entry) => {
     const agentMap = {
       vision: 'Nexus-Vision',
       strategist: 'Nexus-Strategist',
@@ -168,10 +168,10 @@ export function ActionLogPanel() {
   const activityEntries = [...liveEntries, ...analysisEntries, ...discussionEntries].sort((a, b) => b.timestamp - a.timestamp)
 
   return (
-    <div className="w-[280px] h-full bg-white border-r border-zinc-100 flex flex-col pointer-events-auto overflow-hidden shrink-0 relative">
-      <div className="h-10 px-5 border-b border-zinc-100 flex items-center justify-between bg-white shrink-0 z-10">
+    <div className="w-[300px] h-full bg-[#FBF8F3] border-r border-[#EADFCF] flex flex-col pointer-events-auto overflow-hidden shrink-0 relative select-none">
+      <div className="h-11 px-4 border-b border-[#EADFCF] flex items-center justify-between bg-[#F8F3EC] shrink-0 z-10">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Nexus Activity Feed</span>
+          <span className="text-[11px] font-extrabold text-[#181512] font-['Space_Grotesk'] uppercase tracking-wider">Activity Feed</span>
           {filterAgent && (
             <div
               className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold text-white uppercase tracking-tighter animate-in fade-in zoom-in duration-200"
@@ -183,58 +183,68 @@ export function ActionLogPanel() {
           )}
         </div>
 
-        <div className="relative">
-          <button
-            onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
-            className={`p-1.5 rounded transition-colors cursor-pointer ${isFilterMenuOpen || logFilterAgentIndex !== null ? 'bg-darkDelegation text-white' : 'text-zinc-400 hover:text-darkDelegation hover:bg-zinc-50'}`}
-            title="Filter by agent"
-          >
-            <Filter size={14} />
-          </button>
+        <div className="flex items-center gap-1">
+          <div className="relative">
+            <button
+              onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
+              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isFilterMenuOpen || logFilterAgentIndex !== null ? 'bg-[#181512] text-white' : 'text-[#6A6359] hover:text-[#181512] hover:bg-[#EFE7DC]'}`}
+              title="Filter by agent"
+            >
+              <Filter size={13} />
+            </button>
 
-          {isFilterMenuOpen && (
-            <>
-              <div className="fixed inset-0 z-20" onClick={() => setIsFilterMenuOpen(false)} />
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-zinc-100 rounded-xl shadow-xl z-30 py-1.5 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                <button
-                  onClick={() => {
-                    setLogOpen(true, null)
-                    setIsFilterMenuOpen(false)
-                  }}
-                  className={`w-full px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-zinc-50 transition-colors ${logFilterAgentIndex === null ? 'text-darkDelegation' : 'text-zinc-400'}`}
-                >
-                  <div className={`w-2 h-2 rounded-full ${logFilterAgentIndex === null ? 'bg-darkDelegation' : 'bg-transparent border border-zinc-200'}`} />
-                  All Agents
-                </button>
-                <div className="h-px bg-zinc-50 my-1" />
-                {agents.map((agent) => (
+            {isFilterMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-20" onClick={() => setIsFilterMenuOpen(false)} />
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-[#EADFCF] rounded-xl shadow-xl z-30 py-1.5 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                   <button
-                    key={agent.index}
                     onClick={() => {
-                      setLogOpen(true, agent.index)
+                      setLogOpen(true, null)
                       setIsFilterMenuOpen(false)
                     }}
-                    className={`w-full px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-zinc-50 transition-colors ${logFilterAgentIndex === agent.index ? 'text-darkDelegation' : 'text-zinc-400'}`}
+                    className={`w-full px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#FBF8F3] transition-colors ${logFilterAgentIndex === null ? 'text-[#F47B20]' : 'text-[#6A6359]'}`}
                   >
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: agent.color }} />
-                    {agent.name}
+                    <div className={`w-2 h-2 rounded-full ${logFilterAgentIndex === null ? 'bg-[#F47B20]' : 'bg-transparent border border-[#EADFCF]'}`} />
+                    All Agents
                   </button>
-                ))}
-              </div>
-            </>
-          )}
+                  <div className="h-px bg-[#EADFCF] my-1" />
+                  {agents.map((agent) => (
+                    <button
+                      key={agent.index}
+                      onClick={() => {
+                        setLogOpen(true, agent.index)
+                        setIsFilterMenuOpen(false)
+                      }}
+                      className={`w-full px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#FBF8F3] transition-colors ${logFilterAgentIndex === agent.index ? 'text-[#181512]' : 'text-[#6A6359]'}`}
+                    >
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: agent.color }} />
+                      {agent.name}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          <button
+            onClick={() => setLogOpen(false)}
+            className="p-1.5 text-[#999084] hover:text-[#181512] hover:bg-[#EFE7DC] rounded-lg transition-colors cursor-pointer"
+            title="Hide Log Panel"
+          >
+            ×
+          </button>
         </div>
       </div>
 
-      <div className="flex border-b border-zinc-100 bg-zinc-50/30">
-        <div className="flex-1 py-2 text-[10px] font-black uppercase tracking-widest bg-white border-b-2 border-darkDelegation text-darkDelegation text-center">
-          Activity Discussion
+      <div className="flex border-b border-[#EADFCF] bg-[#F8F3EC]">
+        <div className="flex-1 py-2 text-[10px] font-extrabold uppercase tracking-widest bg-white border-b-2 border-[#F47B20] text-[#F47B20] text-center">
+          Agent Discussion &amp; Telemetry
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-5 space-y-4 shadow-[inset_0_-20px_20px_-20px_rgba(0,0,0,0.05)]">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3.5 shadow-[inset_0_-20px_20px_-20px_rgba(0,0,0,0.03)]">
         {activityEntries.length === 0 ? (
-          <p className="text-zinc-300 text-[10px] font-bold uppercase tracking-widest text-center py-16">Awaiting actions...</p>
+          <p className="text-[#999084] text-[10px] font-bold uppercase tracking-widest text-center py-16">Awaiting actions...</p>
         ) : (
           activityEntries.map((entry) => <ForgeActivityEntryView key={entry.id} entry={entry} />)
         )}

@@ -19,6 +19,8 @@ import {
   Sparkles,
   Bot,
   Layers,
+  User,
+  Terminal,
   LucideIcon,
 } from 'lucide-react';
 import { ActiveSidebarTab } from '../../types';
@@ -43,6 +45,7 @@ const NAV_GROUPS: NavGroup[] = [
     name: 'COMMAND',
     items: [
       { id: 'dashboard', label: '3D Agent Office', icon: Bot },
+      { id: 'profile', label: 'Candidate Profile', icon: User },
       { id: 'career-health', label: 'Career Health', icon: Activity },
     ],
   },
@@ -78,6 +81,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     name: 'SYSTEM',
     items: [
+      { id: 'system-logs', label: 'Logs & API Health', icon: Terminal, badge: 'LIVE' },
       { id: 'settings', label: 'Settings & Privacy', icon: Settings },
     ],
   },

@@ -9,6 +9,7 @@ import TeamFlowModal from './TeamFlowModal';
 import { AuditModal } from './AuditModal';
 import { TeamBadge } from './components/TeamBadge';
 import { Badge } from './primitives/Badge';
+import { ActionLogPanel } from './ActionLogPanel';
 
 interface SimulationViewProps {
   canvasRef: React.RefObject<HTMLDivElement>;
@@ -18,6 +19,7 @@ interface SimulationViewProps {
 
 const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen, setIsFullscreen }) => {
   const { selectedNpcIndex, activeAuditTaskId, setActiveAuditTaskId, setSelectedNpc } = useUiStore();
+  const { isLogOpen, setLogOpen } = useCoreStore();
   const activeSet = useActiveTeam();
   const { t } = useLocale();
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
@@ -74,6 +76,20 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Agent Activity Logs Toggle */}
+          <button
+            onClick={() => setLogOpen(!isLogOpen)}
+            className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 border ${
+              isLogOpen
+                ? 'bg-[#FFF0E4] text-[#F47B20] border-[#FDCBA7]'
+                : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white'
+            }`}
+            title="Toggle Live Telemetry Feed"
+          >
+            <Activity size={12} className={isLogOpen ? 'text-[#F47B20]' : ''} />
+            FEED {isLogOpen ? 'ON' : 'OFF'}
+          </button>
+
           <Badge variant="mint" size="sm" className="hidden sm:inline-flex font-mono">
             3D SPATIAL MESH READY
           </Badge>
@@ -87,14 +103,17 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
         </div>
       </div>
 
-      {/* 3D Canvas Viewport */}
-      <div 
-        ref={canvasRef} 
-        className="flex-1 min-h-0 relative overflow-hidden bg-[#090a0f]"
-        role="region"
-        aria-label={t('simulationCanvas')}
-      >
-        <UIOverlay />
+      {/* 3D Canvas Viewport + ActionLogPanel */}
+      <div className="flex-1 min-h-0 flex flex-row overflow-hidden relative">
+        {isLogOpen && <ActionLogPanel />}
+        <div 
+          ref={canvasRef} 
+          className="flex-1 min-h-0 relative overflow-hidden bg-[#090a0f]"
+          role="region"
+          aria-label={t('simulationCanvas')}
+        >
+          <UIOverlay />
+        </div>
       </div>
 
       {isFlowModalOpen && (

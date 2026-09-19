@@ -58,25 +58,25 @@ export const AgentDetailDrawer: React.FC = () => {
   const holdTask = tasks.find((t) => t.assignedAgentId === selectedNpcIndex && t.status === 'on_hold');
 
   let statusLabel = 'Standby';
-  let statusColor = 'text-zinc-400 bg-zinc-900 border-zinc-800';
-  let pulseColor = 'bg-zinc-500';
+  let statusColor = 'text-[#6A6359] bg-[#EFE7DC] border-[#EADFCF]';
+  let pulseColor = 'bg-[#999084]';
 
   if (activeTask || rawStatus === 'working') {
     statusLabel = 'Executing Pipeline';
-    statusColor = 'text-indigo-300 bg-indigo-500/10 border-indigo-500/30';
-    pulseColor = 'bg-indigo-400';
+    statusColor = 'text-[#2E8555] bg-[#E8F6EE] border-[#BCE4CE]';
+    pulseColor = 'bg-[#2E8555]';
   } else if (holdTask || rawStatus === 'on_hold') {
     statusLabel = 'Review Needed';
-    statusColor = 'text-amber-300 bg-amber-500/10 border-amber-500/30';
-    pulseColor = 'bg-amber-400';
+    statusColor = 'text-[#C45709] bg-[#FFF0E4] border-[#FDCBA7]';
+    pulseColor = 'bg-[#F47B20]';
   } else if (rawStatus === 'talking') {
     statusLabel = 'Consulting';
-    statusColor = 'text-cyan-300 bg-cyan-500/10 border-cyan-500/30';
-    pulseColor = 'bg-cyan-400';
+    statusColor = 'text-[#2563eb] bg-[#eff6ff] border-[#bfdbfe]';
+    pulseColor = 'bg-[#2563eb]';
   } else if (rawStatus === 'moving') {
     statusLabel = 'Relocating to Desk';
-    statusColor = 'text-purple-300 bg-purple-500/10 border-purple-500/30';
-    pulseColor = 'bg-purple-400';
+    statusColor = 'text-[#7c3aed] bg-[#f5f3ff] border-[#ddd6fe]';
+    pulseColor = 'bg-[#7c3aed]';
   }
 
   const latestFinishedTask = tasks
@@ -111,13 +111,13 @@ export const AgentDetailDrawer: React.FC = () => {
     <>
       {/* Backdrop */}
       <div 
-        className={`fixed inset-0 bg-black/60 backdrop-blur-xs z-40 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} 
+        className={`fixed inset-0 bg-black/40 backdrop-blur-xs z-40 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} 
         onClick={handleClose}
       />
       
       {/* Drawer */}
       <aside
-        className={`fixed top-0 right-0 bottom-0 w-full sm:w-[420px] bg-[#0c0d14]/95 backdrop-blur-2xl border-l border-zinc-800/80 shadow-2xl z-50 flex flex-col transition-transform duration-300 select-none ${
+        className={`fixed top-0 right-0 bottom-0 w-full sm:w-[420px] bg-[#FBF8F3]/95 backdrop-blur-2xl border-l border-[#EADFCF] shadow-2xl z-50 flex flex-col transition-transform duration-300 select-none ${
           isOpen ? 'translate-x-0' : 'translate-x-full pointer-events-none'
         }`}
         aria-label="Agent Details Drawer"
@@ -125,14 +125,14 @@ export const AgentDetailDrawer: React.FC = () => {
         {agent && (
           <>
             {/* Header */}
-            <div className="p-5 border-b border-zinc-800/80 flex flex-col gap-4 bg-zinc-950/40">
+            <div className="p-5 border-b border-[#EADFCF] flex flex-col gap-4 bg-[#F8F3EC]">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="shrink-0 p-1 bg-zinc-900 rounded-2xl border border-zinc-800 shadow-md">
+                  <div className="shrink-0 p-1 bg-white rounded-2xl border border-[#EADFCF] shadow-xs">
                     <Avatar type={agent.index === system.leadAgent.index ? 'lead' : 'sub'} color={agent.color} size={42} />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-base font-bold font-['Space_Grotesk'] text-white tracking-tight truncate">
+                    <h3 className="text-base font-bold font-['Space_Grotesk'] text-[#181512] tracking-tight truncate">
                       {agent.name}
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
@@ -142,13 +142,13 @@ export const AgentDetailDrawer: React.FC = () => {
                       >
                         {agent.index === system.leadAgent.index ? 'Master Orchestrator' : 'Specialist Agent'}
                       </span>
-                      <span className="text-[10px] font-mono text-zinc-500 truncate">{agent.model}</span>
+                      <span className="text-[10px] font-mono text-[#6A6359] truncate">{agent.model}</span>
                     </div>
                   </div>
                 </div>
                 <button
                   onClick={handleClose}
-                  className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl transition-colors cursor-pointer shrink-0"
+                  className="w-8 h-8 flex items-center justify-center text-[#6A6359] hover:text-[#181512] hover:bg-[#EFE7DC] rounded-xl transition-colors cursor-pointer shrink-0"
                   title="Close Drawer"
                 >
                   <X size={16} />
@@ -156,9 +156,9 @@ export const AgentDetailDrawer: React.FC = () => {
               </div>
 
               {/* Status Pill */}
-              <div className="flex items-center justify-between bg-[#12131c] rounded-xl p-3 border border-zinc-800">
-                <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-                  <Activity size={13} className="text-indigo-400" />
+              <div className="flex items-center justify-between bg-white rounded-xl p-3 border border-[#EADFCF]">
+                <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#6A6359] flex items-center gap-1.5">
+                  <Activity size={13} className="text-[#F47B20]" />
                   Live State
                 </span>
                 <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold border ${statusColor}`}>
@@ -169,23 +169,23 @@ export const AgentDetailDrawer: React.FC = () => {
             </div>
 
             {/* Tab Navigation */}
-            <div className="flex px-5 pt-2 border-b border-zinc-800/80 bg-zinc-950/20">
+            <div className="flex px-5 pt-2 border-b border-[#EADFCF] bg-[#F8F3EC]">
               <button
                 onClick={() => setActiveTab('details')}
-                className={`flex-1 pb-3 text-center font-mono uppercase tracking-wider text-[11px] transition-all border-b-2 font-semibold ${
+                className={`flex-1 pb-3 text-center font-mono uppercase tracking-wider text-[11px] transition-all border-b-2 font-bold cursor-pointer ${
                   activeTab === 'details'
-                    ? 'border-indigo-500 text-indigo-400'
-                    : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                    ? 'border-[#F47B20] text-[#F47B20]'
+                    : 'border-transparent text-[#6A6359] hover:text-[#181512]'
                 }`}
               >
                 Telemetry
               </button>
               <button
                 onClick={() => setActiveTab('chat')}
-                className={`flex-1 pb-3 text-center font-mono uppercase tracking-wider text-[11px] transition-all border-b-2 font-semibold flex items-center justify-center gap-2 ${
+                className={`flex-1 pb-3 text-center font-mono uppercase tracking-wider text-[11px] transition-all border-b-2 font-bold cursor-pointer flex items-center justify-center gap-2 ${
                   activeTab === 'chat'
-                    ? 'border-indigo-500 text-indigo-400'
-                    : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                    ? 'border-[#F47B20] text-[#F47B20]'
+                    : 'border-transparent text-[#6A6359] hover:text-[#181512]'
                 }`}
               >
                 <MessageSquare size={13} />
@@ -194,10 +194,10 @@ export const AgentDetailDrawer: React.FC = () => {
             </div>
 
             {/* Drawer Body */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#090a0f]/40 p-5 space-y-6">
+            <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#FBF8F3] p-5 space-y-5">
               {activeTab === 'chat' ? (
                 <div className="h-full flex flex-col">
-                  <div className="flex-1 min-h-[350px] bg-[#12131c] rounded-2xl border border-zinc-800 overflow-hidden">
+                  <div className="flex-1 min-h-[350px] bg-white rounded-2xl border border-[#EADFCF] overflow-hidden">
                     <ChatPanel />
                   </div>
                 </div>
@@ -205,18 +205,18 @@ export const AgentDetailDrawer: React.FC = () => {
                 <>
                   {/* Mission / Task */}
                   <div className="space-y-2">
-                    <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5 px-0.5">
-                      <Sparkles size={12} className="text-amber-400" />
+                    <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#6A6359] flex items-center gap-1.5 px-0.5">
+                      <Sparkles size={12} className="text-[#F47B20]" />
                       Assigned Mission
                     </span>
-                    <div className="bg-[#12131c] border border-zinc-800 rounded-xl p-4">
+                    <div className="bg-white border border-[#EADFCF] rounded-xl p-4">
                       {activeTask ? (
                         <div>
-                          <p className="text-xs font-bold text-white mb-1">"{activeTask.title}"</p>
-                          <p className="text-xs text-zinc-400 leading-relaxed">{activeTask.description}</p>
+                          <p className="text-xs font-bold text-[#181512] mb-1">"{activeTask.title}"</p>
+                          <p className="text-xs text-[#6A6359] leading-relaxed">{activeTask.description}</p>
                         </div>
                       ) : (
-                        <p className="text-xs text-zinc-300 leading-relaxed">
+                        <p className="text-xs text-[#181512] leading-relaxed">
                           {agentConfig?.mission || agent.description}
                         </p>
                       )}
@@ -226,25 +226,25 @@ export const AgentDetailDrawer: React.FC = () => {
                   {/* Agent Output */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between px-0.5">
-                      <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-                        <FileCode2 size={12} className="text-indigo-400" />
+                      <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#6A6359] flex items-center gap-1.5">
+                        <FileCode2 size={12} className="text-[#F47B20]" />
                         Live Deliverable
                       </span>
                       <span className={`text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                        realOutput ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-zinc-800 text-zinc-400'
+                        realOutput ? 'bg-[#E8F6EE] text-[#246B44] border border-[#BCE4CE]' : 'bg-[#EFE7DC] text-[#6A6359]'
                       }`}>
                         {realOutput ? 'Final Output' : 'Schema Preview'}
                       </span>
                     </div>
-                    <div className="bg-[#12131c] text-zinc-300 rounded-xl p-4 text-xs font-mono border border-zinc-800 relative overflow-hidden group shadow-inner">
-                      <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-800/80 text-[10px] text-zinc-500">
+                    <div className="bg-white text-[#181512] rounded-xl p-4 text-xs font-mono border border-[#EADFCF] relative overflow-hidden group shadow-2xs">
+                      <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#EADFCF] text-[10px] text-[#6A6359]">
                         <span className="flex items-center gap-1">
                           <Cpu size={11} />
                           {realOutput ? 'Pipeline Synthesized' : 'Expected Template'}
                         </span>
                         <span>{agent.model}</span>
                       </div>
-                      <pre className="whitespace-pre-wrap font-sans text-xs leading-relaxed text-zinc-300">
+                      <pre className="whitespace-pre-wrap font-sans text-xs leading-relaxed text-[#181512]">
                         {displayOutput}
                       </pre>
                     </div>
@@ -252,29 +252,29 @@ export const AgentDetailDrawer: React.FC = () => {
 
                   {/* Activity Log */}
                   <div className="space-y-2">
-                    <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5 px-0.5">
-                      <Clock size={12} className="text-cyan-400" />
+                    <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#6A6359] flex items-center gap-1.5 px-0.5">
+                      <Clock size={12} className="text-[#F47B20]" />
                       Recent Activity
                     </span>
                     {agentLogs.length > 0 ? (
                       <div className="space-y-2">
                         {agentLogs.map((log) => (
-                          <div key={log.id} className="p-3 rounded-xl border border-zinc-800/80 bg-[#12131c] flex flex-col gap-1">
+                          <div key={log.id} className="p-3 rounded-xl border border-[#EADFCF] bg-white flex flex-col gap-1">
                             <div className="flex items-center justify-between">
-                              <p className="font-semibold text-xs text-zinc-200">{log.action}</p>
-                              <span className="text-[9px] font-mono text-zinc-500 bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800">
+                              <p className="font-bold text-xs text-[#181512]">{log.action}</p>
+                              <span className="text-[9px] font-mono text-[#6A6359] bg-[#EFE7DC] px-1.5 py-0.5 rounded border border-[#EADFCF]">
                                 {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
-                            <p className="text-[11px] text-zinc-400 line-clamp-2">
+                            <p className="text-[11px] text-[#6A6359] line-clamp-2">
                               {typeof log.result === 'string' ? log.result : JSON.stringify(log.result)}
                             </p>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="p-5 text-center rounded-xl border border-dashed border-zinc-800 bg-zinc-900/30">
-                        <p className="text-xs text-zinc-500">No actions recorded in current session.</p>
+                      <div className="p-5 text-center rounded-xl border border-dashed border-[#EADFCF] bg-white">
+                        <p className="text-xs text-[#6A6359]">No actions recorded in current session.</p>
                       </div>
                     )}
                   </div>
@@ -284,17 +284,19 @@ export const AgentDetailDrawer: React.FC = () => {
 
             {/* Bottom Action Bar */}
             {activeTab === 'details' && (
-              <div className="p-4 border-t border-zinc-800/80 bg-zinc-950/60">
-                <Button
-                  variant="glow"
-                  size="md"
+              <div className="p-4 border-t border-[#EADFCF] bg-[#F8F3EC]">
+                <button
                   onClick={handleStartChat}
                   disabled={!canChat}
-                  className="w-full py-3"
-                  leftIcon={canChat ? <MessageSquare size={14} /> : <Lock size={14} />}
+                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    canChat
+                      ? 'bg-[#181512] text-white hover:bg-[#2A241F] shadow-sm'
+                      : 'bg-[#EFE7DC] text-[#999084] cursor-not-allowed'
+                  }`}
                 >
+                  {canChat ? <MessageSquare size={14} /> : <Lock size={14} />}
                   {canChat ? `Consult with ${agent.name}` : (reason || 'Agent Busy')}
-                </Button>
+                </button>
               </div>
             )}
           </>

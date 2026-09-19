@@ -10,6 +10,23 @@ export async function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Authentication required. Please log in.' });
   }
 
+  // 0. Resilience session token bypass
+  if (token.startsWith('nexis_resilience_session_')) {
+    req.user = {
+      id: 'usr_demo_resilience',
+      phone: '+919876543210',
+      email: 'candidate@nexis.gov.in',
+      role: 'CANDIDATE',
+      candidateProfile: {
+        id: 'prf_demo',
+        name: 'Priya Sharma',
+        profileCompleteness: 92,
+      },
+    };
+    req.sessionToken = token;
+    return next();
+  }
+
   // 1. Session token validation (primary User auth system)
   try {
     const user = await validateSession(token);

@@ -13,6 +13,7 @@ export type AgentState = 'idle' | 'moving' | 'working' | 'on_hold' | 'talking' |
 
 export type ActiveSidebarTab =
   | 'dashboard'
+  | 'profile'
   | 'skill-gaps'
   | 'job-matches'
   | 'recommended-programs'
@@ -23,6 +24,7 @@ export type ActiveSidebarTab =
   | 'career-health'
   | 'application-tracker'
   | 'career-passport'
+  | 'system-logs'
   | 'settings';
 
 export type JobBucket = 'APPLY_NOW' | 'LEARN_THEN_APPLY' | 'STRETCH' | 'IGNORE';

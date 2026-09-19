@@ -17,6 +17,7 @@ import {
 import { useAuthStore } from '../../integration/store/authStore';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { useUiStore } from '../../integration/store/uiStore';
+import { useRouter } from '../../router';
 import { ActiveSidebarTab } from '../../types';
 
 interface NavbarProps {
@@ -25,6 +26,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenCommandBar, onOpenResumeForge }) => {
+  const { navigate } = useRouter();
   const { user, clearAuth } = useAuthStore();
   const { activeSidebarTab, setActiveSidebarTab, setBYOKOpen, setAnalyticsDashboardOpen } = useUiStore();
   const { agentStatuses } = useCoreStore();
@@ -161,12 +163,21 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCommandBar, onOpenResumeFo
         {/* User Account / Profile */}
         {user ? (
           <div className="flex items-center gap-2 pl-2 border-l border-[#E5DBCF]">
-            <div className="w-8 h-8 rounded-full bg-[#FFF0E4] border border-[#FDCBA7] text-[#F47B20] flex items-center justify-center text-xs font-bold uppercase shadow-sm">
-              {user.profile?.name ? user.profile.name.slice(0, 2) : 'US'}
-            </div>
+            <button
+              onClick={() => setActiveSidebarTab('profile')}
+              className="flex items-center gap-2 hover:bg-[#EFE7DC] px-2 py-1 rounded-xl transition-colors cursor-pointer"
+              title="View Candidate Profile"
+            >
+              <div className="w-7 h-7 rounded-full bg-[#FFF0E4] border border-[#FDCBA7] text-[#F47B20] flex items-center justify-center text-xs font-bold uppercase shadow-2xs">
+                {user.profile?.name ? user.profile.name.slice(0, 2) : 'PS'}
+              </div>
+              <span className="text-xs font-semibold text-[#181512] hidden xl:inline">
+                {user.profile?.name || 'Priya Sharma'}
+              </span>
+            </button>
             <button
               onClick={() => clearAuth()}
-              className="p-1.5 text-[#999084] hover:text-[#D9453B] hover:bg-[#FDEEED] rounded-full transition-colors"
+              className="p-1.5 text-[#999084] hover:text-[#D9453B] hover:bg-[#FDEEED] rounded-full transition-colors cursor-pointer"
               title="Sign Out"
               aria-label="Sign Out"
             >
@@ -174,12 +185,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCommandBar, onOpenResumeFo
             </button>
           </div>
         ) : (
-          <a
-            href="/login"
-            className="nx-btn-primary !py-1.5 !px-3.5 !text-xs"
-          >
-            Sign In
-          </a>
+          <div className="flex items-center gap-2 pl-2 border-l border-[#E5DBCF]">
+            <button
+              onClick={() => navigate('/login')}
+              className="nx-btn-primary !py-1.5 !px-3.5 !text-xs cursor-pointer"
+            >
+              Sign In
+            </button>
+          </div>
         )}
       </div>
     </header>

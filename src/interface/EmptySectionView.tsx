@@ -83,6 +83,18 @@ const SECTION_CONFIG: Record<
     icon: Award,
     badge: 'Verified Identity',
   },
+  'profile': {
+    title: 'Candidate Profile',
+    description: 'Dealbreaker fit engine, target roles, STAR work history, and verified O*NET competencies.',
+    icon: Target,
+    badge: 'Career DNA',
+  },
+  'system-logs': {
+    title: 'Logs & API Health',
+    description: 'Live backend health status, FreeLLMAPI router inspection, and agent execution telemetry.',
+    icon: Wrench,
+    badge: 'Infrastructure',
+  },
   'settings': {
     title: 'Platform Settings & Privacy',
     description: 'Manage your AI models, DPDP privacy controls, user profile, and connected integrations.',

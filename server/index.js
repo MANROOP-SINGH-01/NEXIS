@@ -66,6 +66,7 @@ import evidenceRoutes from './routes/evidence.js'
 import passportRoutes from './routes/passport.js'
 
 import { seedAdminUser } from './lib/seedAdminUser.js'
+import { startEmbeddedFreeLlm } from './services/embeddedFreeLlm.js'
 
 const app = express()
 
@@ -142,6 +143,9 @@ const startServer = async () => {
   }
 
   await seedAdminUser()
+  // Start embedded FreeLLMAPI router on port 31415 if no external instance is running
+  startEmbeddedFreeLlm(31415)
+
   app.listen(PORT, () => {
     console.log(`[forge-api] listening on http://localhost:${PORT}`)
   })

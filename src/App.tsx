@@ -44,6 +44,8 @@ import EmployerVerificationPage from './interface/employer/EmployerVerificationP
 import ProviderViewPage from './interface/provider/ProviderViewPage';
 import EmptySectionView from './interface/EmptySectionView';
 import { PulseOverviewView } from './interface/PulseOverviewView';
+import { CandidateProfileView } from './interface/CandidateProfileView';
+import { SystemLogsView } from './interface/SystemLogsView';
 
 const Workspace: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -147,6 +149,7 @@ const Workspace: React.FC = () => {
 
         {/* Dynamic Views Area */}
         <div className="relative flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-transparent">
+          {activeSidebarTab === 'profile' && <CandidateProfileView />}
           {activeSidebarTab === 'skill-gaps' && <SkillGapsView />}
           {activeSidebarTab === 'job-matches' && <JobMatchesView />}
           {activeSidebarTab === 'recommended-programs' && <RecommendedProgramsView />}
@@ -157,6 +160,7 @@ const Workspace: React.FC = () => {
           {activeSidebarTab === 'career-health' && <PulseOverviewView />}
           {activeSidebarTab === 'application-tracker' && <ApplicationTrackerView />}
           {activeSidebarTab === 'career-passport' && <CareerPassportView />}
+          {activeSidebarTab === 'system-logs' && <SystemLogsView />}
           {activeSidebarTab === 'settings' && <SettingsPage />}
 
           {/* Section 1: 3D Agent Command Center (Persistently Mounted to Preserve WebGL Context) */}
