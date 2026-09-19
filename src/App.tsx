@@ -46,6 +46,7 @@ import EmptySectionView from './interface/EmptySectionView';
 import { PulseOverviewView } from './interface/PulseOverviewView';
 import { CandidateProfileView } from './interface/CandidateProfileView';
 import { SystemLogsView } from './interface/SystemLogsView';
+import { ActiveSidebarTab } from './types';
 
 const Workspace: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
