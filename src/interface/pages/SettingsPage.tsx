@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   User, Key, Shield, Sliders, Bell, Database,
   Eye, EyeOff, Save, CheckCircle2, AlertCircle,
   Trash2, Download, ExternalLink, Github, Linkedin,
-  Cpu, Sparkles, RefreshCw
+  Cpu, Sparkles, RefreshCw, Send, MessageSquare, Bot, Check
 } from 'lucide-react';
 import { useUiStore } from '../../integration/store/uiStore';
 import { useCoreStore } from '../../integration/store/coreStore';
@@ -34,6 +34,76 @@ export const SettingsPage: React.FC = () => {
   const [govtCrossCheck, setGovtCrossCheck] = useState<boolean>(
     traineeProfile?.consent?.GOVT_CROSS_CHECK?.granted ?? false
   );
+
+  // Telegram Assistant State (Proficiently Loop)
+  const [telegramBotToken, setTelegramBotToken] = useState('');
+  const [telegramChatId, setTelegramChatId] = useState('');
+  const [telegramStatus, setTelegramStatus] = useState<{ connected: boolean; botUsername: string | null }>({
+    connected: false,
+    botUsername: null,
+  });
+  const [isConnectingTelegram, setIsConnectingTelegram] = useState(false);
+  const [telegramNotice, setTelegramNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/api/telegram/status')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && typeof data.connected === 'boolean') {
+          setTelegramStatus({ connected: data.connected, botUsername: data.botUsername });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleConnectTelegram = async () => {
+    if (!telegramBotToken.trim() || !telegramChatId.trim()) {
+      setTelegramNotice('Please provide both Bot Token and Chat ID.');
+      return;
+    }
+    setIsConnectingTelegram(true);
+    setTelegramNotice(null);
+    try {
+      const res = await fetch('/api/telegram/configure', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({
+          botToken: telegramBotToken.trim(),
+          chatId: telegramChatId.trim(),
+          sendTest: true,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setTelegramStatus({ connected: true, botUsername: data.bot?.username || 'bot' });
+        setTelegramNotice(`Connected to @${data.bot?.username || 'bot'}! Verification greeting dispatched to chat.`);
+        showNotification('Telegram Job Search Assistant connected!');
+      } else {
+        setTelegramNotice(data.error || 'Failed to verify Telegram bot token.');
+      }
+    } catch {
+      setTelegramNotice('Unable to reach Telegram service.');
+    } finally {
+      setIsConnectingTelegram(false);
+    }
+  };
+
+  const handleTestTelegram = async () => {
+    try {
+      const res = await fetch('/api/telegram/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showNotification('Test notification sent to Telegram!');
+      } else {
+        setTelegramNotice(data.error || 'Failed to dispatch test notification.');
+      }
+    } catch {
+      setTelegramNotice('Network error sending test message.');
+    }
+  };
 
   const showNotification = (msg: string) => {
     setSaveSuccess(msg);
@@ -439,6 +509,118 @@ export const SettingsPage: React.FC = () => {
                     Connected
                   </span>
                   <span className="text-xs text-[#8B949E] font-mono font-bold">@priyasharma</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Telegram Headless Job Assistant (Proficiently Loop) */}
+            <div className="mt-6 p-6 rounded-2xl bg-[#1A1B20] border border-white/8 flex flex-col gap-5 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/8 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#229ED9]/15 border border-[#229ED9]/30 flex items-center justify-center text-[#229ED9] shadow-xs">
+                    <Send size={20} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-[#EDEDED]">Telegram Career Assistant</h3>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#FF5C1A]/10 text-[#FF5C1A] border border-[#FF5C1A]/20">
+                        Proficiently Loop
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#8B949E]">
+                      Headless job search assistant: Send job URLs via Telegram to auto-tailor resumes and prepare ATS forms.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] font-mono font-bold px-2.5 py-1 rounded-full border ${
+                    telegramStatus.connected
+                      ? 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20'
+                      : 'bg-white/5 text-[#8B949E] border-white/10'
+                  }`}>
+                    {telegramStatus.connected
+                      ? `Active (@${telegramStatus.botUsername || 'assistant'})`
+                      : 'Disconnected'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Setup Guide Box */}
+              <div className="p-4 rounded-xl bg-[#121317] border border-white/8 text-xs space-y-2">
+                <div className="flex items-center gap-2 text-[#EDEDED] font-semibold text-xs font-mono">
+                  <Bot size={14} className="text-[#229ED9]" />
+                  <span>Interactive Telegram Bot Setup Instructions:</span>
+                </div>
+                <ol className="list-decimal list-inside text-[#8B949E] space-y-1 pl-1 text-[11px] leading-relaxed">
+                  <li>Open Telegram and start a chat with <strong className="text-[#EDEDED]">@BotFather</strong>.</li>
+                  <li>Send <code className="text-[#FF5C1A] font-mono">/newbot</code>, choose a name and username, then copy your HTTP API token.</li>
+                  <li>Send a message to your new bot, then paste your Token & Chat ID below to connect.</li>
+                </ol>
+              </div>
+
+              {/* Input Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#EDEDED] mb-1.5 font-mono">
+                    Telegram Bot Token
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="1234567890:ABCdefGhIJKlmNoPQRsTUVwxyZ"
+                    value={telegramBotToken}
+                    onChange={(e) => setTelegramBotToken(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#121317] border border-white/10 text-xs text-[#EDEDED] font-mono focus:outline-none focus:border-[#229ED9] focus:ring-1 focus:ring-[#229ED9] transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#EDEDED] mb-1.5 font-mono">
+                    Chat ID or Username
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 987654321 or @yourusername"
+                    value={telegramChatId}
+                    onChange={(e) => setTelegramChatId(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#121317] border border-white/10 text-xs text-[#EDEDED] font-mono focus:outline-none focus:border-[#229ED9] focus:ring-1 focus:ring-[#229ED9] transition-colors"
+                  />
+                </div>
+              </div>
+
+              {telegramNotice && (
+                <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-xs text-[#EDEDED] flex items-center gap-2">
+                  <CheckCircle2 size={15} className="text-[#10B981] shrink-0" />
+                  <span>{telegramNotice}</span>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <div className="text-[11px] text-[#8B949E] font-mono">
+                  Supported: /search &bull; Job URLs (Greenhouse/Lever) &bull; /status
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {telegramStatus.connected && (
+                    <button
+                      type="button"
+                      onClick={handleTestTelegram}
+                      className="px-4 py-2 rounded-xl bg-[#121317] hover:bg-white/5 border border-white/10 text-xs font-semibold text-[#EDEDED] transition-all cursor-pointer"
+                    >
+                      Send Test Ping
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleConnectTelegram}
+                    disabled={isConnectingTelegram}
+                    className="px-5 py-2 rounded-xl bg-[#229ED9] hover:bg-[#1E88E5] text-white text-xs font-semibold shadow-xs flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    <Send size={14} />
+                    <span>{isConnectingTelegram ? 'Verifying...' : 'Connect & Test Bot'}</span>
+                  </button>
                 </div>
               </div>
             </div>

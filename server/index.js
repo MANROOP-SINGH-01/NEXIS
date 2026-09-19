@@ -64,6 +64,7 @@ import agentsRoutes from './routes/agents.js'
 import applicationsRoutes from './routes/applications.js'
 import evidenceRoutes from './routes/evidence.js'
 import passportRoutes from './routes/passport.js'
+import telegramRoutes from './routes/telegram.js'
 
 import { seedAdminUser } from './lib/seedAdminUser.js'
 import { startEmbeddedFreeLlm } from './services/embeddedFreeLlm.js'
@@ -123,6 +124,7 @@ app.use('/api/agents', agentsRoutes)
 app.use('/api/applications', applicationsRoutes)
 app.use('/api/evidence', evidenceRoutes)
 app.use('/api/passport', passportRoutes)
+app.use('/api', telegramRoutes)
 
 // Direct root redirect for provider view links
 app.get('/provider-view/:token', (req, res) => {
