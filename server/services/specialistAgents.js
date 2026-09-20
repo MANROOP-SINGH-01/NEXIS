@@ -271,6 +271,168 @@ export function createAgentFinding({
 }
 
 /**
+ * Seed realistic Section 15.3 demonstration findings for 3D Office simulation
+ */
+export function seedDefaultFindings() {
+  if (findingsLedger.size > 0) return;
+
+  createAgentFinding({
+    agent: 'outcome-tracking',
+    findingType: 'RETENTION_AUDIT',
+    traineeId: 'MH-2026-PUN-0841',
+    district: 'Pune',
+    providerId: 'prov_pune_it_01',
+    confidence: 94,
+    inferenceType: 'VERIFIED',
+    summary: 'T+90 Milestone Confirmed: Candidate successfully retained at Tata AutoComp Systems with active wage progression.',
+    details: {
+      milestone: 'T+90',
+      tenureDays: 92,
+      wageBand: '₹22,000 - ₹25,000/mo',
+      trainingRelevance: 'HIGH',
+      occupationalMatch: 'Automotive Embedded Systems Technician',
+    },
+    inputSources: [
+      { sourceType: 'EMPLOYER_PAYSLIP', description: 'EPFO Electronic Challan Receipt #ECR-99218', timestamp: new Date(Date.now() - 3600000).toISOString() },
+      { sourceType: 'TRAINEE_SELF_REPORT', description: 'WhatsApp response: "Confirmed employment active with positive increment"', timestamp: new Date(Date.now() - 7200000).toISOString() },
+    ],
+    evidenceReferences: ['EPFO_ECR_99218', 'WA_CHAT_PUN_0841', 'MAHASWAYAM_CERT_4412'],
+    modelVersion: 'nexis-outcome-rules-v2.0',
+    recommendedAction: {
+      actionType: 'SCHEDULE_T180_CHECKPOINT',
+      description: 'Schedule T+180 longitudinal check-in for wage and role progression audit.',
+      requiresHumanApproval: false,
+    },
+    humanReviewStatus: 'APPROVED',
+  });
+
+  createAgentFinding({
+    agent: 'follow-up',
+    findingType: 'OUTREACH_PLAN',
+    traineeId: 'MH-2026-NSK-1102',
+    district: 'Nashik',
+    providerId: 'prov_nsk_auto_02',
+    confidence: 88,
+    inferenceType: 'INFERRED',
+    summary: 'Scheduled localized Marathi WhatsApp survey within DPDP quiet hours (11:00 IST) following 2 unread SMS attempts.',
+    details: {
+      channel: 'WHATSAPP_MR',
+      quietHoursWindow: '08:00 - 21:00 IST',
+      attemptNumber: 3,
+      priorChannels: ['SMS_EN', 'SMS_HI'],
+      escalationLevel: 'RETRY_ALTERNATE_CONSENTED_CHANNEL',
+    },
+    inputSources: [
+      { sourceType: 'CONSENT_VAULT', description: 'DPDP Scope OUTCOME_FOLLOWUP granted on 2025-11-20', timestamp: new Date(Date.now() - 86400000).toISOString() },
+      { sourceType: 'TELEPHONY_GATEWAY', description: 'SMS Gateway delivery confirmed; terminal idle', timestamp: new Date(Date.now() - 14400000).toISOString() },
+    ],
+    evidenceReferences: ['CONSENT_REC_NSK_1102', 'MSG91_DLV_882910'],
+    modelVersion: 'nexis-followup-orchestrator-v2.0',
+    recommendedAction: {
+      actionType: 'DISPATCH_ASSISTED_CALL',
+      description: 'Trigger assisted outreach coordinator call if WhatsApp remains unacknowledged after 48h.',
+      requiresHumanApproval: false,
+    },
+    humanReviewStatus: 'APPROVED',
+  });
+
+  createAgentFinding({
+    agent: 'employment-verification',
+    findingType: 'EVIDENCE_SCORE_COMPUTATION',
+    traineeId: 'MH-2026-MUM-3094',
+    district: 'Mumbai Suburban',
+    providerId: 'prov_mum_elec_03',
+    confidence: 85,
+    inferenceType: 'VERIFIED',
+    summary: 'Evidence-Score Calibrated: C = min(100, 25S + 25E + 20D + 15T + 15X) = 85. Multi-attribute dual verification achieved.',
+    details: {
+      formula: 'C = min(100, 25*1 + 25*1 + 20*1 + 15*1 + 15*0) = 85',
+      components: {
+        selfReport: { weight: 25, satisfied: true },
+        employerConfirmed: { weight: 25, satisfied: true },
+        documentaryEvidence: { weight: 20, satisfied: true },
+        temporalConsistency: { weight: 15, satisfied: true },
+        crossSourceCorroborated: { weight: 15, satisfied: false },
+      },
+      employer: 'Godrej Infotech Ltd',
+      disputeDetected: false,
+    },
+    inputSources: [
+      { sourceType: 'EMPLOYER_SIGNED_LINK', description: 'Token-authorized confirmation signed by HR Manager on 2026-02-14', timestamp: new Date(Date.now() - 1800000).toISOString() },
+      { sourceType: 'TAX_INVOICE_PAYSLIP', description: 'Form 16 / Salary Slip with matching employer PAN', timestamp: new Date(Date.now() - 3600000).toISOString() },
+    ],
+    evidenceReferences: ['SIGNED_EMP_TOKEN_GODREJ_01', 'PAYSLIP_GODREJ_JAN2026'],
+    modelVersion: 'nexis-evidence-ledger-v2.0',
+    recommendedAction: {
+      actionType: 'UPGRADE_EVIDENCE_STATUS',
+      description: 'Upgrade livelihood claim from SELF_REPORTED to VERIFIED in public ledger.',
+      requiresHumanApproval: false,
+    },
+    humanReviewStatus: 'APPROVED',
+  });
+
+  createAgentFinding({
+    agent: 'career-intervention',
+    findingType: 'ROOT_CAUSE_DIAGNOSIS',
+    traineeId: 'MH-2026-PUN-0419',
+    district: 'Pune',
+    providerId: 'prov_pune_it_01',
+    confidence: 91,
+    inferenceType: 'INFERRED',
+    summary: 'Root-Cause Identified: SKILL_MISMATCH in Industrial PLC Automation. Recommended 30-hour Siemens TIA Portal remedial module.',
+    details: {
+      rootCause: 'SKILL_MISMATCH',
+      observedGap: 'Candidate certified in Basic Wiring but local Bhosari MIDC vacancies require PLC Ladder Logic & SCADA telemetry.',
+      vacancyDenominator: 'Appears in 14 of 19 matched industrial postings in Bhosari/Chakan cluster',
+      estimatedRemediationDays: 21,
+    },
+    inputSources: [
+      { sourceType: 'ADZUNA_JOB_CLUSTER', description: 'Aggregated 19 local industrial automation job specifications', timestamp: new Date(Date.now() - 7200000).toISOString() },
+      { sourceType: 'INTERVIEW_PERF_TELEMETRY', description: 'Nexus-Mirror mock technical assessment: 42% on PLC controllers', timestamp: new Date(Date.now() - 10800000).toISOString() },
+    ],
+    evidenceReferences: ['ADZUNA_BHOSARI_IND_CORPUS', 'MIRROR_ASSESS_PUN_0419'],
+    modelVersion: 'nexis-intervention-rules-v2.0',
+    recommendedAction: {
+      actionType: 'HUMAN_APPROVAL_REQUIRED',
+      description: 'Approve remedial voucher assignment: Government subsidized 30h Siemens TIA training module.',
+      requiresHumanApproval: true,
+    },
+    humanReviewStatus: 'PENDING',
+  });
+
+  createAgentFinding({
+    agent: 'data-quality',
+    findingType: 'CHRONOLOGY_INTEGRITY_AUDIT',
+    traineeId: 'MH-2026-THN-1902',
+    district: 'Thane',
+    providerId: 'prov_thn_logistics_01',
+    confidence: 96,
+    inferenceType: 'VERIFIED',
+    summary: 'Chronology & Anomaly Guard Clean: Verified 0 overlapping full-time employments across Thane logistics cohort.',
+    details: {
+      anomalyType: 'OVERLAPPING_FULLTIME_JOBS',
+      recordsAudited: 84,
+      discrepanciesFound: 0,
+      confidenceBand: '[93%, 99%]',
+    },
+    inputSources: [
+      { sourceType: 'STATE_OUTCOME_LEDGER', description: 'Full event-sourced outcome sequence timeline', timestamp: new Date().toISOString() },
+    ],
+    evidenceReferences: ['TIMELINE_AUDIT_THN_COHORT_2025_B'],
+    modelVersion: 'nexis-data-quality-v2.0',
+    recommendedAction: {
+      actionType: 'CERTIFY_BATCH_INTEGRITY',
+      description: 'Certify batch clean for quarterly state department outcome transmission.',
+      requiresHumanApproval: false,
+    },
+    humanReviewStatus: 'APPROVED',
+  });
+}
+
+// Ensure default findings are available immediately
+seedDefaultFindings();
+
+/**
  * 1. Outcome Tracking Agent Runner
  * Finds incomplete or stale outcome timelines.
  */

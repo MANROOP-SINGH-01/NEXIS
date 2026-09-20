@@ -6,6 +6,8 @@ import {
   XCircle, ExternalLink, Landmark, MapPin, Sparkles
 } from 'lucide-react';
 import { useCoreStore } from '../integration/store/coreStore';
+import { useUiStore } from '../integration/store/uiStore';
+import { useRouter } from '../router';
 import { OutcomeCheckInRecord, GovtCrossCheckRecord } from '../types';
 import { isDemoMode } from '../demo/demoData';
 import { PageHeader } from './bauhaus/PageHeader';
@@ -95,6 +97,8 @@ const DEFAULT_OUTCOMES: OutcomeCheckInRecord[] = [
 
 export const OutcomeStatusView: React.FC = () => {
   const { traineeProfile, outcomeHistory, setOutcomeHistory } = useCoreStore();
+  const { setActiveSidebarTab } = useUiStore();
+  const { navigate } = useRouter();
 
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -295,14 +299,27 @@ export const OutcomeStatusView: React.FC = () => {
         title="CAREER OUTCOMES & EVIDENCE"
         subtitle={`SELF-REPORT EMPLOYMENT TRANSITIONS & REQUEST EMPLOYER VERIFICATION • ${traineeName.toUpperCase()}`}
         action={
-          <button
-            onClick={fetchHistory}
-            disabled={loadingHistory}
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold uppercase bg-[#FFFFFF] border-2 border-[#111111] shadow-[2px_2px_0px_#111111] text-[#111111] hover:bg-[#EFE7D8] transition-all cursor-pointer disabled:opacity-50"
-          >
-            <RefreshCw size={14} className={loadingHistory ? 'animate-spin text-[#E53935]' : ''} />
-            <span>Sync Status</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setActiveSidebarTab('dashboard');
+                navigate('/dashboard');
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-mono font-bold uppercase bg-[#111111] text-white border-2 border-[#111111] shadow-[2px_2px_0px_#111111] hover:bg-[#E53935] transition-all cursor-pointer"
+              title="Return to 3D Agent Simulation (Section 21.1)"
+            >
+              <Compass size={13} />
+              <span>3D Office</span>
+            </button>
+            <button
+              onClick={fetchHistory}
+              disabled={loadingHistory}
+              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold uppercase bg-[#FFFFFF] border-2 border-[#111111] shadow-[2px_2px_0px_#111111] text-[#111111] hover:bg-[#EFE7D8] transition-all cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={loadingHistory ? 'animate-spin text-[#E53935]' : ''} />
+              <span>Sync Status</span>
+            </button>
+          </div>
         }
       />
 

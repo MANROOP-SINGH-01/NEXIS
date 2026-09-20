@@ -1,4 +1,4 @@
-import { Maximize2, Minimize2, X, Activity, Cpu, Play, Compass, Eye, ArrowRight } from 'lucide-react';
+import { Maximize2, Minimize2, X, Activity, Cpu, Play, Compass, Eye, ArrowRight, ShieldCheck, Layers, ChevronRight } from 'lucide-react';
 import React, { useState, useMemo } from 'react';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useActiveTeam } from '../integration/store/teamStore';
@@ -11,6 +11,9 @@ import { AuditModal } from './AuditModal';
 import { ActionLogPanel } from './ActionLogPanel';
 import PhaseOneControlPanel from './PhaseOneControlPanel';
 import { colors } from '../theme/bauhaus';
+import { SimulationActivityStream } from './simulation/SimulationActivityStream';
+import { EvidenceInspectionPanel, Section15Finding } from './simulation/EvidenceInspectionPanel';
+import { WorkQueueNavigator } from './simulation/WorkQueueNavigator';
 
 interface SimulationViewProps {
   canvasRef: React.RefObject<HTMLDivElement>;
@@ -44,6 +47,9 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
   const [isDispatchOpen, setIsDispatchOpen] = useState(false);
   const [behaviorTick, setBehaviorTick] = useState(0);
+  const [isEvidencePanelOpen, setIsEvidencePanelOpen] = useState(false);
+  const [selectedFinding, setSelectedFinding] = useState<Section15Finding | null>(null);
+  const [isQueueNavOpen, setIsQueueNavOpen] = useState(false);
 
   // Poll runtime behavior state and desk workspace memory from simulation engine
   React.useEffect(() => {
@@ -196,6 +202,49 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
 
         {/* Right: Architectural Utility Controls */}
         <div className="flex items-center gap-2 shrink-0">
+          {/* Section 21.1 Bidirectional Work Queue Launcher */}
+          <button
+            onClick={() => setIsQueueNavOpen(true)}
+            className="h-7 px-2.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 hover:bg-[#EFE7D8]"
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              backgroundColor: '#FFFFFF',
+              color: '#111111',
+              border: '1px solid #111111',
+            }}
+            title="Open Conventional Work Queues (Section 21.1)"
+          >
+            <Layers size={12} className="text-[#2457A6]" />
+            <span className="hidden md:inline">WORK QUEUES</span>
+          </button>
+
+          {/* Section 15.3 Evidence Panel Launcher */}
+          <button
+            onClick={async () => {
+              try {
+                const res = await fetch('/api/specialist-agents/findings');
+                if (res.ok) {
+                  const data = await res.json();
+                  if (data.findings && data.findings.length > 0) {
+                    setSelectedFinding(data.findings[0]);
+                  }
+                }
+              } catch {}
+              setIsEvidencePanelOpen(true);
+            }}
+            className="h-7 px-2.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 hover:bg-[#EFE7D8]"
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              backgroundColor: '#FFFFFF',
+              color: '#111111',
+              border: '1px solid #111111',
+            }}
+            title="Open Section 15.3 Evidence Findings Ledger"
+          >
+            <ShieldCheck size={12} className="text-[#15803D]" />
+            <span className="hidden md:inline">EVIDENCE DOSSIER</span>
+          </button>
+
           <button
             onClick={() => setIsFlowModalOpen(true)}
             className="h-7 px-2.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 hover:bg-[#EFE7D8]"
@@ -248,6 +297,14 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
           </div>
 
           <UIOverlay />
+
+          {/* Section 9: Real-time Agent Activity Stream inside 3D scene */}
+          <SimulationActivityStream
+            onSelectFinding={(f) => {
+              setSelectedFinding(f);
+              setIsEvidencePanelOpen(true);
+            }}
+          />
 
           {/* 3. Floating Bauhaus Selected Agent Editorial Card (Section 08) — Double Bezel & Spring Entry */}
           {selectedAgent && (
@@ -436,6 +493,33 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
                       <ArrowRight size={11} strokeWidth={2.5} />
                     </span>
                   </button>
+
+                  {/* Section 15.3 Evidence Findings Trigger */}
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch('/api/specialist-agents/findings');
+                        if (res.ok) {
+                          const data = await res.json();
+                          const matched = data.findings?.find((f: any) =>
+                            f.agent?.toLowerCase().includes(selectedAgent.name.toLowerCase())
+                          ) || data.findings?.[0];
+                          if (matched) {
+                            setSelectedFinding(matched);
+                            setIsEvidencePanelOpen(true);
+                          }
+                        }
+                      } catch {}
+                    }}
+                    className="w-full h-8 px-3 text-[10px] font-bold uppercase tracking-wider flex items-center justify-between cursor-pointer mt-1.5 touch-manipulation select-none transition-all duration-120 bg-white hover:bg-[#F5F0E6] text-[#111111] border border-[#111111]"
+                    title="Inspect Section 15.3 Evidence Finding for Selected Agent"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <ShieldCheck size={12} className="text-[#15803D]" />
+                      <span>EVIDENCE DOSSIER (SEC 15.3)</span>
+                    </span>
+                    <ChevronRight size={12} />
+                  </button>
                 </div>
               </div>
             </div>
@@ -614,6 +698,20 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
           onClose={() => setActiveAuditTaskId(null)}
         />
       )}
+
+      {/* 8. Phase 16: Section 15.3 Evidence Inspection Panel */}
+      <EvidenceInspectionPanel
+        finding={selectedFinding}
+        isOpen={isEvidencePanelOpen}
+        onClose={() => setIsEvidencePanelOpen(false)}
+        onFindingReviewed={(updated) => setSelectedFinding(updated)}
+      />
+
+      {/* 9. Phase 16: Section 21.1 Conventional Work Queue Navigator */}
+      <WorkQueueNavigator
+        isOpen={isQueueNavOpen}
+        onClose={() => setIsQueueNavOpen(false)}
+      />
     </div>
   );
 };

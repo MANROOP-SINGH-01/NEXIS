@@ -28,7 +28,10 @@ import {
   FileText,
   BadgeAlert,
   Sliders,
+  Compass,
 } from 'lucide-react';
+import { useUiStore } from '../../integration/store/uiStore';
+import { useRouter } from '../../router';
 
 interface InterventionItem {
   id: string;
@@ -64,6 +67,8 @@ const ROOT_CAUSE_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export const InterventionManagementView: React.FC = () => {
+  const { setActiveSidebarTab } = useUiStore();
+  const { navigate } = useRouter();
   const [interventions, setInterventions] = useState<InterventionItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -238,6 +243,17 @@ export const InterventionManagementView: React.FC = () => {
                 className="text-xs font-semibold text-zinc-900 bg-transparent border-b border-zinc-300 focus:outline-none focus:border-[#111111]"
               />
             </div>
+            <button
+              onClick={() => {
+                setActiveSidebarTab('dashboard');
+                navigate('/dashboard');
+              }}
+              className="px-3 py-1.5 bg-[#111111] hover:bg-[#E53935] text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer border border-[#111111] shadow-[2px_2px_0px_#111111]"
+              title="Return to 3D Agent Simulation (Section 21.1)"
+            >
+              <Compass size={13} />
+              <span>3D Office</span>
+            </button>
             <button
               onClick={fetchQueue}
               className="p-2 bg-white border border-zinc-300 hover:border-zinc-900 hover:bg-zinc-100 transition-all cursor-pointer"
