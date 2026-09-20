@@ -9,6 +9,7 @@ import { useCoreStore } from '../integration/store/coreStore';
 import { OutcomeCheckInRecord, GovtCrossCheckRecord } from '../types';
 import { isDemoMode } from '../demo/demoData';
 import { PageHeader } from './bauhaus/PageHeader';
+import { EvidenceBadge } from './common/EvidenceBadge';
 
 function formatCheckinType(type: string): string {
   switch (type) {
@@ -305,6 +306,16 @@ export const OutcomeStatusView: React.FC = () => {
         }
       />
 
+      {/* Section 25.3 Mandatory Synthetic Demonstration Data Banner */}
+      <div className="bg-[#FFFBEB] border-2 border-[#D97706] p-3 flex items-start gap-2.5">
+        <AlertTriangle size={16} className="text-[#D97706] shrink-0 mt-0.5" />
+        <div className="text-xs font-mono text-[#92400E]">
+          <span className="font-black uppercase tracking-wider mr-2">[SECTION 25.3 NOTICE]:</span>
+          Synthetic demonstration data — not official Maharashtra government statistics.
+          Trainee progression and employer records reflect the calibrated SIH 2026 demonstration cohort.
+        </div>
+      </div>
+
       {/* Form Card: Self-Report Status */}
       <div className="bg-[#FFFFFF] border-2 border-[#111111] shadow-[6px_6px_0px_#111111] p-6 md:p-8 relative">
         <div className="flex items-center justify-between gap-2 mb-6 pb-3 border-b-2 border-[#111111]">
@@ -509,11 +520,11 @@ export const OutcomeStatusView: React.FC = () => {
                       <span className="text-sm font-mono font-black text-[#111111] uppercase">
                         {formatCheckinType(item.checkinType)}
                       </span>
-                      <span className={`text-[10px] font-mono font-black uppercase px-2.5 py-0.5 border-2 ${
-                        item.status === 'COMPLETED' ? 'bg-[#EBF3FC] text-[#2457A6] border-[#2457A6]' : 'bg-[#FEF9E7] text-[#B78103] border-[#F4C430]'
-                      }`}>
-                        {item.status}
-                      </span>
+                      <EvidenceBadge
+                        type={verification?.status === 'CONFIRMED' ? 'VERIFIED' : 'SELF_REPORTED'}
+                        confidence={verification?.status === 'CONFIRMED' ? 0.95 : undefined}
+                        evidenceRef={verification?.verificationToken || undefined}
+                      />
                     </div>
                     <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#555555] bg-[#F5F0E6] border border-[#111111] px-2.5 py-1">
                       <Calendar size={13} />

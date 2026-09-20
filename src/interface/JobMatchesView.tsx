@@ -246,6 +246,15 @@ export const JobMatchesView: React.FC = () => {
         </div>
       </div>
 
+      {/* Section 25.3 Synthetic Demo Dataset Disclaimer */}
+      <div className="p-3 bg-[#FFFBEB] border-2 border-[#D97706] shadow-[2px_2px_0px_#111111] flex items-start gap-2.5 text-xs font-mono text-[#92400E]">
+        <AlertTriangle size={16} className="text-[#D97706] shrink-0 mt-0.5" />
+        <div>
+          <span className="font-black uppercase tracking-wider mr-2">[SECTION 25.3 NOTICE]:</span>
+          Synthetic demonstration data — not official Maharashtra government statistics. Match scoring and candidate compatibility are generated for technical evaluation.
+        </div>
+      </div>
+
       {/* Configurable 6-Factor Weights Panel (Section 18.2) */}
       {showWeightsConfig && (
         <div className="p-4 bg-[#FFFFFF] border-2 border-[#111111] shadow-[3px_3px_0px_#111111] space-y-3 font-mono text-xs">

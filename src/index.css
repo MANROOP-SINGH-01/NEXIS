@@ -1,9 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════
-   NEXIS — Bauhaus / Modernist Editorial Design System
-   Global Stylesheet
+   NEXIS — Government-Credible & High-Trust Design System
+   Global Stylesheet (Master Spec Section 21.4 & Section 25.3)
    ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import 'tailwindcss';
 
 @theme {
@@ -18,6 +18,15 @@
   --color-bh-yellow: #F4C430;
   --color-bh-blue: #2457A6;
   --color-bh-deep-blue: #173F7A;
+
+  /* Government & Public Sector Design Tokens (Section 21.4) */
+  --color-gov-navy: #0B2545;
+  --color-gov-ashoka: #000080;
+  --color-gov-saffron: #C2410C;
+  --color-gov-green: #15803D;
+  --color-gov-slate: #1E293B;
+  --color-gov-border: #CBD5E1;
+  --color-gov-bg: #F8FAFC;
 }
 
 /* ── ROOT TOKENS ─────────────────────────────────────────────── */
@@ -36,9 +45,26 @@
   --bh-blue: #2457A6;
   --bh-deep-blue: #173F7A;
 
-  /* Typography */
-  --font-heading: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Government Public Sector Tokens (Section 21.4) */
+  --gov-navy: #0B2545;
+  --gov-ashoka: #000080;
+  --gov-saffron: #C2410C;
+  --gov-saffron-light: #FFF7ED;
+  --gov-green: #15803D;
+  --gov-green-light: #F0FDF4;
+  --gov-slate: #1E293B;
+  --gov-border: #CBD5E1;
+  --gov-border-strong: #0F172A;
+  --gov-surface: #FFFFFF;
+  --gov-bg: #F8FAFC;
+  --gov-disclaimer-bg: #FEF3C7;
+  --gov-disclaimer-border: #F59E0B;
+  --gov-disclaimer-text: #92400E;
+
+  /* Typography with Devanagari Awareness */
+  --font-heading: 'Outfit', 'Space Grotesk', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-devanagari: 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
   /* Legacy aliases */
   --font-sans: var(--font-body);
@@ -766,3 +792,88 @@ button, a {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── GOVERNMENT OF MAHARASHTRA / PUBLIC SECTOR UTILITIES (Section 21.4) ── */
+
+/* Official Tiranga Top Ribbon */
+.gov-tricolor-strip {
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, #FF9933 0%, #FF9933 33.3%, #FFFFFF 33.3%, #FFFFFF 66.6%, #138808 66.6%, #138808 100%);
+}
+
+/* Official Civic Portal Bar */
+.gov-portal-bar {
+  background-color: var(--gov-navy);
+  color: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: 11px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Mandatory Section 25.3 Synthetic Data Trust Banner */
+.gov-disclaimer-banner {
+  background-color: #FFFBEB;
+  border-bottom: 1px solid #FCD34D;
+  color: #92400E;
+  font-family: var(--font-body);
+  font-size: 12px;
+}
+
+/* High-Contrast Civic Card */
+.gov-card {
+  background-color: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
+}
+
+.gov-card:hover {
+  border-color: #94A3B8;
+}
+
+/* Section 21.3 Evidence Badges: Verified / Self-Reported / Inferred */
+.badge-evidence-verified {
+  background-color: #F0FDF4;
+  color: #15803D;
+  border: 1px solid #86EFAC;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+}
+
+.badge-evidence-self-reported {
+  background-color: #FFFBEB;
+  color: #B45309;
+  border: 1px solid #FCD34D;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+}
+
+.badge-evidence-inferred {
+  background-color: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #93C5FD;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+}
+

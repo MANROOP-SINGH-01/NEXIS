@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AppSidebar } from './AppSidebar';
 import { Navbar } from './Navbar';
+import { GovHeaderBanner } from './GovHeaderBanner';
 import { MobileNav } from './MobileNav';
 import { CommandBar } from './CommandBar';
 import { useCoreStore } from '../../integration/store/coreStore';
@@ -32,6 +33,9 @@ export const Shell: React.FC<ShellProps> = ({ children, isFullscreen = false }) 
 
       {/* Main App Workspace Area */}
       <div className="flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden relative">
+        {/* Government Top Strip & Section 25.3 Synthetic Data Trust Banner */}
+        {!isFullscreen && <GovHeaderBanner />}
+
         {/* Top Navbar */}
         {!isFullscreen && (
           <Navbar

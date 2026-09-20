@@ -423,6 +423,16 @@ export const DedupReviewPanel: React.FC = () => {
         </div>
       )}
 
+      {/* Section 25.3 Synthetic Demonstration Data Notice */}
+      <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 flex items-start gap-2.5">
+        <AlertTriangle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+        <div className="text-xs font-mono text-amber-900">
+          <span className="font-bold uppercase tracking-wider mr-2">[SYNTHETIC DEMO DATASET]:</span>
+          Synthetic demonstration data — not official Maharashtra government statistics (Section 25.3).
+          Deduplication candidates and subsidy risk metrics are calibrated test records.
+        </div>
+      </div>
+
       {/* Header Banner */}
       <div className="bg-white rounded-lg p-6 md:p-8 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>

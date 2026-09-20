@@ -874,6 +874,22 @@ export const AnalyticsDashboard: React.FC = () => {
 
   return (
     <div id="analytics-dashboard-scroll-container" className="flex-1 flex flex-col h-full bg-zinc-50 overflow-y-auto">
+      {/* Mandatory Section 25.3 Synthetic Demonstration Data Notice */}
+      <div className="bg-amber-50 border-b border-amber-300 px-6 py-2 flex items-center justify-between text-xs text-amber-900 font-mono shrink-0">
+        <div className="flex items-center gap-2">
+          <AlertTriangle size={15} className="text-amber-600 shrink-0" />
+          <span className="font-bold">
+            Synthetic demonstration data — not official Maharashtra government statistics
+          </span>
+          <span className="hidden md:inline text-amber-700 opacity-80 font-sans">
+            (Section 25.3 Compliance • Calibrated Sample N = 500 trainees, 12 providers, 36 districts)
+          </span>
+        </div>
+        <span className="text-[10px] bg-amber-200/80 px-2 py-0.5 font-bold uppercase border border-amber-300">
+          Section 20 Anti-Overranking
+        </span>
+      </div>
+
       {/* Top Banner & Header */}
       <div className="sticky top-0 z-20 bg-white border-b border-zinc-200/80 px-6 py-4 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-4">
