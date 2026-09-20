@@ -74,7 +74,10 @@ import specialistAgentsRoutes from './routes/specialistAgents.js'
 import roleViewsRoutes from './routes/roleViews.js'
 import dedupRoutes from './routes/dedup.js'
 import dataQualityRoutes from './routes/dataQuality.js'
+import securityAuditRoutes from './routes/securityAudit.js'
 import { FEATURE_FLAGS } from './utils/featureFlags.js'
+import { securityHeaders } from './middleware/securityHeaders.js'
+import { publicApiLimiter } from './middleware/rateLimit.js'
 
 import { seedAdminUser } from './lib/seedAdminUser.js'
 import { startEmbeddedFreeLlm } from './services/embeddedFreeLlm.js'
@@ -106,6 +109,8 @@ app.use(cors({
   },
   credentials: true
 }))
+app.use(securityHeaders())
+app.use(publicApiLimiter)
 app.use(express.json({ limit: '1mb' }))
 app.use(cookieParser())
 
@@ -146,6 +151,7 @@ app.use('/api/specialist-agents', specialistAgentsRoutes)
 app.use('/api/role-views', roleViewsRoutes)
 app.use('/api', dedupRoutes)
 app.use('/api', dataQualityRoutes)
+app.use('/api', securityAuditRoutes)
 
 // Feature Flags query endpoint
 app.get('/api/feature-flags', (req, res) => {

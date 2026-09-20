@@ -25,6 +25,9 @@ export const FEATURE_FLAGS = Object.freeze({
   // Phase 17-18: Advanced Verification
   SPLINK_IDENTITY_LINKAGE: process.env.FF_SPLINK !== 'false',
   DATA_QUALITY_ANOMALY_DETECTION: process.env.FF_DATA_QUALITY !== 'false',
+
+  // Phase 19: Security & Observability
+  SECURITY_HARDENING: process.env.FF_SECURITY_HARDENING !== 'false',
 })
 
 /**

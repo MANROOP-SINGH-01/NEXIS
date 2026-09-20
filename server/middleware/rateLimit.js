@@ -102,3 +102,31 @@ export const aiLimiter = new InMemoryRateLimiter(
     message: 'AI usage quota exceeded. Please wait before running more analyses.',
   }
 );
+
+// 3. Data Quality Scan Rate Limiter: max 10 scans per IP per hour (Phase 19, Section 22.4)
+export const dataQualityScanLimiter = new InMemoryRateLimiter(
+  60 * 60 * 1000,
+  10,
+  'dq-scan'
+).middleware(
+  (req) => {
+    return req.user?.id || req.ip || 'anonymous';
+  },
+  {
+    message: 'Data quality scan limit reached. Please wait before running another scan.',
+  }
+);
+
+// 4. General Public API Rate Limiter: max 100 requests per minute per IP (Phase 19, Section 22.4)
+export const publicApiLimiter = new InMemoryRateLimiter(
+  60 * 1000,
+  100,
+  'public'
+).middleware(
+  (req) => {
+    return req.ip || 'anonymous';
+  },
+  {
+    message: 'Too many requests. Please slow down.',
+  }
+);
