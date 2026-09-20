@@ -428,6 +428,67 @@ class ResilienceStore {
   getOutcomeTimeline(traineeId) {
     return this.outcomeEvents.get(traineeId) || [];
   }
+
+  // ── Additive Phase 5: Follow-Up Orchestration & Escalation ───────────────
+
+  addFollowUpAttempt(attempt) {
+    if (!attempt || !attempt.traineeId) return null;
+    const traineeId = attempt.traineeId;
+    if (!this.followUpAttempts.has(traineeId)) {
+      this.followUpAttempts.set(traineeId, []);
+    }
+
+    const fullAttempt = {
+      id: attempt.id || `flw_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      traineeId,
+      traineeName: attempt.traineeName || 'Trainee',
+      phone: attempt.phone || null,
+      district: attempt.district || 'Pune',
+      checkpoint: attempt.checkpoint || 'T_0',
+      channel: attempt.channel || 'WHATSAPP',
+      scheduledAt: attempt.scheduledAt ? new Date(attempt.scheduledAt) : new Date(),
+      attemptedAt: attempt.attemptedAt ? new Date(attempt.attemptedAt) : null,
+      status: attempt.status || 'SCHEDULED',
+      responsePayload: attempt.responsePayload || null,
+      failureReason: attempt.failureReason || null,
+      retryCount: typeof attempt.retryCount === 'number' ? attempt.retryCount : 0,
+      preferredLanguage: attempt.preferredLanguage || 'en',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    this.followUpAttempts.get(traineeId).unshift(fullAttempt);
+    return fullAttempt;
+  }
+
+  getFollowUpAttempts(traineeId) {
+    return this.followUpAttempts.get(traineeId) || [];
+  }
+
+  getAllFollowUpAttempts(filter = {}) {
+    const list = [];
+    for (const attempts of this.followUpAttempts.values()) {
+      for (const a of attempts) {
+        if (filter.status && a.status !== filter.status) continue;
+        if (filter.channel && a.channel !== filter.channel) continue;
+        if (filter.checkpoint && a.checkpoint !== filter.checkpoint) continue;
+        if (filter.district && a.district !== filter.district) continue;
+        list.push(a);
+      }
+    }
+    return list.sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
+  }
+
+  updateFollowUpAttempt(id, updates = {}) {
+    for (const attempts of this.followUpAttempts.values()) {
+      const found = attempts.find((a) => a.id === id);
+      if (found) {
+        Object.assign(found, updates, { updatedAt: new Date() });
+        return found;
+      }
+    }
+    return null;
+  }
 }
 
 // Export singleton instance
