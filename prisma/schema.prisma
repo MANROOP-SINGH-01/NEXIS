@@ -59,7 +59,16 @@ model Trainee {
   mergedIntoId String?
 
   // ── Linked User account (nullable — legacy Trainees may not have one) ──
-  user User?
+  user                  User?
+  // ── Phase 2: Additive Longitudinal Outcome Relations ───────────────────
+  publicId              String?                 @unique
+  contactPoints         ContactPoint[]
+  consents              Consent[]
+  outcomeEvents         OutcomeEvent[]
+  employmentRecords     EmploymentRecord[]
+  traineeSkillEvidences TraineeSkillEvidence[]
+  followUpAttempts      FollowUpAttempt[]
+  interventions         Intervention[]
 
   enrolments            Enrolment[]
   consentRecords        ConsentRecord[]
@@ -544,15 +553,21 @@ model ApiUsageMetric {
 
 // ─── SKILL TAXONOMY & O*NET MAPPING (TASK 1B.3) ──────────────────────────
 model Skill {
-  id        String   @id @default(cuid())
-  onetCode  String?  @unique
-  name      String   @unique
-  category  String? // "Technical", "Soft", "Tool", "Domain"
-  aliases   String? // JSON array of alternate names
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  onetCode     String?  @unique
+  name         String   @unique
+  category     String? // "Technical", "Soft", "Tool", "Domain"
+  aliases      String? // JSON array of alternate names
+  nsqfLevel    Int?
+  marathiLabel String?
+  hindiLabel   String?
+  escoUri      String?
+  createdAt    DateTime @default(now())
 
   roleRequirements RoleSkillRequirement[]
   userSkills       UserSkill[]
+  occupationSkills OccupationSkill[]
+  traineeEvidences TraineeSkillEvidence[]
 }
 
 model TargetRole {
@@ -619,4 +634,249 @@ model AgentEventLog {
   eventType  String // e.g. "JOB_SEARCH_STARTED"
   payload    String? // JSON string
   occurredAt DateTime @default(now())
+}
+
+// ─── PHASE 2: ADDITIVE LONGITUDINAL OUTCOME & EVIDENCE SCHEMA ─────────────────
+
+// ── ContactPoint ──────────────────────────────────────────────────────────────
+model ContactPoint {
+  id            String    @id @default(cuid())
+  traineeId     String
+  trainee       Trainee   @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  channel       String    // "SMS" | "WHATSAPP" | "EMAIL" | "PHONE"
+  value         String    // E.164 phone or normalized email
+  isPrimary     Boolean   @default(false)
+  isConsented   Boolean   @default(true)
+  verifiedAt    DateTime?
+  lastBouncedAt DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([traineeId, channel])
+  @@index([value])
+}
+
+// ── Consent (Granular 8-Purpose DPDP Phase-2 Model) ───────────────────────────
+model Consent {
+  id             String    @id @default(cuid())
+  traineeId      String
+  trainee        Trainee   @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  purpose        String    // 8 DPDP Granular Purposes
+  granted        Boolean   @default(true)
+  version        String    @default("v2.0-dpdp")
+  noticeLanguage String    @default("en") // "en" | "mr" | "hi"
+  grantedAt      DateTime  @default(now())
+  revokedAt      DateTime?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime  @default(now())
+
+  @@index([traineeId, purpose])
+}
+
+// ── OutcomeEvent (Append-Only Event Stream) ───────────────────────────────────
+model OutcomeEvent {
+  id                 String         @id @default(cuid())
+  traineeId          String
+  trainee            Trainee        @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  eventType          String         // CERTIFIED | SEEKING_WORK | EMPLOYED | APPRENTICE | SELF_EMPLOYED | RETAINED | SWITCHED_EMPLOYER | EXITED | UNREACHABLE | FURTHER_EDUCATION | RE_TRAINING | DROPPED_OUT
+  eventDate          DateTime
+  reportedBy         String         // "TRAINEE" | "EMPLOYER" | "PROVIDER" | "SYSTEM"
+  verificationStatus String         @default("UNVERIFIED") // UNVERIFIED | SELF_REPORTED | EMPLOYER_CONFIRMED | DOCUMENT_VERIFIED | CONFLICTING
+  metadata           String?        // JSON string
+  correctionOfId     String?        @unique
+  correctionOf       OutcomeEvent?  @relation("OutcomeCorrections", fields: [correctionOfId], references: [id])
+  correctedBy        OutcomeEvent?  @relation("OutcomeCorrections")
+  createdAt          DateTime       @default(now())
+
+  @@index([traineeId, eventDate])
+  @@index([eventType])
+}
+
+// ── Employer ──────────────────────────────────────────────────────────────────
+model Employer {
+  id             String             @id @default(cuid())
+  name           String
+  normalizedName String             @unique
+  district       String?
+  state          String             @default("Maharashtra")
+  industry       String?
+  cinOrUdyam     String?
+  isVerified     Boolean            @default(false)
+  createdAt      DateTime           @default(now())
+
+  employmentRecords EmploymentRecord[]
+
+  @@index([normalizedName])
+  @@index([district])
+}
+
+// ── EmploymentRecord ──────────────────────────────────────────────────────────
+model EmploymentRecord {
+  id              String                 @id @default(cuid())
+  traineeId       String
+  trainee         Trainee                @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  employerId      String?
+  employer        Employer?              @relation(fields: [employerId], references: [id], onDelete: SetNull)
+  employerName    String
+  roleTitle       String
+  employmentType  String                 @default("SALARIED") // SALARIED | APPRENTICESHIP | SELF_EMPLOYED | GIG | CONTRACT | INFORMAL
+  startDate       DateTime
+  endDate         DateTime?
+  wageBand        String?                // e.g. "0-10k", "10-20k", "20-30k", "30k+"
+  isCurrent       Boolean                @default(true)
+  confidenceScore Float                  @default(25.0) // 0 - 100
+  evidenceLabel   String                 @default("Self-reported") // Self-reported | Provider-reported | Employer-confirmed | Document-supported | Conflicting | Unverified
+  disputeFlag     Boolean                @default(false)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  wageObservations      WageObservation[]
+  verificationEvidences VerificationEvidence[]
+
+  @@index([traineeId, isCurrent])
+}
+
+// ── WageObservation ───────────────────────────────────────────────────────────
+model WageObservation {
+  id                 String           @id @default(cuid())
+  employmentRecordId String
+  employmentRecord   EmploymentRecord @relation(fields: [employmentRecordId], references: [id], onDelete: Cascade)
+  observedWageBand   String
+  reportedDate       DateTime         @default(now())
+  verified           Boolean          @default(false)
+  source             String           // "TRAINEE" | "EMPLOYER" | "PAYSLIP"
+  createdAt          DateTime         @default(now())
+
+  @@index([employmentRecordId])
+}
+
+// ── VerificationEvidence ──────────────────────────────────────────────────────
+model VerificationEvidence {
+  id                 String           @id @default(cuid())
+  employmentRecordId String
+  employmentRecord   EmploymentRecord @relation(fields: [employmentRecordId], references: [id], onDelete: Cascade)
+  evidenceLevel      String           // "SELF_REPORT" | "EMPLOYER_CONFIRMATION" | "DOCUMENT_PAYSLIP" | "GOVT_CROSS_CHECK" | "INFERRED"
+  evidenceType       String           // e.g. "OFFER_LETTER", "PAYSLIP", "EMPLOYER_SIGN_OFF"
+  evidenceScore      Float            // Numerical increment to confidence formula
+  verifiedAt         DateTime?
+  documentRef        String?
+  notes              String?
+  createdAt          DateTime         @default(now())
+
+  @@index([employmentRecordId])
+}
+
+// ── Occupation ────────────────────────────────────────────────────────────────
+model Occupation {
+  id          String            @id @default(cuid())
+  code        String            @unique // NSQF or NOC/O*NET code
+  title       String
+  family      String?
+  nsqfLevel   Int?
+  createdAt   DateTime          @default(now())
+
+  occupationSkills OccupationSkill[]
+
+  @@index([code])
+}
+
+// ── OccupationSkill ───────────────────────────────────────────────────────────
+model OccupationSkill {
+  id           String     @id @default(cuid())
+  occupationId String
+  occupation   Occupation @relation(fields: [occupationId], references: [id], onDelete: Cascade)
+  skillId      String
+  skill        Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  importance   Float      @default(0.5)
+  isMandatory  Boolean    @default(true)
+
+  @@unique([occupationId, skillId])
+}
+
+// ── TraineeSkillEvidence ──────────────────────────────────────────────────────
+model TraineeSkillEvidence {
+  id            String    @id @default(cuid())
+  traineeId     String
+  trainee       Trainee   @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  skillId       String
+  skill         Skill     @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  evidenceClass String    // ASSESSMENT_SCORE | EMPLOYER_CONFIRMED_USE | COMPLETED_PROJECT | CERTIFICATION | RESUME_MENTION | SELF_REPORT
+  sourceSpan    String?   // Mandatory for resume/text extraction grounding
+  confidence    Float     @default(0.5)
+  verifiedAt    DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([traineeId, skillId])
+}
+
+// ── FollowUpAttempt ───────────────────────────────────────────────────────────
+model FollowUpAttempt {
+  id              String    @id @default(cuid())
+  traineeId       String
+  trainee         Trainee   @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  checkpoint      String    // "T_0" | "T_30" | "T_90" | "T_180" | "T_365"
+  channel         String    // "SMS" | "WHATSAPP" | "EMAIL" | "ASSISTED_CALL"
+  scheduledAt     DateTime
+  attemptedAt     DateTime?
+  status          String    @default("SCHEDULED") // SCHEDULED | SENT | DELIVERED | RESPONDED | NO_RESPONSE | FAILED
+  responsePayload String?   // JSON string
+  failureReason   String?
+  retryCount      Int       @default(0)
+  createdAt       DateTime  @default(now())
+
+  @@index([traineeId, checkpoint])
+  @@index([status, scheduledAt])
+}
+
+// ── Intervention ──────────────────────────────────────────────────────────────
+model Intervention {
+  id                String    @id @default(cuid())
+  traineeId         String
+  trainee           Trainee   @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  rootCause         String    // SKILL_MISMATCH | EXPERIENCE_GAP | LOCATION_MISMATCH | SALARY_MISMATCH | TRANSPORT | LANGUAGE | INTERVIEW_PERFORMANCE | COURSE_RELEVANCE | EMPLOYER_DEMAND | CAREGIVING | OTHER
+  interventionType  String    // REMEDIAL_MODULE | APPRENTICESHIP_MATCH | LOCAL_MOBILITY | CAREER_COUNSELLING | MOCK_INTERVIEW | CURRICULUM_REVIEW
+  recommendedAction String
+  approvedBy        String?   // Mandatory human-approval gate before delivery
+  approvedAt        DateTime?
+  status            String    @default("PENDING_APPROVAL") // PENDING_APPROVAL | APPROVED | DELIVERED | COMPLETED | DISMISSED
+  outcomeReassessed Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+
+  @@index([traineeId, status])
+}
+
+// ── AgentFinding ──────────────────────────────────────────────────────────────
+model AgentFinding {
+  id                 String   @id @default(cuid())
+  agent              String   // Agent identifier
+  findingType        String   // Finding classification
+  traineeId          String?
+  employerId         String?
+  confidence         Float    // 0.0 - 1.0
+  inferenceType      String   // "INFERRED" | "VERIFIED"
+  modelVersion       String?
+  evidenceReferences String?  // JSON string
+  inputSources       String?  // JSON string
+  recommendedAction  String?
+  humanReviewStatus  String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  reviewedBy         String?
+  reviewedAt         DateTime?
+  timestamp          DateTime @default(now())
+
+  @@index([agent, timestamp])
+  @@index([humanReviewStatus])
+}
+
+// ── AuditLog ──────────────────────────────────────────────────────────────────
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorRole  String   @default("SYSTEM")
+  action     String   // Specific event action name
+  targetType String   // Entity type targeted
+  targetId   String?  // Entity ID
+  details    String?  // JSON string
+  timestamp  DateTime @default(now())
+
+  @@index([action, timestamp])
 }
