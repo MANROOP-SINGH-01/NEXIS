@@ -46,6 +46,7 @@ import EmptySectionView from './interface/EmptySectionView';
 import { PulseOverviewView } from './interface/PulseOverviewView';
 import { CandidateProfileView } from './interface/CandidateProfileView';
 import { SystemLogsView } from './interface/SystemLogsView';
+import { InterventionManagementView } from './interface/InterventionManagementView';
 import { ActiveSidebarTab } from './types';
 
 const Workspace: React.FC = () => {
@@ -106,6 +107,7 @@ const Workspace: React.FC = () => {
       '/linkedin-integration': 'linkedin-integration',
       '/logs': 'system-logs',
       '/system-logs': 'system-logs',
+      '/interventions': 'interventions',
       '/settings': 'settings',
     };
 
@@ -199,6 +201,7 @@ const Workspace: React.FC = () => {
           {activeSidebarTab === 'career-health' && <PulseOverviewView />}
           {activeSidebarTab === 'application-tracker' && <ApplicationTrackerView />}
           {activeSidebarTab === 'career-passport' && <CareerPassportView />}
+          {activeSidebarTab === 'interventions' && <InterventionManagementView />}
           {activeSidebarTab === 'system-logs' && <SystemLogsView />}
           {activeSidebarTab === 'settings' && <SettingsPage />}
 

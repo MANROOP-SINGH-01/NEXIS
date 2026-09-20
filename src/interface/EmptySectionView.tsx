@@ -4,6 +4,7 @@ import { Briefcase, FileText, GraduationCap, LayoutDashboard, MessageSquare, Tar
   Github,
   Construction,
   Wrench,
+  ShieldCheck,
   LucideIcon
 } from 'lucide-react';
 import { ActiveSidebarTab } from '../types';
@@ -82,6 +83,12 @@ const SECTION_CONFIG: Record<
     description: 'Verifiable cryptographic credential passport with skill evidence, credentials, and achievements.',
     icon: Award,
     badge: 'Verified Identity',
+  },
+  'interventions': {
+    title: 'Intervention Governance',
+    description: 'Human-in-the-loop review and approval queue for candidate remedial skilling and pathways.',
+    icon: ShieldCheck,
+    badge: 'Officer Gate',
   },
   'profile': {
     title: 'Candidate Profile',

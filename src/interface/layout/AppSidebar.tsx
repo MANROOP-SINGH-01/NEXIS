@@ -259,6 +259,7 @@ export const AppSidebar: React.FC = () => {
                         'career-health': '/career-health',
                         'application-tracker': '/tracker',
                         'career-passport': '/passport',
+                        'interventions': '/interventions',
                         'my-outcome': '/outcomes',
                         'linkedin-integration': '/network',
                         'system-logs': '/system-logs',

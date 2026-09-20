@@ -24,6 +24,7 @@ export type ActiveSidebarTab =
   | 'career-health'
   | 'application-tracker'
   | 'career-passport'
+  | 'interventions'
   | 'system-logs'
   | 'settings';
 

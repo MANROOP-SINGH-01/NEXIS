@@ -14,6 +14,7 @@ import {
   Play,
   Activity,
   ShieldCheck,
+  Sliders,
   LucideIcon,
 } from 'lucide-react';
 import React, { useState } from 'react';
@@ -141,6 +142,15 @@ export const Sidebar: React.FC = () => {
                 <BarChart3 size={18} strokeWidth={2} />
               </div>
               <span className="truncate group-hover:text-zinc-900">Analytics</span>
+            </button>
+            <button
+              onClick={() => setActiveSidebarTab('interventions')}
+              className="group flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-left hover:bg-zinc-100/80 text-zinc-600 transition-all cursor-pointer text-sm font-medium"
+            >
+              <div className="shrink-0 text-zinc-400 group-hover:text-zinc-900">
+                <Sliders size={18} strokeWidth={2} />
+              </div>
+              <span className="truncate group-hover:text-zinc-900">Interventions</span>
             </button>
             <button
               onClick={() => setDedupReviewOpen(true)}

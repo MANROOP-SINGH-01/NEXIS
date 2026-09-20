@@ -108,14 +108,22 @@ export function generateSignedVerificationToken() {
 
 /**
  * Create or record an employment claim
+ * @param {Object} params
+ * @param {string} params.traineeId
+ * @param {string} params.employerName
+ * @param {string} params.roleTitle
+ * @param {string} [params.employmentType]
+ * @param {Date|string} [params.startDate]
+ * @param {string} [params.wageBand]
+ * @param {string} [params.reportedBy]
  */
 export async function createEmploymentRecord({
   traineeId,
   employerName,
   roleTitle,
   employmentType = 'SALARIED',
-  startDate,
-  wageBand,
+  startDate = new Date(),
+  wageBand = 'LESS_THAN_10K',
   reportedBy = 'TRAINEE',
 }) {
   const normalized = normalizeEmployerName(employerName);
