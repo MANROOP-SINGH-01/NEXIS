@@ -6,6 +6,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useCoreStore } from './integration/store/coreStore';
 import { useUiStore } from './integration/store/uiStore';
+import { useAuthStore } from './integration/store/authStore';
 import { useTraineeProfile } from './integration/hooks/useTraineeProfile';
 import { RouterProvider, useRouter } from './router';
 import { Shell } from './interface/layout/Shell';
@@ -130,6 +131,8 @@ const Workspace: React.FC = () => {
         const manager = new SceneManager(canvasRef.current);
         managerRef.current = manager;
         (window as any).__sceneManager = manager;
+        (window as any).useCoreStore = useCoreStore;
+        (window as any).useUiStore = useUiStore;
         setSceneManager(manager);
       } else {
         managerRef.current.attachTo(canvasRef.current);
@@ -278,6 +281,7 @@ const Workspace: React.FC = () => {
 
 const MainRouter: React.FC = () => {
   const { pathname, navigate } = useRouter();
+  const { user, hydrated } = useAuthStore();
 
   // 1. Employer Verification Portal (/verify/:token)
   if (pathname.startsWith('/verify/')) {
@@ -305,13 +309,29 @@ const MainRouter: React.FC = () => {
   if (pathname === '/' || pathname === '/landing') {
     return (
       <LandingPage
-        onEnterApp={() => navigate('/dashboard')}
+        onEnterApp={() => {
+          if (!user) {
+            navigate('/login');
+          } else {
+            navigate('/dashboard');
+          }
+        }}
         onGoLogin={() => navigate('/login')}
       />
     );
   }
 
-  // 5. Default: Full Application Workspace
+  // 5. Auth gate: If user is not authenticated and trying to access workspace, ask for sign-in
+  if (hydrated && !user) {
+    return (
+      <LoginPage
+        onSuccess={() => navigate(pathname || '/dashboard')}
+        onBackToHome={() => navigate('/')}
+      />
+    );
+  }
+
+  // 6. Default: Full Application Workspace
   return <Workspace />;
 };
 

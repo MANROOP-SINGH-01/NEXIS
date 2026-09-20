@@ -9,6 +9,7 @@ export interface ModalProps {
   children: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl' | '6xl' | 'full';
   showCloseButton?: boolean;
+  doubleBezel?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -19,6 +20,7 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   maxWidth = 'lg',
   showCloseButton = true,
+  doubleBezel = true,
 }) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -50,40 +52,63 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+      {/* Backdrop — paper-tinted with smooth fade */}
       <div
-        className="fixed inset-0 bg-black/75 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 bg-[#111111]/45 backdrop-blur-[2px] transition-opacity duration-200 ease-out"
         onClick={onClose}
       />
 
-      {/* Modal Dialog */}
+      {/* Modal Dialog Container — Bauhaus with Doppelrand Double-Bezel & Spring Scale Entrance */}
       <div
-        className={`relative w-full ${maxWidthStyles[maxWidth]} bg-[#12131c] border border-zinc-800 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden z-10 animate-in zoom-in-95 duration-200 flex flex-col`}
+        className={`relative w-full ${maxWidthStyles[maxWidth]} ${
+          doubleBezel ? 'double-bezel' : 'border-2 border-[#111111] shadow-[4px_4px_0px_#111111]'
+        } animate-modal-enter z-10 flex flex-col`}
       >
-        {(title || showCloseButton) && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80 bg-zinc-900/40">
-            <div>
-              {title && typeof title === 'string' ? (
-                <h3 className="text-lg font-semibold text-zinc-100">{title}</h3>
-              ) : (
-                title
+        <div
+          className="w-full bg-[#F5F0E6] border border-[#111111] overflow-hidden flex flex-col"
+          style={{ borderRadius: '0px' }}
+        >
+          {/* Header with geometric accent & macro spacing */}
+          {(title || showCloseButton) && (
+            <div className="flex items-center justify-between px-6 sm:px-8 py-4 sm:py-5 border-b-2 border-[#111111] bg-[#FFFFFF]">
+              <div className="flex items-center gap-3">
+                {/* Red accent bar */}
+                <div className="w-1.5 h-6 bg-[#E53935] shrink-0" aria-hidden="true" />
+                <div>
+                  {title && typeof title === 'string' ? (
+                    <h3
+                      className="text-[16px] sm:text-[17px] font-bold text-[#111111] uppercase tracking-[0.04em]"
+                      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                    >
+                      {title}
+                    </h3>
+                  ) : (
+                    title
+                  )}
+                  {subtitle && (
+                    <p className="text-[12px] text-[#7A7A7A] mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+                      {subtitle}
+                    </p>
+                  )}
+                </div>
+              </div>
+              {showCloseButton && (
+                <button
+                  onClick={onClose}
+                  className="w-11 h-11 flex items-center justify-center text-[#7A7A7A] hover:text-[#111111] hover:bg-[#EFE7D8] active:scale-[0.95] transition-all touch-manipulation cursor-pointer shrink-0"
+                  style={{ borderRadius: '0px' }}
+                  aria-label="Close modal"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               )}
-              {subtitle && <p className="text-xs text-zinc-400 mt-0.5">{subtitle}</p>}
             </div>
-            {showCloseButton && (
-              <button
-                onClick={onClose}
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/80 transition-colors"
-                aria-label="Close modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
-          </div>
-        )}
+          )}
 
-        <div className="p-6 overflow-y-auto max-h-[80vh]">{children}</div>
+          {/* Macro-whitespace dialog body */}
+          <div className="p-6 sm:p-8 overflow-y-auto max-h-[80vh] custom-scrollbar">{children}</div>
+        </div>
       </div>
     </div>
   );

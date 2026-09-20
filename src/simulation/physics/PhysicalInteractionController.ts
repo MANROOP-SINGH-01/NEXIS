@@ -4,17 +4,20 @@ import { CharacterPhysicsController } from './CharacterPhysicsController';
 import { GrabController } from './GrabController';
 import { ImpactController } from './ImpactController';
 import {
+  BodyPartId,
   CharacterPhysicsSettings,
   CharacterRigMapping,
   DEFAULT_PHYSICS_SETTINGS,
+  FallOutcomeType,
   PhysicalState,
 } from './PhysicsTypes';
 import { RecoveryController } from './RecoveryController';
 import { SecondaryMotionController } from './SecondaryMotionController';
+import { ObstacleSystem } from './ObstacleSystem';
 
 /**
  * Unified controller coordinating all physics sub-systems for a single 3D character instance:
- *  - Grab & 3D pointer following with local offset preservation
+ *  - Grab & 3D pointer following with local offset preservation & anatomical body part differentiation
  *  - Procedural secondary limb & head inertia
  *  - Airborne ballistics, gravity, and angular momentum
  *  - Dynamic ground impact compression & wobble shockwave
@@ -75,12 +78,13 @@ export class PhysicalInteractionController {
   }
 
   /**
-   * Starts grabbing this character at a 3D pointer location.
+   * Starts grabbing this character at a 3D pointer location on a specific body part.
    */
   public startGrab(
     pointerNDC: THREE.Vector2,
     hitPointWorld?: THREE.Vector3,
-    boneIndex: number = -1
+    boneIndex: number = -1,
+    bodyPart: BodyPartId = 'chest'
   ): void {
     this.recovery.interrupt();
     this.impact.reset();
@@ -91,7 +95,8 @@ export class PhysicalInteractionController {
       this.physics.orientation,
       pointerNDC,
       hitPointWorld,
-      boneIndex
+      boneIndex,
+      bodyPart
     );
 
     this.physics.isGrabbed = true;
@@ -113,13 +118,9 @@ export class PhysicalInteractionController {
     );
 
     if (targetPos) {
-      this.physics.updateGrabbed(targetPos, delta);
-
-      const speed = this.physics.linearVelocity.length();
-      if (speed > 0.1) {
+      const dist = targetPos.distanceTo(this.physics.position);
+      if (dist > 0.05) {
         this.setState('MOVING');
-      } else {
-        this.setState('HELD');
       }
     }
   }
@@ -134,28 +135,49 @@ export class PhysicalInteractionController {
     this.physics.isGrabbed = false;
 
     if (releaseData) {
-      // Transfer smoothed pointer velocity into rigid body (capped so characters never rocket upward)
+      // Transfer smoothed pointer velocity into rigid body with generous upward fling ceiling
       this.physics.linearVelocity.copy(releaseData.releaseVelocity);
-      this.physics.linearVelocity.y = Math.min(2.0, this.physics.linearVelocity.y);
+      this.physics.linearVelocity.y = Math.min(6.5, Math.max(-12.0, this.physics.linearVelocity.y));
 
       // Inject angular momentum proportional to lateral fling
       this.physics.angularVelocity.set(
-        -releaseData.releaseVelocity.z * 0.4,
-        releaseData.releaseVelocity.x * 0.3,
-        releaseData.releaseVelocity.x * 0.4
+        -releaseData.releaseVelocity.z * 0.7,
+        releaseData.releaseVelocity.x * 0.5,
+        releaseData.releaseVelocity.x * 0.7
       );
+
+      // If released while inverted from a foot grab, impart cartoon tumble flip to right side up
+      if (releaseData.bodyPart.includes('foot') || releaseData.bodyPart.includes('leg') || releaseData.bodyPart.includes('calf')) {
+        this.physics.angularVelocity.x += 4.5;
+      }
     }
 
     if (this.physics.position.y > DEFAULT_PHYSICS_SETTINGS.floorY + 0.05 || this.physics.linearVelocity.y > 0.2) {
       this.setState('AIRBORNE');
     } else {
+      if (ObstacleSystem.isInsideAnyObstacle(this.physics.position)) {
+        this.physics.position.copy(ObstacleSystem.findSafeFloorPosition(this.physics.position));
+      }
       this.beginSettling();
     }
   }
 
-  private beginSettling(): void {
+  public getGrabbedBodyPart(): BodyPartId | null {
+    return this.grab.getGrabbedBodyPart();
+  }
+
+  public getFallOutcome(): FallOutcomeType | null {
+    if (this.state === 'IMPACT') return this.impact.getOutcome();
+    if (this.state === 'RECOVERING' || this.state === 'SETTLING') return this.recovery.getOutcome();
+    return null;
+  }
+
+  private beginSettling(outcomeType?: FallOutcomeType): void {
+    if (ObstacleSystem.isInsideAnyObstacle(this.physics.position)) {
+      this.physics.position.copy(ObstacleSystem.findSafeFloorPosition(this.physics.position));
+    }
     this.setState('SETTLING');
-    this.recovery.startRecovery();
+    this.recovery.startRecovery(outcomeType);
   }
 
   /**
@@ -173,8 +195,10 @@ export class PhysicalInteractionController {
       case 'MOVING': {
         this.proceduralWeight = Math.min(1.0, this.proceduralWeight + dt * 10.0);
         const grabInfo = this.grab.getGrabInfo();
+        let targetLookAt: THREE.Vector3 | null = null;
         if (grabInfo) {
-          this.physics.updateGrabbed(grabInfo.targetPointWorld, dt);
+          this.physics.updateGrabbed(grabInfo.targetPointWorld, dt, grabInfo.bodyPart);
+          targetLookAt = grabInfo.targetPointWorld;
           const speed = this.physics.linearVelocity.length();
           if (speed > 0.1) {
             this.setState('MOVING');
@@ -182,13 +206,16 @@ export class PhysicalInteractionController {
             this.setState('HELD');
           }
         }
-        // Secondary motion driven by grab velocity and acceleration
+        // Secondary motion driven by grab velocity, acceleration, and specific body part profile
         this.secondaryMotion.update(
           this.physics.linearVelocity,
           this.physics.linearAcceleration,
           this.physics.orientation,
           this.physics.isAirborne,
-          dt
+          dt,
+          this.grab.getGrabbedBodyPart(),
+          targetLookAt,
+          this.physics.position
         );
         break;
       }
@@ -207,7 +234,10 @@ export class PhysicalInteractionController {
           this.physics.linearAcceleration,
           this.physics.orientation,
           true,
-          dt
+          dt,
+          null,
+          null,
+          this.physics.position
         );
         break;
       }
@@ -225,12 +255,14 @@ export class PhysicalInteractionController {
           this.physics.linearAcceleration,
           this.physics.orientation,
           false,
-          dt
+          dt,
+          null,
+          null,
+          this.physics.position
         );
 
         if (!this.impact.hasActiveImpact()) {
-          this.setState('SETTLING');
-          this.recovery.startRecovery();
+          this.beginSettling(this.impact.getOutcome());
         }
         break;
       }
@@ -255,11 +287,17 @@ export class PhysicalInteractionController {
           this.physics.linearAcceleration,
           this.physics.orientation,
           false,
-          dt
+          dt,
+          null,
+          null,
+          this.physics.position
         );
 
         if (isFinished) {
           this.proceduralWeight = 0.0;
+          if (ObstacleSystem.isInsideAnyObstacle(this.physics.position)) {
+            this.physics.position.copy(ObstacleSystem.findSafeFloorPosition(this.physics.position));
+          }
           this.setState('IDLE');
         }
         break;
@@ -279,8 +317,11 @@ export class PhysicalInteractionController {
   }
 
   private handleGroundImpact(speed: number, pos: THREE.Vector3): void {
+    if (ObstacleSystem.isInsideAnyObstacle(this.physics.position)) {
+      this.physics.position.copy(ObstacleSystem.findSafeFloorPosition(this.physics.position));
+    }
     this.setState('IMPACT');
-    this.impact.triggerImpact(this.physics.linearVelocity);
+    this.impact.triggerImpact(this.physics.linearVelocity, this.physics.orientation);
     this.secondaryMotion.injectImpactShock(speed, new THREE.Vector3(0, 1, 0));
   }
 

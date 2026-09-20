@@ -140,62 +140,56 @@ const ChatPanel: React.FC = () => {
     await scene?.sendMessage(text);
   };
 
-  if (!isChatting || !agent) {
+  if (!agent) {
     return null;
   }
 
   return (
-    <div className="flex flex-col h-full bg-white relative overflow-hidden shrink-0 pointer-events-auto">
+    <div className="flex flex-col h-full bg-[#0D0E13] relative overflow-hidden shrink-0 pointer-events-auto">
       {/* Messages */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-1 space-y-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:display-none"
+        className="flex-1 overflow-y-auto p-3 space-y-5 custom-scrollbar"
       >
         {chatMessages.filter(msg => !msg.metadata?.internal).map((msg, i) => (
           <div
             key={i}
             className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
           >
-            <div className={`flex items-start gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} max-w-[90%]`}>
+            <div className={`flex items-start gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} max-w-[92%]`}>
               {/* Avatar / Icon */}
-              <div className="shrink-0 mt-1">
+              <div className="shrink-0 mt-0.5">
                 {msg.role === 'assistant' ? (
-                  <Avatar type={agent?.index === activeTeam.leadAgent.index ? 'lead' : 'sub'} color={agent?.color} size={32} />
+                  <Avatar type={agent?.index === activeTeam.leadAgent.index ? 'lead' : 'sub'} color={agent?.color} size={30} />
                 ) : (
-                  <Avatar type="user" color={USER_COLOR} size={32} />
+                  <Avatar type="user" color={USER_COLOR} size={30} />
                 )}
               </div>
 
               <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                 <div
-                  className={`px-4 py-2.5 rounded-[20px] text-[14px] leading-relaxed shadow-sm border ${msg.role === 'user' ? 'rounded-tr-none' : 'rounded-tl-none'
-                    }`}
-                  style={msg.role === 'user' ? {
-                    backgroundColor: USER_COLOR_LIGHT,
-                    borderColor: USER_COLOR_SOFT,
-                    color: '#27272a' // text-darkDelegation
-                  } : {
-                    backgroundColor: '#fafafa', // bg-zinc-50
-                    borderColor: '#f4f4f5', // border-zinc-100
-                    color: '#27272a' // text-darkDelegation
-                  }}
+                  className={`px-3.5 py-2.5 rounded-2xl text-[13px] leading-relaxed border ${
+                    msg.role === 'user'
+                      ? 'rounded-tr-xs bg-[#FF5C1A]/12 border-[#FF5C1A]/30 text-[#EDEDED]'
+                      : 'rounded-tl-xs bg-[#1A1B20] border-white/10 text-[#D1D5DB]'
+                  }`}
                 >
                   {msg.role === 'assistant' ? (
-                    <div className="markdown-content">
+                    <div className="markdown-content prose prose-invert prose-sm max-w-none">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {msg.content}
                       </ReactMarkdown>
 
                       {msg.metadata?.reviewTaskId && (
-                        <div className="mt-4 p-4 bg-white/50 rounded-lg border border-zinc-200/50 flex flex-wrap items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                        <div className="mt-3 p-3 bg-[#121317] rounded-xl border border-white/10 flex flex-wrap items-center justify-between gap-2.5">
                           <div className="flex items-center gap-2 pr-2">
                             <div
-                              className="p-2 rounded-xl flex-shrink-0"
+                              className="p-1.5 rounded-lg flex-shrink-0"
                               style={{ backgroundColor: USER_COLOR_LIGHT, color: USER_COLOR }}
                             >
-                              <FileSearch size={18} />
+                              <FileSearch size={16} />
                             </div>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#9CA3AF]">
                               {coreStore.tasks.find(t => t.id === msg.metadata.reviewTaskId)?.status === 'on_hold'
                                 ? 'Review Requested'
                                 : 'Review Processed'}
@@ -205,7 +199,7 @@ const ChatPanel: React.FC = () => {
                           {coreStore.tasks.find(t => t.id === msg.metadata.reviewTaskId)?.status === 'on_hold' && (
                             <button
                               onClick={() => setActiveAuditTaskId(msg.metadata.reviewTaskId)}
-                              className="flex-1 min-w-[120px] px-4 py-2 bg-darkDelegation text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-black active:scale-95 transition-all shadow-sm whitespace-nowrap"
+                              className="flex-1 min-w-[110px] px-3 py-1.5 bg-[#FF5C1A] text-white rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider hover:bg-[#FF7235] active:scale-95 transition-all shadow-xs whitespace-nowrap cursor-pointer"
                             >
                               Review Task
                             </button>
@@ -218,8 +212,8 @@ const ChatPanel: React.FC = () => {
                   )}
                 </div>
 
-                <div className={`flex items-center gap-2 mt-2 px-1`}>
-                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                <div className="flex items-center gap-2 mt-1 px-1">
+                  <span className="text-[9px] font-mono text-[#6B7280] uppercase tracking-wider">
                     {msg.role === 'user' ? 'You' : (agent?.name?.split(' ')[0] || 'AI')}
                   </span>
                 </div>
@@ -229,19 +223,17 @@ const ChatPanel: React.FC = () => {
         ))}
 
         {isThinking && (
-          <div
-            className="flex items-start gap-3"
-          >
-            <div className="w-4 h-4 text-zinc-300 animate-pulse mt-1">
+          <div className="flex items-start gap-2.5">
+            <div className="w-4 h-4 text-[#FF5C1A] animate-pulse mt-1">
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2L14.85 9.15L22 12L14.85 14.85L12 22L9.15 14.85L2 12L9.15 9.15L12 2Z" />
               </svg>
             </div>
-            <div className="bg-zinc-50 px-4 py-3 rounded-lg rounded-tl-none">
-              <div className="flex gap-1">
-                <div className="w-1.5 h-1.5 bg-zinc-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-1.5 h-1.5 bg-zinc-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-1.5 h-1.5 bg-zinc-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="bg-[#1A1B20] border border-white/10 px-3.5 py-2.5 rounded-xl rounded-tl-xs">
+              <div className="flex gap-1.5 items-center">
+                <div className="w-1.5 h-1.5 bg-[#9CA3AF] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-1.5 h-1.5 bg-[#9CA3AF] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-1.5 h-1.5 bg-[#9CA3AF] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           </div>
@@ -249,19 +241,19 @@ const ChatPanel: React.FC = () => {
       </div>
 
       {/* Input */}
-      <div className="p-2 border-t border-zinc-50">
+      <div className="p-3 border-t border-white/8 bg-[#0D0E13]">
         {agent.index === activeTeam.leadAgent.index && (
-          <div className="mb-2 rounded-xl border border-zinc-100 bg-zinc-50/70 p-2.5">
+          <div className="mb-2.5 rounded-xl border border-white/10 bg-[#121317] p-2.5">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Director Prompt Deck</p>
-              <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Stage: {processStage}</p>
+              <p className="text-[9px] font-mono font-bold uppercase tracking-wider text-[#9CA3AF]">Director Prompt Deck</p>
+              <p className="text-[9px] font-mono font-bold uppercase tracking-wider text-[#6B7280]">Stage: {processStage}</p>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {suggestedPrompts.map((preset) => (
                 <button
                   key={preset.id}
                   onClick={() => setInput(preset.text)}
-                  className="px-2 py-1 rounded-lg bg-white border border-zinc-200 text-[9px] font-black uppercase tracking-wider text-zinc-600 hover:bg-zinc-100"
+                  className="px-2 py-1 rounded-lg bg-[#1A1B20] border border-white/10 text-[9px] font-mono uppercase tracking-wider text-[#D1D5DB] hover:text-white hover:bg-white/10 cursor-pointer"
                   title={preset.text}
                 >
                   {preset.label}
@@ -271,7 +263,7 @@ const ChatPanel: React.FC = () => {
                 <button
                   onClick={() => void scene?.sendMessage(suggestedPrompts[0].text)}
                   disabled={isThinking}
-                  className="px-2 py-1 rounded-lg bg-darkDelegation text-white text-[9px] font-black uppercase tracking-wider hover:bg-black disabled:opacity-40"
+                  className="px-2.5 py-1 rounded-lg bg-[#FF5C1A] text-white text-[9px] font-mono font-bold uppercase tracking-wider hover:bg-[#FF7235] disabled:opacity-40 cursor-pointer"
                   title="Ask top recommended next question"
                 >
                   Ask Next
@@ -306,26 +298,24 @@ const ChatPanel: React.FC = () => {
                 }
               }}
               placeholder="Message (↵ to send)"
-              className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 transition-all resize-none pr-12 [scrollbar-width:none]"
-              style={{
-                borderColor: input.trim() ? USER_COLOR : undefined,
-                boxShadow: input.trim() ? `0 0 0 2px ${USER_COLOR_LIGHT}` : undefined
-              }}
+              className="w-full bg-[#121317] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-[#EDEDED] placeholder-[#6B7280] focus:outline-none focus:border-[#FF5C1A]/50 focus:ring-1 focus:ring-[#FF5C1A]/30 transition-all resize-none pr-12 custom-scrollbar"
+              rows={2}
             />
           </div>
           <button
             onClick={handleSend}
             disabled={!input.trim() || isThinking}
             style={{ backgroundColor: !input.trim() || isThinking ? undefined : agent.color }}
-            className={`h-11 w-11 shrink-0 rounded-lg flex items-center justify-center font-black text-xs uppercase tracking-widest transition-all active:scale-95 ${!input.trim() || isThinking
-              ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
-              : 'text-white shadow-lg hover:brightness-90'
-              }`}
+            className={`h-11 w-11 shrink-0 rounded-xl flex items-center justify-center font-bold text-xs uppercase tracking-widest transition-all active:scale-95 cursor-pointer ${
+              !input.trim() || isThinking
+                ? 'bg-white/5 text-[#6B7280] cursor-not-allowed border border-white/5'
+                : 'text-white shadow-lg hover:brightness-110'
+            }`}
           >
-            <Send size={16} strokeWidth={3} />
+            <Send size={15} strokeWidth={2.5} />
           </button>
         </div>
-        <p className="text-[8px] text-zinc-400 mt-2 text-center font-medium uppercase tracking-wider">
+        <p className="text-[8px] text-[#6B7280] mt-2 text-center font-mono uppercase tracking-wider">
           Shift + ↵ for new line
         </p>
       </div>

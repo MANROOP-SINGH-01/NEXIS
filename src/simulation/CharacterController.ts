@@ -30,6 +30,9 @@ export class CharacterController implements ICharacterDriver {
   private pathAgents: PathAgent[] = [];
   /** Per-agent callback fired when the agent reaches its path destination. */
   private arrivalCallbacks: ((index: number) => void)[] = [];
+  private walkDuration: number[] = [];
+  private lastStumbleTime: number[] = [];
+  private lastGreetingCheck = 0;
 
   constructor(
     public readonly characterManager: CharacterManager,
@@ -42,6 +45,8 @@ export class CharacterController implements ICharacterDriver {
     const stateBuffer = characterManager.getAgentStateBuffer()!;
     for (let i = 0; i < count; i++) {
       this.pathAgents.push(new PathAgent(i, stateBuffer));
+      this.walkDuration[i] = 0;
+      this.lastStumbleTime[i] = 0;
     }
   }
 
@@ -63,6 +68,11 @@ export class CharacterController implements ICharacterDriver {
     }
 
     this.stateMachine.transition(index, state, this);
+  }
+
+  /** Prepares the final seated state ('sit_idle' or 'sit_work') before sit_down animation finishes. */
+  public prepareSitDown(index: number, finalState: 'sit_idle' | 'sit_work'): void {
+    this.stateMachine.prepareSitDown(index, finalState);
   }
 
   /**
@@ -144,15 +154,23 @@ export class CharacterController implements ICharacterDriver {
     fromPosition?: THREE.Vector3,
   ): boolean {
     const poi = this.poiManager.getPoi(poiId);
-    if (!poi || (poi.occupiedBy !== null && poi.occupiedBy !== index)) return false;
+    if (!poi) return false;
+
+    // Allow designated owner to reclaim their own workstation if occupied by another agent
+    if (poi.occupiedBy !== null && poi.occupiedBy !== index) {
+      if (poi.id.includes(`-${index}`)) {
+        this.poiManager.releaseAll(poi.occupiedBy);
+        poi.occupiedBy = null;
+      } else {
+        return false;
+      }
+    }
 
     const targetState = poi.arrivalState;
     const isSitVariant = targetState === 'sit_idle' || targetState === 'sit_work';
 
     if (isSitVariant) {
       // Pre-arm the sit sequence: sitTarget is stored NOW, before the async arrival fires.
-      // When sit_down timer expires the state machine reads sitTarget directly — this is
-      // immune to the async gap between syncFromGPU.then() and stateMachine.update().
       this.stateMachine.prepareSitDown(index, targetState as 'sit_idle' | 'sit_work');
     }
 
@@ -169,7 +187,6 @@ export class CharacterController implements ICharacterDriver {
       // 3. Switch GPU to SEATED so the character won't be moved by any stray GOTO commands
       if (isSitVariant) {
         this.setPhysicsMode(i, AgentBehavior.SEATED);
-        // play('sit_down') — sitTarget already set above, will auto-transition to finalState
         this.play(i, 'sit_down');
       } else {
         this.play(i, targetState);
@@ -184,6 +201,26 @@ export class CharacterController implements ICharacterDriver {
     this.poiManager.occupy(poiId, index);
 
     return true;
+  }
+
+  /** Returns the final path destination for an agent if currently moving. */
+  public getDestination(index: number): THREE.Vector3 | null {
+    if (!this.pathAgents[index]) return null;
+    return this.pathAgents[index].getDestination();
+  }
+
+  /**
+   * Checks if an agent is in the final approach to their path destination (e.g. workstation chair).
+   * Allows bypassing obstacle collision during the final approach so chair arrival triggers cleanly.
+   */
+  public isApproachingDestination(index: number, threshold: number = 0.65): boolean {
+    const agent = this.pathAgents[index];
+    if (!agent || !agent.isMoving) return false;
+    const dest = agent.getDestination();
+    if (!dest) return false;
+    const pos = this.getCPUPosition(index);
+    if (!pos) return false;
+    return Math.hypot(pos.x - dest.x, pos.z - dest.z) < threshold;
   }
 
   /** Speaking mouth animation overlay — independent of character state. */
@@ -220,10 +257,31 @@ export class CharacterController implements ICharacterDriver {
   /**
    * Advance path agents. Call after syncFromGPU resolves so positions are fresh.
    * Fires arrival callbacks for agents that reach their destination.
+   * Also manages clumsy stumbling and peer social greetings.
    */
-  public updatePaths(positions: Float32Array): void {
+  public updatePaths(positions: Float32Array, delta: number = 0.016): void {
+    const now = performance.now();
+
     for (let i = 0; i < this.pathAgents.length; i++) {
-      if (!this.pathAgents[i].isMoving) continue;
+      if (!this.pathAgents[i].isMoving) {
+        this.walkDuration[i] = 0;
+        continue;
+      }
+
+      this.walkDuration[i] += delta;
+
+      // Clumsy stumble: 4% chance during an ongoing walk sprint
+      if (this.walkDuration[i] > 2.5 && Math.random() < 0.03 && (now - this.lastStumbleTime[i]) > 14000) {
+        this.lastStumbleTime[i] = now;
+        this.walkDuration[i] = 0;
+        const phys = this.characterManager.getPhysicsSystem();
+        if (phys) {
+          const ctrl = phys.getController(i);
+          // Playful comical bobblehead forward stumble
+          ctrl?.secondaryMotion.injectImpulse('head', new THREE.Vector3(0, 0.50, 0.35));
+          ctrl?.secondaryMotion.injectImpulse('spine', new THREE.Vector3(0, 0.30, 0.20));
+        }
+      }
 
       const currentPos = new THREE.Vector3(
         positions[i * 4],
@@ -231,7 +289,7 @@ export class CharacterController implements ICharacterDriver {
         positions[i * 4 + 2],
       );
 
-      const arrived = this.pathAgents[i].update(currentPos);
+      const arrived = this.pathAgents[i].update(currentPos, delta);
       if (arrived) {
         // Keep the last movement direction when transitioning to IDLE
         const lastDir = this.pathAgents[i].getLastDirection();
@@ -240,6 +298,71 @@ export class CharacterController implements ICharacterDriver {
         this.setPhysicsMode(i, AgentBehavior.IDLE);
         this.arrivalCallbacks[i]?.(i);
       }
+    }
+
+    // Peer proximity interaction: agents greet colleagues when walking near each other
+    if (now - this.lastGreetingCheck > 12000) {
+      const count = this.characterManager.getCount();
+      for (let a = 1; a < count; a++) {
+        for (let b = a + 1; b < count; b++) {
+          const stateA = this.getState(a);
+          const stateB = this.getState(b);
+          const isSeatedA = stateA === 'sit_idle' || stateA === 'sit_work' || stateA === 'sit_down';
+          const isSeatedB = stateB === 'sit_idle' || stateB === 'sit_work' || stateB === 'sit_down';
+
+          if (!isSeatedA && !isSeatedB && stateA !== 'dragged' && stateB !== 'dragged') {
+            const ax = positions[a * 4];
+            const az = positions[a * 4 + 2];
+            const bx = positions[b * 4];
+            const bz = positions[b * 4 + 2];
+            const distSq = (ax - bx) * (ax - bx) + (az - bz) * (az - bz);
+
+            // Within 1.5 meters proximity
+            if (distSq < 2.25) {
+              this.lastGreetingCheck = now;
+              if (stateA === 'idle' || stateA === 'look_around') {
+                this.play(a, 'wave');
+              }
+              if (stateB === 'idle' || stateB === 'look_around') {
+                this.play(b, 'happy');
+              }
+              const phys = this.characterManager.getPhysicsSystem();
+              if (phys) {
+                phys.getController(a)?.secondaryMotion.injectImpulse('head', new THREE.Vector3(0, 0.35, 0.15));
+                phys.getController(b)?.secondaryMotion.injectImpulse('head', new THREE.Vector3(0, 0.35, -0.15));
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Joyful, comical reaction when user clicks on an agent.
+   */
+  public playClickReaction(index: number): void {
+    const currentState = this.getState(index);
+    const isSeated = currentState === 'sit_idle' || currentState === 'sit_work' || currentState === 'sit_down';
+
+    if (isSeated) {
+      this.play(index, 'happy');
+      setTimeout(() => {
+        const after = this.getState(index);
+        if (after === 'idle' || after === 'happy') {
+          this.play(index, 'sit_work');
+        }
+      }, 1600);
+    } else {
+      this.play(index, Math.random() < 0.5 ? 'happy' : 'wave');
+    }
+
+    const phys = this.characterManager.getPhysicsSystem();
+    if (phys) {
+      const ctrl = phys.getController(index);
+      ctrl?.secondaryMotion.injectImpulse('head', new THREE.Vector3(0, 0.65, 0.30));
+      ctrl?.secondaryMotion.injectImpulse('spine', new THREE.Vector3(0, 0.40, 0.20));
     }
   }
 
@@ -270,16 +393,32 @@ export class CharacterController implements ICharacterDriver {
     this.characterManager.setPosition(playerIndex, new THREE.Vector3(0, 0, 0));
     this.play(playerIndex, 'idle');
 
-    // 4. Reassign spawn POIs in sorted order (same as initInstances)
+    // 4. Reassign home workstation desks
     const spawnPois = this.poiManager.getPoisByPrefix('spawn');
     npcIndices.forEach((agentIndex, order) => {
-      const poi = spawnPois[order % spawnPois.length];
+      let poi = this.poiManager.getPoi(`sit_work-${agentIndex}`);
+      if (!poi) {
+        poi = this.poiManager.getPoi(`sit_idle-${((agentIndex - 1) % 4) + 1}`);
+      }
+      if (!poi && spawnPois.length > 0) {
+        poi = spawnPois[order % spawnPois.length];
+      }
+
       if (poi) {
         this.characterManager.setPosition(agentIndex, poi.position);
         this.characterManager.setOrientation(agentIndex, poi.quaternion);
         this.poiManager.occupy(poi.id, agentIndex);
+
+        const isSeated = poi.id.includes('sit') || poi.arrivalState === 'sit_work' || poi.arrivalState === 'sit_idle';
+        if (isSeated) {
+          this.setPhysicsMode(agentIndex, AgentBehavior.SEATED);
+          this.play(agentIndex, poi.id.includes('work') ? 'sit_work' : 'sit_idle');
+        } else {
+          this.play(agentIndex, 'idle');
+        }
+      } else {
+        this.play(agentIndex, 'idle');
       }
-      this.play(agentIndex, 'idle');
     });
   }
 

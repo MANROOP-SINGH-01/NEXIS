@@ -224,25 +224,28 @@ export default function NexusMirrorModal({ onClose }: NexusMirrorModalProps) {
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 pointer-events-auto overflow-hidden">
       {/* Backdrop */}
-      <div onClick={onClose} className="absolute inset-0 bg-zinc-950/20 backdrop-blur-sm transition-opacity duration-300" />
+      <div onClick={onClose} className="absolute inset-0 bg-[#111111]/60 backdrop-blur-xs transition-opacity" />
       
-      {/* Modal */}
-      <div className="relative w-full max-w-6xl bg-white/95 backdrop-blur-xl rounded-[32px] shadow-2xl p-6 md:p-8 border border-white/20 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+      {/* Bauhaus Modal Container */}
+      <div className="relative w-full max-w-5xl bg-[#FFFFFF] border-4 border-[#111111] shadow-[8px_8px_0px_#111111] p-6 md:p-8 max-h-[90vh] flex flex-col z-10">
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-full transition-colors cursor-pointer z-10"
+          className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center border-2 border-[#111111] bg-[#FFFFFF] hover:bg-[#E53935] hover:text-white transition-colors cursor-pointer z-20 text-[#111111]"
         >
           <X size={18} />
         </button>
 
         {/* Header */}
-        <div className="mb-8 flex items-start gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-zinc-950 flex items-center justify-center shadow-lg shrink-0">
-            <BrainCircuit size={26} className="text-white" />
+        <div className="mb-6 flex items-start gap-4 pb-4 border-b-2 border-[#111111]">
+          <div className="w-12 h-12 bg-[#F4C430] border-2 border-[#111111] shadow-[2px_2px_0px_#111111] flex items-center justify-center shrink-0 text-[#111111]">
+            <BrainCircuit size={24} />
           </div>
           <div>
-            <h2 className="text-2xl font-display font-bold text-zinc-950 tracking-tight">Nexus-Mirror Interview Lab</h2>
-            <p className="text-sm text-zinc-500 font-medium mt-1 max-w-2xl leading-relaxed">
+            <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#E53935]">
+              [SECTION 07.B] // SIMULATION
+            </div>
+            <h2 className="text-xl font-mono font-black uppercase text-[#111111] tracking-tight">Nexus-Mirror Interview Lab</h2>
+            <p className="text-xs font-mono text-[#555555] mt-1 max-w-2xl leading-relaxed">
               Generate personalized interview questions from your resume and JD. Experience recursive cross-questioning that stress-tests your technical claims.
             </p>
           </div>
@@ -250,43 +253,43 @@ export default function NexusMirrorModal({ onClose }: NexusMirrorModalProps) {
 
         {/* Top Bar / Controls */}
         <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-6 mb-6 items-start">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3">
               <button
                 onClick={runInterviewPrep}
                 disabled={!canRun || loading}
-                className="px-8 py-3.5 bg-zinc-950 hover:bg-zinc-800 disabled:opacity-50 text-white rounded-2xl text-xs font-bold uppercase tracking-widest inline-flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
+                className="px-6 py-2.5 bg-[#111111] hover:bg-[#E53935] disabled:opacity-50 text-white text-xs font-mono font-black uppercase tracking-wider inline-flex items-center justify-center gap-2 transition-all border-2 border-[#111111] shadow-[3px_3px_0px_#E53935] cursor-pointer"
               >
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
                 Generate Interview Q&A
               </button>
               {!runtimeKeys.sarvam && (
-                <span className="text-[10px] text-zinc-400 font-medium">Using backend key fallback.</span>
+                <span className="text-[10px] font-mono text-[#555555] font-bold">Using backend key fallback.</span>
               )}
             </div>
-            {error && <span className="text-xs text-red-600 font-bold flex items-center gap-1.5 bg-red-50 p-2 rounded-lg border border-red-100 w-fit"><X size={14}/> {error}</span>}
+            {error && (
+              <span className="text-xs font-mono font-bold text-[#E53935] flex items-center gap-1.5 bg-[#FDEDEC] p-2 border-2 border-[#E53935] shadow-[2px_2px_0px_#111111] w-fit">
+                <X size={14}/> {error}
+              </span>
+            )}
           </div>
 
-          <div className="bg-zinc-50/80 rounded-2xl p-4 border border-zinc-200/60 shadow-sm relative overflow-hidden">
-             {/* Dynamic background glow based on pressure */}
-             <div 
-               className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-20 pointer-events-none transition-colors duration-1000"
-               style={{
-                 backgroundColor: pressureMeter >= 75 ? 'rgb(239, 68, 68)' : pressureMeter >= 45 ? 'rgb(245, 158, 11)' : 'rgb(16, 185, 129)'
-               }}
-             />
-            
-            <div className="flex items-center justify-between mb-3 relative z-10">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-1.5"><Activity size={14}/> Pressure Meter</span>
-              <span className={`text-xs font-black tracking-tight ${pressureMeter >= 75 ? 'text-red-600' : pressureMeter >= 45 ? 'text-amber-600' : 'text-emerald-600'}`}>{pressureMeter}%</span>
+          <div className="bg-[#F5F0E6] p-4 border-2 border-[#111111] shadow-[3px_3px_0px_#111111]">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-mono font-black uppercase tracking-widest text-[#111111] flex items-center gap-1.5">
+                <Activity size={14}/> Pressure Meter
+              </span>
+              <span className={`text-xs font-mono font-black ${pressureMeter >= 75 ? 'text-[#E53935]' : pressureMeter >= 45 ? 'text-[#B78103]' : 'text-[#2457A6]'}`}>
+                {pressureMeter}%
+              </span>
             </div>
-            <div className="h-2 w-full bg-zinc-200/80 rounded-full overflow-hidden relative z-10 shadow-inner">
+            <div className="h-3 w-full bg-[#FFFFFF] border-2 border-[#111111] overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-1000 ease-out ${pressureMeter >= 75 ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : pressureMeter >= 45 ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]'}`}
+                className={`h-full transition-all duration-500 ${pressureMeter >= 75 ? 'bg-[#E53935]' : pressureMeter >= 45 ? 'bg-[#F4C430]' : 'bg-[#2457A6]'}`}
                 style={{ width: `${pressureMeter}%` }}
               />
             </div>
-            <p className="mt-3 text-[10px] text-zinc-500 leading-relaxed font-medium relative z-10">Stress level increases when thin or non-technical answers are detected during recursive grilling.</p>
+            <p className="mt-2 text-[10px] text-[#555555] leading-relaxed font-mono">Stress level increases when thin or non-technical answers are challenged during recursive grilling.</p>
           </div>
         </div>
 
@@ -295,74 +298,81 @@ export default function NexusMirrorModal({ onClose }: NexusMirrorModalProps) {
           {loading && nexusMirrorItems.length === 0 ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="rounded-3xl border border-zinc-200/60 bg-white p-6 animate-pulse">
-                  <div className="h-3 bg-zinc-200 rounded w-24 mb-6"></div>
-                  <div className="h-4 bg-zinc-200 rounded w-3/4 mb-4"></div>
-                  <div className="h-3 bg-zinc-200 rounded w-full mb-2"></div>
-                  <div className="h-3 bg-zinc-200 rounded w-5/6"></div>
+                <div key={i} className="border-2 border-[#111111] bg-[#F5F0E6] p-6 animate-pulse shadow-[3px_3px_0px_#111111]">
+                  <div className="h-3 bg-[#E0D8C8] w-24 mb-4"></div>
+                  <div className="h-4 bg-[#E0D8C8] w-3/4 mb-3"></div>
+                  <div className="h-3 bg-[#E0D8C8] w-full mb-2"></div>
+                  <div className="h-3 bg-[#E0D8C8] w-5/6"></div>
                 </div>
               ))}
             </div>
           ) : nexusMirrorItems.length === 0 ? (
-            <div className="h-full min-h-[300px] border-2 border-dashed border-zinc-200 rounded-3xl flex items-center justify-center bg-zinc-50/40">
-              <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-white border border-zinc-100 flex items-center justify-center mx-auto mb-4 shadow-sm">
-                  <MessageSquare size={24} className="text-zinc-300" />
+            <div className="h-full min-h-[260px] border-2 border-dashed border-[#111111] flex items-center justify-center bg-[#F5F0E6]">
+              <div className="text-center p-6">
+                <div className="w-12 h-12 bg-[#FFFFFF] border-2 border-[#111111] flex items-center justify-center mx-auto mb-3 shadow-[2px_2px_0px_#111111]">
+                  <MessageSquare size={20} className="text-[#111111]" />
                 </div>
-                <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">No interview set generated yet</p>
+                <p className="text-xs font-mono font-bold uppercase tracking-widest text-[#555555]">No interview set generated yet</p>
               </div>
             </div>
           ) : (
             nexusMirrorItems.map((item) => (
-              <div key={item.id} className="rounded-3xl border border-zinc-200/60 bg-white p-6 md:p-8 shadow-[var(--shadow-subtle)]">
-                <div className="flex items-center justify-between gap-2 mb-4">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-purple-600 bg-purple-50 border border-purple-100 px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5"><BrainCircuit size={14}/> {item.category}</span>
+              <div key={item.id} className="border-2 border-[#111111] bg-[#FFFFFF] p-6 shadow-[4px_4px_0px_#111111]">
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="text-[10px] font-mono font-black uppercase tracking-widest text-[#2457A6] bg-[#EBF3FC] border border-[#2457A6] px-2.5 py-1 inline-flex items-center gap-1.5">
+                    <BrainCircuit size={13}/> {item.category}
+                  </span>
                 </div>
                 
-                <div className="bg-zinc-50/80 rounded-2xl border border-zinc-100 p-5 mb-6">
-                  <p className="text-base font-display font-bold text-zinc-950 mb-3 leading-snug">Q: {item.question}</p>
-                  <p className="text-sm text-zinc-600 leading-relaxed font-medium">A: {item.answer}</p>
+                <div className="bg-[#F5F0E6] border-2 border-[#111111] p-4 mb-4">
+                  <p className="text-sm font-mono font-black text-[#111111] mb-2 leading-snug">Q: {item.question}</p>
+                  <p className="text-xs font-mono text-[#555555] leading-relaxed">A: {item.answer}</p>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 block flex items-center gap-1.5"><MessageSquare size={14}/> Your Answer for Cross-Questioning</label>
+                    <label className="text-[10px] font-mono font-black uppercase tracking-widest text-[#111111] mb-1.5 block flex items-center gap-1.5">
+                      <MessageSquare size={13}/> Your Answer for Cross-Questioning
+                    </label>
                     <textarea
                       value={answersByItem[item.id] || ''}
                       onChange={(e) => setAnswersByItem((prev) => ({ ...prev, [item.id]: e.target.value }))}
                       placeholder="Type your interview answer here to trigger recursive grilling..."
-                      className="w-full min-h-[100px] bg-white border border-zinc-200/80 rounded-2xl px-5 py-4 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-950/20 shadow-sm transition-all resize-y"
+                      className="w-full min-h-[90px] bg-[#FFFFFF] border-2 border-[#111111] p-3 text-xs font-mono font-medium text-[#111111] focus:outline-none focus:bg-[#FDFBF7] resize-y"
                     />
                   </div>
                   <button
                     onClick={() => runCrossQuestioning(item)}
                     disabled={grillingItemId === item.id || !(answersByItem[item.id] || '').trim()}
-                    className="px-6 py-3.5 bg-zinc-950 hover:bg-zinc-800 disabled:opacity-40 text-white rounded-xl text-xs font-bold uppercase tracking-widest inline-flex items-center gap-2 transition-all shadow-md active:scale-95"
+                    className="px-5 py-2.5 bg-[#E53935] hover:bg-[#111111] disabled:opacity-40 text-white text-xs font-mono font-black uppercase tracking-wider inline-flex items-center gap-2 transition-all border-2 border-[#111111] shadow-[2px_2px_0px_#111111] cursor-pointer"
                   >
-                    {grillingItemId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Crosshair size={16} />}
+                    {grillingItemId === item.id ? <Loader2 size={14} className="animate-spin" /> : <Crosshair size={14} />}
                     {grillingItemId === item.id ? 'Analyzing Answer...' : 'Run Recursive Grill'}
                   </button>
                 </div>
 
                 {crossByItem[item.id] && (
-                  <div className="mt-6 pt-6 border-t border-zinc-100 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
-                    <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50/50 p-5 shadow-sm">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3 flex items-center gap-1.5"><Eye size={14}/> Phase A - Scan Analysis</p>
-                      <p className="text-sm text-zinc-900 font-medium mb-2 leading-relaxed">
-                        {crossByItem[item.id].phaseA.detectedType === 'technical-claim'
-                          ? <><span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded mr-1">Claim:</span> {crossByItem[item.id].phaseA.technicalClaim}</>
-                          : crossByItem[item.id].phaseA.detectedType === 'unsupported-quantitative-claim'
-                          ? <><span className="text-orange-700 font-bold bg-orange-50 px-2 py-0.5 rounded mr-1">Unsupported Claim:</span> {crossByItem[item.id].phaseA.unsupportedQuantitativeClaim}</>
-                          : <><span className="text-red-700 font-bold bg-red-50 px-2 py-0.5 rounded mr-1">Gap:</span> {crossByItem[item.id].phaseA.logicGap}</>}
+                  <div className="mt-4 pt-4 border-t-2 border-[#111111] grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="border-2 border-[#111111] bg-[#FEF9E7] p-4 shadow-[2px_2px_0px_#111111]">
+                      <p className="text-[10px] font-mono font-black uppercase tracking-widest text-[#111111] mb-2 flex items-center gap-1.5">
+                        <Eye size={13}/> Phase A - Scan Analysis
                       </p>
-                      <p className="text-xs text-zinc-500 font-medium bg-white border border-zinc-100 p-2.5 rounded-xl">{crossByItem[item.id].phaseA.reason || 'No reason returned.'}</p>
+                      <p className="text-xs font-mono text-[#111111] font-bold mb-2 leading-relaxed">
+                        {crossByItem[item.id].phaseA.detectedType === 'technical-claim'
+                          ? <><span className="text-[#2457A6] bg-[#EBF3FC] px-1.5 py-0.5 border border-[#2457A6] mr-1">Claim:</span> {crossByItem[item.id].phaseA.technicalClaim}</>
+                          : crossByItem[item.id].phaseA.detectedType === 'unsupported-quantitative-claim'
+                          ? <><span className="text-[#B78103] bg-[#FEF9E7] px-1.5 py-0.5 border border-[#F4C430] mr-1">Unsupported Claim:</span> {crossByItem[item.id].phaseA.unsupportedQuantitativeClaim}</>
+                          : <><span className="text-[#E53935] bg-[#FDEDEC] px-1.5 py-0.5 border border-[#E53935] mr-1">Gap:</span> {crossByItem[item.id].phaseA.logicGap}</>}
+                      </p>
+                      <p className="text-[11px] font-mono text-[#555555] bg-[#FFFFFF] border border-[#111111] p-2">{crossByItem[item.id].phaseA.reason || 'No reason returned.'}</p>
                     </div>
 
-                    <div className="rounded-2xl border border-blue-200/80 bg-blue-50/30 p-5 shadow-sm relative overflow-hidden">
-                       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-blue-600 mb-3 flex items-center gap-1.5"><ShieldAlert size={14}/> Phase B - Lead Follow-up</p>
-                      <p className="text-base font-display font-bold text-zinc-950 leading-snug mb-4 relative z-10">{crossByItem[item.id].phaseB.followUpQuestion}</p>
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white border border-blue-100 rounded-lg text-[10px] font-bold text-blue-800 shadow-sm relative z-10">
+                    <div className="border-2 border-[#111111] bg-[#EBF3FC] p-4 shadow-[2px_2px_0px_#111111]">
+                      <p className="text-[10px] font-mono font-black uppercase tracking-widest text-[#2457A6] mb-2 flex items-center gap-1.5">
+                        <ShieldAlert size={13}/> Phase B - Lead Follow-up
+                      </p>
+                      <p className="text-xs font-mono font-black text-[#111111] leading-snug mb-3">{crossByItem[item.id].phaseB.followUpQuestion}</p>
+                      <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-[#FFFFFF] border border-[#111111] text-[10px] font-mono font-bold text-[#111111]">
                         Pressure Impact: +{crossByItem[item.id].pressureDelta}%
                       </div>
                     </div>

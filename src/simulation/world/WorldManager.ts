@@ -9,7 +9,7 @@ import { NavMeshManager } from '../pathfinding/NavMeshManager';
 import { PoiManager } from './PoiManager';
 import { ObstacleSystem } from '../physics/ObstacleSystem';
 
-import { getFloorTexture, getWoodDeskTexture, getWhiteboardTexture } from './TextureGenerator';
+import { getFloorTexture, getWoodDeskTexture, getWhiteboardTexture, getComputerScreenTexture } from './TextureGenerator';
 
 export class WorldManager {
   private office: THREE.Group | null = null;
@@ -41,6 +41,7 @@ export class WorldManager {
     const floorTex = getFloorTexture();
     const woodTex = getWoodDeskTexture();
     const boardTex = getWhiteboardTexture();
+    const computerTex = getComputerScreenTexture();
 
     // Extract NavMesh and setup vibrant materials
     this.office.traverse((child) => {
@@ -77,69 +78,68 @@ export class WorldManager {
             let emissiveIntensity = 0.0;
 
             if (isColoredMesh) {
-              // Thematic glowing boundary perimeter
-              matColor = themeColor;
-              roughness = 0.25;
-              metalness = 0.4;
-              emissive = themeColor;
-              emissiveIntensity = 0.55;
+              // Modernist solid ink boundary framing perimeter
+              matColor = new THREE.Color(0x111111);
+              roughness = 0.55;
+              metalness = 0.15;
             } else if (isFloor) {
-              // Command-center dark grid floor with telemetry dots
+              // Bauhaus studio terrazzo grid floor with tactile limestone aggregate
               matColor = new THREE.Color(0xffffff);
               textureMap = floorTex;
-              roughness = 0.55;
-              metalness = 0.15;
+              roughness = 0.65;
+              metalness = 0.05;
             } else if (isCounter) {
-              // Dark architectural partition divider / low wall
-              matColor = new THREE.Color(0x1a1c24);
-              roughness = 0.65;
-              metalness = 0.2;
-            } else if (isDesk) {
-              // Sleek dark walnut workstation desk
-              matColor = new THREE.Color(0x282c37);
-              textureMap = woodTex;
-              roughness = 0.42;
-              metalness = 0.12;
-            } else if (isChair) {
-              // Modern matte charcoal mesh task chairs
-              matColor = new THREE.Color(0x16181f);
-              roughness = 0.65;
-              metalness = 0.25;
-            } else if (isSofa) {
-              // Executive dark leather lounge sofa
-              matColor = new THREE.Color(0x222530);
+              // Clean architectural plaster partition divider / low wall
+              matColor = new THREE.Color(0xFAF7F0);
               roughness = 0.55;
-              metalness = 0.15;
+              metalness = 0.05;
+            } else if (isDesk) {
+              // Scandinavian blonde birch workstation desks
+              matColor = new THREE.Color(0xffffff);
+              textureMap = woodTex;
+              roughness = 0.40;
+              metalness = 0.08;
+            } else if (isChair) {
+              // Bauhaus Marcel Breuer task chairs (Bauhaus Cobalt Blue upholstery & tubular steel)
+              matColor = new THREE.Color(0x2457A6);
+              roughness = 0.35;
+              metalness = 0.35;
+            } else if (isSofa) {
+              // Modernist lounge sofa in warm cognac saddle leather
+              matColor = new THREE.Color(0xC68B59);
+              roughness = 0.50;
+              metalness = 0.08;
             } else if (isPlant) {
-              // Lush botanical deep emerald foliage
-              matColor = new THREE.Color(0x10b981);
+              // Vibrant emerald botanical foliage
+              matColor = new THREE.Color(0x2E7D32);
               roughness = 0.45;
               metalness = 0.05;
             } else if (isBoard) {
               // Interactive sprint whiteboard with agile architecture diagrams
-              matColor = new THREE.Color(0x1e222d);
+              matColor = new THREE.Color(0xffffff);
               textureMap = boardTex;
-              roughness = 0.3;
-              metalness = 0.1;
+              roughness = 0.25;
+              metalness = 0.08;
             } else if (isCabinet) {
-              // Slate architectural credenza
-              matColor = new THREE.Color(0x1c202a);
-              roughness = 0.5;
-              metalness = 0.25;
+              // Clean Bauhaus warm cream architectural credenzas
+              matColor = new THREE.Color(0xEDE6D8);
+              roughness = 0.45;
+              metalness = 0.12;
             } else if (isPC) {
-              // Workstation chassis with glowing telemetry cyan terminal display
-              matColor = new THREE.Color(0x0f1117);
-              roughness = 0.2;
-              metalness = 0.9;
+              // High-resolution developer IDE & telemetry monitor screen
+              matColor = new THREE.Color(0xffffff);
+              textureMap = computerTex;
+              roughness = 0.22;
+              metalness = 0.35;
               emissive = new THREE.Color(0x38bdf8);
-              emissiveIntensity = 0.95;
+              emissiveIntensity = 0.25;
             } else if (isLamp) {
-              // Architectural matte black flexo lamp with warm incandescent glow
-              matColor = new THREE.Color(0x12141a);
-              roughness = 0.3;
-              metalness = 0.7;
-              emissive = new THREE.Color(0xff5c1a);
-              emissiveIntensity = 0.75;
+              // Classic Wilhelm Wagenfeld Bauhaus lamp (Bauhaus Red enamel with warm incandescent bulb)
+              matColor = new THREE.Color(0xE53935);
+              roughness = 0.25;
+              metalness = 0.4;
+              emissive = new THREE.Color(0xF4C430);
+              emissiveIntensity = 0.85;
             }
 
             mesh.material = new THREE.MeshStandardNodeMaterial({
@@ -147,7 +147,7 @@ export class WorldManager {
               ...(textureMap ? { map: textureMap } : {}),
               roughness,
               metalness,
-              ...(emissive ? { emissive, emissiveIntensity } : {}),
+              ...(emissive ? { emissive, emissiveIntensity, ...(isPC && textureMap ? { emissiveMap: textureMap } : {}) } : {}),
             });
           }
         }

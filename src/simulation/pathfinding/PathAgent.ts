@@ -12,6 +12,8 @@ import { PATH_NODE_ARRIVAL } from '../constants';
 export class PathAgent {
   private path: THREE.Vector3[] = [];
   private nodeIndex = 0;
+  private stuckTimer = 0;
+  private lastPos = new THREE.Vector3(Infinity, Infinity, Infinity);
   public isMoving = false;
 
   constructor(
@@ -22,6 +24,8 @@ export class PathAgent {
   /** Start following a new path. Immediately writes the first waypoint to the GPU buffer. */
   public setPath(path: THREE.Vector3[], fromPos?: THREE.Vector3): void {
     this.path = path;
+    this.stuckTimer = 0;
+    this.lastPos.set(Infinity, Infinity, Infinity);
     let prepended = false;
     if (fromPos && path.length > 0) {
       const firstNode = path[0];
@@ -45,6 +49,7 @@ export class PathAgent {
   public cancel(): void {
     this.path = [];
     this.nodeIndex = 0;
+    this.stuckTimer = 0;
     this.isMoving = false;
   }
 
@@ -54,16 +59,22 @@ export class PathAgent {
    *
    * @returns true when the agent has reached the final destination.
    */
-  public update(currentPos: THREE.Vector3): boolean {
+  public update(currentPos: THREE.Vector3, delta: number = 0.016): boolean {
     if (!this.isMoving || this.path.length === 0) return false;
 
+    const isFinalNode = this.nodeIndex >= this.path.length - 1;
     const target = this.path[this.nodeIndex];
     const dx = target.x - currentPos.x;
     const dz = target.z - currentPos.z;
     const dist2 = dx * dx + dz * dz;
 
-    if (dist2 < PATH_NODE_ARRIVAL * PATH_NODE_ARRIVAL) {
+    // Relaxed arrival threshold for final destination (0.45m instead of 0.25m)
+    // so furniture bounding boxes do not prevent chair arrival.
+    const arrivalThreshold = isFinalNode ? 0.45 : PATH_NODE_ARRIVAL;
+
+    if (dist2 < arrivalThreshold * arrivalThreshold) {
       this.nodeIndex++;
+      this.stuckTimer = 0;
       if (this.nodeIndex >= this.path.length) {
         // Reached final destination
         this.isMoving = false;
@@ -71,7 +82,36 @@ export class PathAgent {
       }
       // Advance to next node
       this._writeWaypoint(this.path[this.nodeIndex]);
+      return false;
     }
+
+    // Stuck Recovery: Detect if agent is moving but making no forward progress
+    const distFromLast = Math.hypot(currentPos.x - this.lastPos.x, currentPos.z - this.lastPos.z);
+    if (distFromLast < 0.02) {
+      this.stuckTimer += delta;
+      if (this.stuckTimer > 0.8) {
+        this.stuckTimer = 0;
+        const finalDest = this.path[this.path.length - 1];
+        const distToFinal = Math.hypot(currentPos.x - finalDest.x, currentPos.z - finalDest.z);
+
+        // If close to final destination (< 0.85m), treat as arrived!
+        if (distToFinal < 0.85 || isFinalNode) {
+          this.isMoving = false;
+          return true;
+        } else {
+          // Advance to next node if stuck against an obstacle corner along path
+          this.nodeIndex++;
+          if (this.nodeIndex >= this.path.length) {
+            this.isMoving = false;
+            return true;
+          }
+          this._writeWaypoint(this.path[this.nodeIndex]);
+        }
+      }
+    } else {
+      this.stuckTimer = 0;
+    }
+    this.lastPos.copy(currentPos);
 
     return false;
   }
@@ -80,6 +120,12 @@ export class PathAgent {
   public getTarget(): THREE.Vector3 | null {
     if (!this.isMoving || this.path.length === 0) return null;
     return this.path[this.nodeIndex];
+  }
+
+  /** Returns the final destination of the current path. */
+  public getDestination(): THREE.Vector3 | null {
+    if (!this.isMoving || this.path.length === 0) return null;
+    return this.path[this.path.length - 1];
   }
 
   /** Returns the last direction vector of the current path. */

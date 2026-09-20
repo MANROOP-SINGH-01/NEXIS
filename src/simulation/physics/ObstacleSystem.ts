@@ -169,9 +169,153 @@ export class ObstacleSystem {
   }
 
   /**
+   * Checks if a point penetrates any registered obstacle footprint.
+   */
+  public static isInsideAnyObstacle(
+    pos: THREE.Vector3,
+    extraMargin: number = 0.05,
+    checkHeight: boolean = true
+  ): boolean {
+    const r = ObstacleSystem.AGENT_RADIUS + extraMargin;
+    for (const obs of this.obstacles) {
+      const box = obs.box;
+      if (checkHeight && pos.y > box.max.y + 0.05) continue;
+      if (
+        pos.x >= box.min.x - r &&
+        pos.x <= box.max.x + r &&
+        pos.z >= box.min.z - r &&
+        pos.z <= box.max.z + r
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Returns the obstacle containing the given position, if any.
+   */
+  public static getObstacleAt(
+    pos: THREE.Vector3,
+    extraMargin: number = 0.05,
+    checkHeight: boolean = true
+  ): OfficeObstacle | null {
+    const r = ObstacleSystem.AGENT_RADIUS + extraMargin;
+    for (const obs of this.obstacles) {
+      const box = obs.box;
+      if (checkHeight && pos.y > box.max.y + 0.05) continue;
+      if (
+        pos.x >= box.min.x - r &&
+        pos.x <= box.max.x + r &&
+        pos.z >= box.min.z - r &&
+        pos.z <= box.max.z + r
+      ) {
+        return obs;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Finds the nearest open, walkable floor position strictly outside all obstacle structures.
+   * If pos is already outside all obstacles, clamps to room boundaries and returns a copy.
+   * If pos is inside or too close to an obstacle, projects to the nearest safe floor position.
+   */
+  public static findSafeFloorPosition(
+    pos: THREE.Vector3,
+    radius: number = ObstacleSystem.AGENT_RADIUS,
+    navMesh?: { isPointOnNavMesh: (p: THREE.Vector3) => boolean }
+  ): THREE.Vector3 {
+    const result = pos.clone();
+    result.y = OFFICE_BOUNDS.floorY;
+
+    // First clamp within office perimeter
+    result.x = THREE.MathUtils.clamp(result.x, OFFICE_BOUNDS.minX + radius, OFFICE_BOUNDS.maxX - radius);
+    result.z = THREE.MathUtils.clamp(result.z, OFFICE_BOUNDS.minZ + radius, OFFICE_BOUNDS.maxZ - radius);
+
+    // If already clear of all obstacles and on navmesh (if provided), return immediately
+    if (!this.isInsideAnyObstacle(result, 0.02, false)) {
+      if (!navMesh || navMesh.isPointOnNavMesh(result)) {
+        return result;
+      }
+    }
+
+    // Identify all obstacles that pos currently penetrates or is dangerously close to
+    const clearance = radius + 0.15;
+    const penetratingObs = this.obstacles.filter(obs => {
+      const box = obs.box;
+      return (
+        result.x >= box.min.x - clearance &&
+        result.x <= box.max.x + clearance &&
+        result.z >= box.min.z - clearance &&
+        result.z <= box.max.z + clearance
+      );
+    });
+
+    if (penetratingObs.length === 0) {
+      return result;
+    }
+
+    // Generate candidate safe escape positions projected outside penetrating obstacle boundaries
+    const candidates: THREE.Vector3[] = [];
+    for (const obs of penetratingObs) {
+      const box = obs.box;
+      // 4 cardinal projections with generous clearance
+      candidates.push(new THREE.Vector3(box.min.x - clearance, OFFICE_BOUNDS.floorY, result.z));
+      candidates.push(new THREE.Vector3(box.max.x + clearance, OFFICE_BOUNDS.floorY, result.z));
+      candidates.push(new THREE.Vector3(result.x, OFFICE_BOUNDS.floorY, box.min.z - clearance));
+      candidates.push(new THREE.Vector3(result.x, OFFICE_BOUNDS.floorY, box.max.z + clearance));
+
+      // 4 corner diagonal projections
+      candidates.push(new THREE.Vector3(box.min.x - clearance, OFFICE_BOUNDS.floorY, box.min.z - clearance));
+      candidates.push(new THREE.Vector3(box.max.x + clearance, OFFICE_BOUNDS.floorY, box.min.z - clearance));
+      candidates.push(new THREE.Vector3(box.min.x - clearance, OFFICE_BOUNDS.floorY, box.max.z + clearance));
+      candidates.push(new THREE.Vector3(box.max.x + clearance, OFFICE_BOUNDS.floorY, box.max.z + clearance));
+    }
+
+    // Add radial search around pos if complex multi-obstacle clutter exists
+    for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 8) {
+      for (let dist = 0.5; dist <= 2.5; dist += 0.4) {
+        candidates.push(new THREE.Vector3(
+          result.x + Math.cos(angle) * dist,
+          OFFICE_BOUNDS.floorY,
+          result.z + Math.sin(angle) * dist
+        ));
+      }
+    }
+
+    let bestCandidate: THREE.Vector3 | null = null;
+    let bestDistSq = Infinity;
+
+    for (const cand of candidates) {
+      cand.x = THREE.MathUtils.clamp(cand.x, OFFICE_BOUNDS.minX + radius, OFFICE_BOUNDS.maxX - radius);
+      cand.z = THREE.MathUtils.clamp(cand.z, OFFICE_BOUNDS.minZ + radius, OFFICE_BOUNDS.maxZ - radius);
+
+      // Must be strictly clear of all obstacles
+      if (this.isInsideAnyObstacle(cand, 0.05, false)) continue;
+
+      const d2 = cand.distanceToSquared(result);
+      const isOnNav = navMesh ? navMesh.isPointOnNavMesh(cand) : true;
+      const score = isOnNav ? d2 : d2 + 5.0;
+
+      if (score < bestDistSq) {
+        bestDistSq = score;
+        bestCandidate = cand;
+      }
+    }
+
+    if (bestCandidate) {
+      return bestCandidate;
+    }
+
+    // Absolute fallback: known open lobby floor coordinate (0, 0, 0)
+    return new THREE.Vector3(0, OFFICE_BOUNDS.floorY, 0);
+  }
+
+  /**
    * Resolves horizontal and vertical obstacle collisions for a given character position.
    * If the character penetrates any obstacle, smoothly pushes them outside along the
-   * shallowest penetration normal and damps velocity.
+   * shallowest penetration normal and damps velocity. Multi-pass to handle dense furniture.
    *
    * @param pos World position of character (modified in place)
    * @param vel Optional velocity vector (deflected on collision)
@@ -220,51 +364,58 @@ export class ObstacleSystem {
       resolved = true;
     }
 
-    // 2. Solid Furniture & Obstacle Resolution
-    for (const obs of this.obstacles) {
-      const box = obs.box;
+    // 2. Solid Furniture & Obstacle Resolution (up to 2 passes for chained furniture)
+    for (let pass = 0; pass < 2; pass++) {
+      let passResolved = false;
 
-      // Vertical clearance check: if character is fully above the obstacle, allow clearance
-      if (pos.y > box.max.y + 0.05) {
-        continue;
-      }
+      for (const obs of this.obstacles) {
+        const box = obs.box;
 
-      // Check if character's horizontal footprint overlaps obstacle box
-      const expandedMinX = box.min.x - radius;
-      const expandedMaxX = box.max.x + radius;
-      const expandedMinZ = box.min.z - radius;
-      const expandedMaxZ = box.max.z + radius;
-
-      if (
-        pos.x >= expandedMinX &&
-        pos.x <= expandedMaxX &&
-        pos.z >= expandedMinZ &&
-        pos.z <= expandedMaxZ
-      ) {
-        // Calculate penetration depths along all 4 cardinal directions
-        const penLeft = pos.x - expandedMinX;
-        const penRight = expandedMaxX - pos.x;
-        const penBack = pos.z - expandedMinZ;
-        const penFront = expandedMaxZ - pos.z;
-
-        const minPen = Math.min(penLeft, penRight, penBack, penFront);
-
-        if (minPen === penLeft) {
-          pos.x = expandedMinX;
-          if (vel && vel.x > 0) vel.x = -Math.abs(vel.x) * 0.25;
-        } else if (minPen === penRight) {
-          pos.x = expandedMaxX;
-          if (vel && vel.x < 0) vel.x = Math.abs(vel.x) * 0.25;
-        } else if (minPen === penBack) {
-          pos.z = expandedMinZ;
-          if (vel && vel.z > 0) vel.z = -Math.abs(vel.z) * 0.25;
-        } else {
-          pos.z = expandedMaxZ;
-          if (vel && vel.z < 0) vel.z = Math.abs(vel.z) * 0.25;
+        // Vertical clearance check: if character is fully above the obstacle, allow clearance
+        if (pos.y > box.max.y + 0.05) {
+          continue;
         }
 
-        resolved = true;
+        // Check if character's horizontal footprint overlaps obstacle box
+        const expandedMinX = box.min.x - radius;
+        const expandedMaxX = box.max.x + radius;
+        const expandedMinZ = box.min.z - radius;
+        const expandedMaxZ = box.max.z + radius;
+
+        if (
+          pos.x >= expandedMinX &&
+          pos.x <= expandedMaxX &&
+          pos.z >= expandedMinZ &&
+          pos.z <= expandedMaxZ
+        ) {
+          // Calculate penetration depths along all 4 cardinal directions
+          const penLeft = pos.x - expandedMinX;
+          const penRight = expandedMaxX - pos.x;
+          const penBack = pos.z - expandedMinZ;
+          const penFront = expandedMaxZ - pos.z;
+
+          const minPen = Math.min(penLeft, penRight, penBack, penFront);
+
+          if (minPen === penLeft) {
+            pos.x = expandedMinX;
+            if (vel && vel.x > 0) vel.x = -Math.abs(vel.x) * 0.25;
+          } else if (minPen === penRight) {
+            pos.x = expandedMaxX;
+            if (vel && vel.x < 0) vel.x = Math.abs(vel.x) * 0.25;
+          } else if (minPen === penBack) {
+            pos.z = expandedMinZ;
+            if (vel && vel.z > 0) vel.z = -Math.abs(vel.z) * 0.25;
+          } else {
+            pos.z = expandedMaxZ;
+            if (vel && vel.z < 0) vel.z = Math.abs(vel.z) * 0.25;
+          }
+
+          passResolved = true;
+          resolved = true;
+        }
       }
+
+      if (!passResolved) break;
     }
 
     return resolved;

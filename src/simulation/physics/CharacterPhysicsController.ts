@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { CharacterPhysicsSettings, DEFAULT_PHYSICS_SETTINGS } from './PhysicsTypes';
+import { BodyPartId, CharacterPhysicsSettings, DEFAULT_PHYSICS_SETTINGS } from './PhysicsTypes';
 import { ObstacleSystem } from './ObstacleSystem';
 
 /**
@@ -54,7 +54,7 @@ export class CharacterPhysicsController {
   /**
    * Updates physics for a grabbed character following a target position.
    */
-  public updateGrabbed(targetPos: THREE.Vector3, delta: number): void {
+  public updateGrabbed(targetPos: THREE.Vector3, delta: number, grabbedBodyPart?: BodyPartId | null): void {
     if (delta <= 0.0001) return;
     const dt = Math.min(delta, 0.05);
 
@@ -110,16 +110,34 @@ export class CharacterPhysicsController {
     const horizSpeed = Math.hypot(this.linearVelocity.x, this.linearVelocity.z);
     const tiltDampFactor = horizSpeed < 0.25 ? THREE.MathUtils.clamp(horizSpeed / 0.25, 0.0, 1.0) : 1.0;
 
-    const targetPitch = THREE.MathUtils.clamp(
+    let targetPitch = THREE.MathUtils.clamp(
       (-this.linearVelocity.z * 0.05 - this.linearAcceleration.z * 0.016) * tiltDampFactor,
       -this.settings.maxTiltPitch,
       this.settings.maxTiltPitch
     );
-    const targetRoll = THREE.MathUtils.clamp(
+    let targetRoll = THREE.MathUtils.clamp(
       (this.linearVelocity.x * 0.05 + this.linearAcceleration.x * 0.016) * tiltDampFactor,
       -this.settings.maxTiltRoll,
       this.settings.maxTiltRoll
     );
+
+    // Dynamic anatomical pick-up hang reactions:
+    if (grabbedBodyPart) {
+      if (grabbedBodyPart.includes('foot') || grabbedBodyPart.includes('calf') || grabbedBodyPart.includes('thigh')) {
+        // INVERTED DANGLE: Held by leg/foot! Invert character upside-down with playful kick angle
+        const isLeft = grabbedBodyPart.endsWith('L');
+        targetRoll += isLeft ? THREE.MathUtils.degToRad(155) : -THREE.MathUtils.degToRad(155);
+        targetPitch += THREE.MathUtils.degToRad(15);
+      } else if (grabbedBodyPart.includes('arm') || grabbedBodyPart.includes('hand')) {
+        // SIDEWAYS REACH: Held by arm/hand! Torso rolls toward pulled arm
+        const isLeft = grabbedBodyPart.endsWith('L');
+        targetRoll += isLeft ? THREE.MathUtils.degToRad(38) : -THREE.MathUtils.degToRad(38);
+        targetPitch += THREE.MathUtils.degToRad(-10);
+      } else if (grabbedBodyPart === 'head') {
+        // VERTICAL DANGLE: Held by head! Character hangs straight down beneath the cursor
+        targetPitch -= THREE.MathUtils.degToRad(16);
+      }
+    }
 
     // Face movement direction if moving fast enough, otherwise keep facing yaw
     if (horizSpeed > 0.4) {
@@ -202,7 +220,32 @@ export class CharacterPhysicsController {
       this.linearVelocity.y = -Math.abs(this.linearVelocity.y) * 0.35;
     }
 
-    // Enforce solid obstacle collision resolution during free-fall
+    // Enforce solid obstacle collision resolution and roof deflection during free-fall
+    for (const obs of ObstacleSystem.getObstacles()) {
+      const box = obs.box;
+      const radius = ObstacleSystem.AGENT_RADIUS;
+      if (
+        this.position.x >= box.min.x - radius &&
+        this.position.x <= box.max.x + radius &&
+        this.position.z >= box.min.z - radius &&
+        this.position.z <= box.max.z + radius
+      ) {
+        // Character is directly over obstacle footprint
+        if (this.position.y <= box.max.y + 0.15 && this.position.y >= box.max.y - 0.20) {
+          // Roof impact: bounce & slide outward off the obstacle edge onto open floor
+          this.position.y = box.max.y;
+          this.linearVelocity.y = Math.max(0.4, Math.abs(this.linearVelocity.y) * 0.25);
+          const center = new THREE.Vector3();
+          box.getCenter(center);
+          const dx = this.position.x - center.x;
+          const dz = this.position.z - center.z;
+          const len = Math.hypot(dx, dz) || 1;
+          this.linearVelocity.x += (dx / len) * 2.2;
+          this.linearVelocity.z += (dz / len) * 2.2;
+        }
+      }
+    }
+
     ObstacleSystem.resolveCollision(this.position, this.linearVelocity);
 
     // Angular momentum update
@@ -250,6 +293,14 @@ export class CharacterPhysicsController {
     if (this.position.y <= this.settings.floorY) {
       const impactSpeed = Math.abs(this.linearVelocity.y);
       this.position.y = this.settings.floorY;
+
+      // Ensure landing position is never inside any structure
+      if (ObstacleSystem.isInsideAnyObstacle(this.position)) {
+        const safe = ObstacleSystem.findSafeFloorPosition(this.position);
+        this.position.copy(safe);
+        this.linearVelocity.x *= 0.2;
+        this.linearVelocity.z *= 0.2;
+      }
 
       if (impactSpeed >= this.settings.minImpactVelocity) {
         // Rebound with restitution

@@ -14,7 +14,7 @@ const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
   const outputModels = Object.entries(GEMINI_PRICING).filter(([_, p]) => p.inputPer1M === undefined);
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center p-6 pointer-events-auto overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 pointer-events-auto overflow-hidden">
       <div
         onClick={onClose}
         className="absolute inset-0 bg-slate-900/60 "

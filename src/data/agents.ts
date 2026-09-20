@@ -1,4 +1,5 @@
 import { USER_COLOR } from '../theme/brand';
+import { colors } from '../theme/bauhaus';
 
 export const USER_ID = 'user';
 export const USER_NAME = 'User';
@@ -52,7 +53,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       index: 1,
       name: 'Nexus-Director',
       description: 'Manager agent orchestrating the full career strategy command center.',
-      color: '#4f46e5',
+      color: colors.agents.director,
       model: 'claude-sonnet-4',
       humanInTheLoop: true,
       position: { x: 0, y: 130 },
@@ -62,7 +63,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           index: 2,
           name: 'Nexus-Vision',
           description: 'Eye-Tracking Simulation and Visual UX Auditor.',
-          color: '#2563eb',
+          color: colors.agents.vision,
           model: 'codex-1',
           position: { x: -480, y: 280 },
         },
@@ -71,7 +72,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           index: 3,
           name: 'Nexus-Strategist',
           description: 'JD intent miner and red flag detector.',
-          color: '#7c3aed',
+          color: colors.agents.strategist,
           model: 'claude-3-7-sonnet',
           position: { x: -240, y: 280 },
         },
@@ -80,7 +81,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           index: 4,
           name: 'Nexus-Writer',
           description: 'STAR-metric engineer and content optimizer.',
-          color: '#10b981',
+          color: colors.agents.writer,
           model: 'sarvam-105b',
           position: { x: 0, y: 280 },
         },
@@ -89,7 +90,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           index: 5,
           name: 'Nexus-Hunter',
           description: 'Blue ocean job discovery agent.',
-          color: '#f59e0b',
+          color: colors.agents.hunter,
           model: 'codex-mini',
           position: { x: 240, y: 280 },
         },
@@ -98,7 +99,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           index: 6,
           name: 'Nexus-Mirror',
           description: 'Deep interview simulator and post-game analyzer.',
-          color: '#ef4444',
+          color: colors.agents.mirror,
           model: 'claude-haiku-3.5',
           humanInTheLoop: true,
           position: { x: 480, y: 280 },
@@ -109,6 +110,9 @@ export const AGENTIC_SETS: AgenticSystem[] = [
 ];
 
 export function getAgentSet(id: string, customSystems: AgenticSystem[] = []): AgenticSystem {
+  if (!id || id === DEFAULT_AGENTIC_SET_ID) {
+    return AGENTIC_SETS[0];
+  }
   return (
     customSystems.find((s) => s.id === id) ||
     AGENTIC_SETS.find((s) => s.id === id) ||

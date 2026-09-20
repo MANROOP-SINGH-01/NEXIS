@@ -1,8 +1,7 @@
 import express from 'express';
 const router = express.Router();
 import agentActivityService from '../services/agentActivityService.js';
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma.js';
 
 // GET /api/agents/activity - SSE endpoint
 router.get('/activity', (req, res) => {

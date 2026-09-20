@@ -2,6 +2,7 @@ import { AgentNode } from '../../data/agents';
 import { IAgentDriver } from '../../types';
 import { CharacterController } from '../CharacterController';
 
+import { AgentBehaviorEngine } from '../behavior/AgentBehaviorEngine';
 import { NpcAgentDriver } from './NpcAgentDriver';
 import { PlayerInputDriver } from './PlayerInputDriver';
 
@@ -18,7 +19,10 @@ export class DriverManager {
   private drivers = new Map<number, IAgentDriver>();
   private playerDriver: PlayerInputDriver | null = null;
 
-  constructor(private readonly controller: CharacterController) { }
+  constructor(
+    private readonly controller: CharacterController,
+    private readonly behaviorEngine?: AgentBehaviorEngine
+  ) { }
 
   // ── Registration ─────────────────────────────────────────────
 
@@ -33,7 +37,7 @@ export class DriverManager {
 
   /** Register a NPC agent with its data. Returns the driver for optional further customization. */
   public registerNpc(agentIndex: number, data: AgentNode): NpcAgentDriver {
-    const driver = new NpcAgentDriver(agentIndex, this.controller, data);
+    const driver = new NpcAgentDriver(agentIndex, this.controller, data, this.behaviorEngine);
     this.drivers.set(agentIndex, driver);
     return driver;
   }

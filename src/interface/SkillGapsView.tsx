@@ -8,8 +8,8 @@ import {
 import { useUiStore } from '../integration/store/uiStore';
 import { useCoreStore } from '../integration/store/coreStore';
 import { getAuthHeaders } from '../integration/store/authStore';
-import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../theme/brand';
 import { CandidateSkill, Provenance } from '../types';
+import { PageHeader } from './bauhaus/PageHeader';
 
 interface OnetRole {
   id: string;
@@ -122,21 +122,20 @@ function MatchRing({ pct }: { pct: number }) {
   const r = 44;
   const circ = 2 * Math.PI * r;
   const dash = (pct / 100) * circ;
-  const color = pct >= 75 ? '#22C55E' : pct >= 50 ? '#FF5C1A' : '#EF4444';
+  const color = pct >= 75 ? '#2457A6' : pct >= 50 ? '#F4C430' : '#E53935';
   return (
-    <div className="relative flex items-center justify-center" style={{ width: 110, height: 110 }}>
-      <svg width={110} height={110} viewBox="0 0 120 120" className="-rotate-90">
-        <circle cx={60} cy={60} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={8} />
+    <div className="relative flex items-center justify-center p-2 bg-[#FFFFFF] border-2 border-[#111111] shadow-[3px_3px_0px_#111111] shrink-0" style={{ width: 110, height: 110 }}>
+      <svg width={94} height={94} viewBox="0 0 120 120" className="-rotate-90">
+        <circle cx={60} cy={60} r={r} fill="none" stroke="#EFE7D8" strokeWidth={10} />
         <circle
-          cx={60} cy={60} r={r} fill="none" stroke={color} strokeWidth={8}
+          cx={60} cy={60} r={r} fill="none" stroke={color} strokeWidth={10}
           strokeDasharray={String(dash) + ' ' + String(circ - dash)}
-          strokeLinecap="round"
           style={{ transition: 'stroke-dasharray 1s cubic-bezier(0.4,0,0.2,1)' }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-mono font-extrabold text-[#EDEDED] leading-none tracking-tight">{pct}%</span>
-        <span className="text-[10px] font-mono font-bold text-[#8B949E] uppercase tracking-wider mt-1">Match</span>
+        <span className="text-2xl font-mono font-black text-[#111111] leading-none tracking-tight">{pct}%</span>
+        <span className="text-[9px] font-mono font-bold text-[#555555] uppercase tracking-widest mt-1">Match</span>
       </div>
     </div>
   );
@@ -148,48 +147,48 @@ interface PillStyle { bg: string; text: string; icon: React.ReactNode; border: s
 function SkillPill({ skill, variant, provenance }: { skill: string; variant: PillVariant; provenance?: Provenance }) {
   const styles: Record<PillVariant, PillStyle> = {
     matched: {
-      bg: 'rgba(34, 197, 94, 0.12)', text: '#22C55E', border: 'rgba(34, 197, 94, 0.25)',
-      icon: <CheckCircle2 size={13} strokeWidth={2.5} className="text-[#22C55E]" />,
+      bg: '#EBF3FC', text: '#2457A6', border: '#2457A6',
+      icon: <CheckCircle2 size={13} strokeWidth={2.5} className="text-[#2457A6]" />,
     },
     'gap-required': {
-      bg: 'rgba(239, 68, 68, 0.12)', text: '#EF4444', border: 'rgba(239, 68, 68, 0.25)',
-      icon: <XCircle size={13} strokeWidth={2.5} className="text-[#EF4444]" />,
+      bg: '#FDEDEC', text: '#E53935', border: '#E53935',
+      icon: <XCircle size={13} strokeWidth={2.5} className="text-[#E53935]" />,
     },
     'gap-nice': {
-      bg: 'rgba(255, 92, 26, 0.12)', text: '#FF5C1A', border: 'rgba(255, 92, 26, 0.25)',
-      icon: <AlertCircle size={13} strokeWidth={2.5} className="text-[#FF5C1A]" />,
+      bg: '#FEF9E7', text: '#B78103', border: '#F4C430',
+      icon: <AlertCircle size={13} strokeWidth={2.5} className="text-[#B78103]" />,
     },
     demonstrated: {
-      bg: '#1A1B20', text: '#EDEDED', border: 'rgba(255, 255, 255, 0.08)',
-      icon: <Sparkles size={13} strokeWidth={2.5} className="text-[#FF5C1A]" />,
+      bg: '#FFFFFF', text: '#111111', border: '#111111',
+      icon: <Sparkles size={13} strokeWidth={2.5} className="text-[#E53935]" />,
     },
     listed: {
-      bg: '#121317', text: '#8B949E', border: 'rgba(255, 255, 255, 0.08)',
-      icon: <ChevronRight size={13} strokeWidth={2.5} className="text-[#8B949E]" />,
+      bg: '#F5F0E6', text: '#555555', border: '#888888',
+      icon: <ChevronRight size={13} strokeWidth={2.5} className="text-[#555555]" />,
     },
   };
   const s = styles[variant];
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold select-none shadow-sm transition-transform hover:scale-102 cursor-default border"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold select-none border-2 transition-transform hover:-translate-y-0.5 cursor-default shadow-[2px_2px_0px_#111111]"
       style={{ background: s.bg, color: s.text, borderColor: s.border }}
     >
       {s.icon}
-      <span>{skill}</span>
+      <span className="tracking-tight">{skill}</span>
       {provenance && (
         <span
-          className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-bold uppercase tracking-wider ${
+          className={`text-[9px] px-1 py-0.2 font-mono font-black uppercase tracking-wider border ${
             provenance === 'VERIFIED'
-              ? 'bg-[#22C55E]/15 text-[#22C55E]'
+              ? 'bg-[#2457A6] text-white border-[#2457A6]'
               : provenance === 'DECLARED'
-              ? 'bg-[#FF5C1A]/15 text-[#FF5C1A]'
+              ? 'bg-[#F4C430] text-[#111111] border-[#111111]'
               : provenance === 'INFERRED'
-              ? 'bg-[#3B82F6]/15 text-[#3B82F6]'
-              : 'bg-[#F59E0B]/15 text-[#F59E0B]'
+              ? 'bg-[#E53935] text-white border-[#E53935]'
+              : 'bg-[#111111] text-white border-[#111111]'
           }`}
           title={`Provenance: ${provenance}`}
         >
-          {provenance === 'VERIFIED' ? 'Verified' : provenance === 'DECLARED' ? 'Declared' : provenance === 'INFERRED' ? 'Inferred' : 'Self-claim'}
+          {provenance === 'VERIFIED' ? 'Verified' : provenance === 'DECLARED' ? 'Declared' : provenance === 'INFERRED' ? 'Inferred' : 'Claim'}
         </span>
       )}
     </span>
@@ -200,14 +199,14 @@ function DimensionBar({ label, value, weight }: { label: string; value: number; 
   return (
     <div className="flex flex-col gap-1">
       <div className="flex justify-between items-center text-xs">
-        <span className="text-[#EDEDED] font-semibold">
-          {label} <span className="text-[10px] text-[#8B949E] font-mono">({weight})</span>
+        <span className="text-[#111111] font-bold font-mono uppercase tracking-wider">
+          {label} <span className="text-[10px] text-[#777777]">({weight})</span>
         </span>
-        <span className="font-mono font-bold text-[#FF5C1A]">{value}%</span>
+        <span className="font-mono font-black text-[#E53935]">{value}%</span>
       </div>
-      <div className="w-full bg-[#121317] h-2 rounded-full overflow-hidden border border-white/8">
+      <div className="w-full bg-[#EFE7D8] h-2.5 border-2 border-[#111111] overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-[#FF5C1A] to-[#E04006] rounded-full transition-all duration-500"
+          className="h-full bg-[#E53935] transition-all duration-500"
           style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
         />
       </div>
@@ -217,8 +216,11 @@ function DimensionBar({ label, value, weight }: { label: string; value: number; 
 
 function Section({ title, children, className = "" }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-[#121317] rounded-[10px] border border-white/8 shadow-[0_8px_24px_rgba(0,0,0,0.4)] p-5 md:p-6 ${className}`}>
-      <h3 className="text-sm font-extrabold text-[#EDEDED] tracking-tight mb-4">{title}</h3>
+    <div className={`bg-[#FFFFFF] border-2 border-[#111111] shadow-[4px_4px_0px_#111111] p-5 md:p-6 ${className}`}>
+      <div className="flex items-center gap-2 mb-4 pb-2 border-b-2 border-[#111111]">
+        <div className="w-2.5 h-2.5 bg-[#E53935]" />
+        <h3 className="text-xs font-mono font-black uppercase tracking-widest text-[#111111]">{title}</h3>
+      </div>
       {children}
     </div>
   );
@@ -226,9 +228,9 @@ function Section({ title, children, className = "" }: { title: string; children:
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-2 border-b border-white/8 last:border-0">
-      <span className="text-xs text-[#8B949E] font-medium">{label}</span>
-      <span className="text-xs font-mono font-bold text-[#FF5C1A] bg-[#FF5C1A]/12 border border-[#FF5C1A]/30 px-2.5 py-0.5 rounded-full">{value}</span>
+    <div className="flex items-center justify-between gap-4 py-2 border-b border-[#EFE7D8] last:border-0">
+      <span className="text-xs text-[#555555] font-mono font-semibold uppercase">{label}</span>
+      <span className="text-xs font-mono font-bold text-[#111111] bg-[#F4C430] border border-[#111111] px-2 py-0.5 shadow-[1px_1px_0px_#111111]">{value}</span>
     </div>
   );
 }
@@ -288,7 +290,7 @@ export const SkillGapsView: React.FC = () => {
 
   const pct = skillProfile?.match_pct ?? calculatedMatchPct;
   const matchLabel = pct >= 75 ? 'Strong Role Alignment' : pct >= 50 ? 'Moderate Match (Gaps to Close)' : 'Critical Gaps Detected';
-  const matchColor = pct >= 75 ? '#059669' : pct >= 50 ? '#2563eb' : '#ea580c';
+  const matchColor = pct >= 75 ? '#2457A6' : pct >= 50 ? '#B78103' : '#E53935';
 
   // 1. Fetch O*NET Roles on mount
   useEffect(() => {
@@ -424,125 +426,112 @@ export const SkillGapsView: React.FC = () => {
   }, [currentResume.targetJD]);
 
   return (
-    <div className="flex-1 h-full overflow-y-auto px-4 py-6 sm:p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto custom-scrollbar bg-[#0A0B0E]">
+    <div className="flex-1 h-full overflow-y-auto px-4 py-6 sm:p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto custom-scrollbar bg-[#F5F0E6] text-[#111111]">
 
-      {/* Header with Mode Toggle */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-1">
-        <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[#FF5C1A]/15 border border-[#FF5C1A]/30 flex items-center justify-center shrink-0 text-[#FF5C1A] shadow-xs">
-            <Target size={20} />
+      {/* Bauhaus PageHeader */}
+      <PageHeader
+        sectionNumber="05"
+        code="SKILLS"
+        title="SKILL GAPS ANALYSIS"
+        subtitle={
+          viewMode === 'onet'
+            ? `O*NET TAXONOMY BENCHMARK // ${onetGaps?.role?.title || 'SOFTWARE DEVELOPERS'}`
+            : `ATS SCAN // ${seniority.toUpperCase()} // ${roleTitle.toUpperCase()}`
+        }
+        action={
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Bauhaus Segmented Switcher */}
+            <div className="flex border-2 border-[#111111] bg-[#FFFFFF] shadow-[2px_2px_0px_#111111]">
+              <button
+                onClick={() => setViewMode('onet')}
+                className={`px-3 py-1.5 text-xs font-mono font-bold uppercase transition-colors flex items-center gap-1.5 cursor-pointer ${
+                  viewMode === 'onet' ? 'bg-[#111111] text-[#FFFFFF]' : 'text-[#111111] hover:bg-[#EFE7D8]'
+                }`}
+              >
+                <Compass size={13} />
+                <span>O*NET Benchmark</span>
+              </button>
+              <button
+                onClick={() => setViewMode('custom_jd')}
+                className={`px-3 py-1.5 text-xs font-mono font-bold uppercase transition-colors flex items-center gap-1.5 cursor-pointer border-l-2 border-[#111111] ${
+                  viewMode === 'custom_jd' ? 'bg-[#111111] text-[#FFFFFF]' : 'text-[#111111] hover:bg-[#EFE7D8]'
+                }`}
+              >
+                <Layers size={13} />
+                <span>JD ATS Scan</span>
+              </button>
+            </div>
+
+            {viewMode === 'onet' ? (
+              <button
+                onClick={() => setIsAddingSkill(true)}
+                className="px-3.5 py-1.5 text-xs font-mono font-bold uppercase bg-[#E53935] text-white border-2 border-[#111111] shadow-[2px_2px_0px_#111111] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Plus size={14} />
+                <span>Verify / Add Skill</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleTriggerRealTimeAnalysis}
+                disabled={isScanning}
+                className="px-3.5 py-1.5 text-xs font-mono font-bold uppercase bg-[#FFFFFF] text-[#111111] border-2 border-[#111111] shadow-[2px_2px_0px_#111111] hover:bg-[#EFE7D8] transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
+              >
+                {isScanning ? <Loader2 size={14} className="animate-spin text-[#E53935]" /> : <RefreshCw size={14} />}
+                <span>{isScanning ? 'Extracting...' : 'Rescan Ground-Truth'}</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => setActiveSidebarTab('recommended-programs')}
+              className="px-3.5 py-1.5 text-xs font-mono font-bold uppercase bg-[#F4C430] text-[#111111] border-2 border-[#111111] shadow-[2px_2px_0px_#111111] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all cursor-pointer flex items-center gap-2"
+            >
+              <GraduationCap size={15} />
+              <span>Govt Upskilling</span>
+            </button>
           </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#EDEDED] tracking-tight">
-              Skill Gaps Analysis
-            </h1>
-            <p className="text-xs text-[#8B949E] mt-0.5 flex items-center gap-2 font-mono">
-              {viewMode === 'onet' ? (
-                <>
-                  <Compass size={13} className="text-[#FF5C1A]" />
-                  <span>O*NET Industry Standard Taxonomy</span>
-                  <span className="w-1 h-1 rounded-full bg-white/20" />
-                  <span className="font-semibold text-[#EDEDED]">{onetGaps?.role?.title || 'Software Developers'}</span>
-                </>
-              ) : (
-                <>
-                  <span>{seniority}</span>
-                  <span className="w-1 h-1 rounded-full bg-white/20" />
-                  <span className="font-semibold text-[#EDEDED]">{roleTitle}</span>
-                </>
-              )}
-            </p>
-          </div>
-        </div>
-
-        {/* View Mode Switcher + Action Button */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="nx-nav-capsule">
-            <button
-              onClick={() => setViewMode('onet')}
-              className={`nx-nav-tab flex items-center gap-1.5 ${viewMode === 'onet' ? 'active' : ''}`}
-            >
-              <Compass size={13} />
-              <span>O*NET Benchmark</span>
-            </button>
-            <button
-              onClick={() => setViewMode('custom_jd')}
-              className={`nx-nav-tab flex items-center gap-1.5 ${viewMode === 'custom_jd' ? 'active' : ''}`}
-            >
-              <Layers size={13} />
-              <span>JD ATS Scan</span>
-            </button>
-          </div>
-
-          {viewMode === 'onet' ? (
-            <button
-              onClick={() => setIsAddingSkill(true)}
-              className="nx-btn-primary !py-2 !px-4 !text-xs cursor-pointer flex items-center gap-1.5"
-            >
-              <Plus size={14} />
-              <span>Verify / Add Skill</span>
-            </button>
-          ) : (
-            <button
-              onClick={handleTriggerRealTimeAnalysis}
-              disabled={isScanning}
-              className="nx-btn-secondary !py-2 !px-4 !text-xs cursor-pointer flex items-center gap-2 disabled:opacity-50"
-            >
-              {isScanning ? <Loader2 size={14} className="animate-spin text-[#FF5C1A]" /> : <RefreshCw size={14} />}
-              <span>{isScanning ? 'Extracting...' : 'Rescan Ground-Truth'}</span>
-            </button>
-          )}
-
-          <button
-            onClick={() => setActiveSidebarTab('recommended-programs')}
-            className="nx-btn-dark !py-2 !px-4 !text-xs cursor-pointer flex items-center gap-2"
-          >
-            <GraduationCap size={15} />
-            <span>Govt Upskilling</span>
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {scanMessage && (
-        <div className="p-3.5 bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] rounded-xl text-xs font-semibold shadow-xs flex items-center gap-2.5 animate-in slide-in-from-top-2">
-          <Sparkles size={16} className="text-[#22C55E]" />
+        <div className="p-3.5 bg-[#FFFFFF] border-2 border-[#2457A6] text-[#2457A6] font-mono text-xs font-bold shadow-[3px_3px_0px_#111111] flex items-center gap-2.5">
+          <Sparkles size={16} className="text-[#2457A6] shrink-0" />
           <span>{scanMessage}</span>
         </div>
       )}
 
       {/* Claim / Verify Skill Modal Form */}
       {isAddingSkill && (
-        <div className="p-6 bg-[#121317] rounded-[12px] border border-white/12 shadow-[0_16px_36px_rgba(0,0,0,0.6)] flex flex-col gap-4 animate-in fade-in-50">
-          <div className="flex items-center justify-between">
+        <div className="p-6 bg-[#FFFFFF] border-2 border-[#111111] shadow-[6px_6px_0px_#111111] flex flex-col gap-4">
+          <div className="flex items-center justify-between pb-3 border-b-2 border-[#111111]">
             <div className="flex items-center gap-2">
-              <ShieldCheck size={18} className="text-[#3B82F6]" />
-              <h3 className="text-sm font-bold text-[#EDEDED]">Add or Verify Candidate Skill</h3>
+              <ShieldCheck size={18} className="text-[#2457A6]" />
+              <h3 className="text-xs font-mono font-black uppercase tracking-widest text-[#111111]">Add or Verify Candidate Skill</h3>
             </div>
             <button
               onClick={() => setIsAddingSkill(false)}
-              className="text-[#8B949E] hover:text-[#EDEDED] text-xs font-bold cursor-pointer"
+              className="text-[#555555] hover:text-[#111111] font-mono text-xs font-bold uppercase cursor-pointer"
             >
-              Cancel
+              [Cancel]
             </button>
           </div>
           <form onSubmit={handleSaveSkill} className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-[11px] font-bold text-[#8B949E] mb-1">Skill Name *</label>
+              <label className="block text-[11px] font-mono font-bold uppercase text-[#555555] mb-1">Skill Name *</label>
               <input
                 type="text"
                 value={claimSkillName}
                 onChange={(e) => setClaimSkillName(e.target.value)}
                 placeholder="e.g. Docker, Python, Kubernetes"
-                className="w-full px-3 py-2 bg-[#0A0B0E] border border-white/12 rounded-[8px] text-xs font-medium text-[#EDEDED] focus:outline-none focus:border-[#FF5C1A]/50"
+                className="w-full px-3 py-2 bg-[#F5F0E6] border-2 border-[#111111] text-xs font-mono font-bold text-[#111111] focus:outline-none focus:bg-[#FFFFFF]"
                 required
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#8B949E] mb-1">Proficiency</label>
+              <label className="block text-[11px] font-mono font-bold uppercase text-[#555555] mb-1">Proficiency</label>
               <select
                 value={claimProficiency}
                 onChange={(e) => setClaimProficiency(e.target.value as any)}
-                className="w-full px-3 py-2 bg-[#0A0B0E] border border-white/12 rounded-[8px] text-xs font-medium text-[#EDEDED] focus:outline-none focus:border-[#FF5C1A]/50"
+                className="w-full px-3 py-2 bg-[#F5F0E6] border-2 border-[#111111] text-xs font-mono font-bold text-[#111111] focus:outline-none focus:bg-[#FFFFFF] cursor-pointer"
               >
                 <option value="BEGINNER">Beginner</option>
                 <option value="INTERMEDIATE">Intermediate</option>
@@ -550,11 +539,11 @@ export const SkillGapsView: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#8B949E] mb-1">Provenance</label>
+              <label className="block text-[11px] font-mono font-bold uppercase text-[#555555] mb-1">Provenance</label>
               <select
                 value={claimProvenance}
                 onChange={(e) => setClaimProvenance(e.target.value as Provenance)}
-                className="w-full px-3 py-2 bg-[#0A0B0E] border border-white/12 rounded-[8px] text-xs font-medium text-[#EDEDED] focus:outline-none focus:border-[#FF5C1A]/50"
+                className="w-full px-3 py-2 bg-[#F5F0E6] border-2 border-[#111111] text-xs font-mono font-bold text-[#111111] focus:outline-none focus:bg-[#FFFFFF] cursor-pointer"
               >
                 <option value="VERIFIED">Verified (With verifiable evidence)</option>
                 <option value="DECLARED">Declared (Self-reported profile)</option>
@@ -562,27 +551,27 @@ export const SkillGapsView: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#8B949E] mb-1">Evidence Source</label>
+              <label className="block text-[11px] font-mono font-bold uppercase text-[#555555] mb-1">Evidence Source</label>
               <input
                 type="text"
                 value={claimEvidence}
                 onChange={(e) => setClaimEvidence(e.target.value)}
                 placeholder="e.g. GitHub repo link, Project commit"
-                className="w-full px-3 py-2 bg-[#0A0B0E] border border-white/12 rounded-[8px] text-xs font-medium text-[#EDEDED] focus:outline-none focus:border-[#FF5C1A]/50"
+                className="w-full px-3 py-2 bg-[#F5F0E6] border-2 border-[#111111] text-xs font-mono font-bold text-[#111111] focus:outline-none focus:bg-[#FFFFFF]"
               />
             </div>
             <div className="md:col-span-4 flex justify-end gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setIsAddingSkill(false)}
-                className="px-4 py-2 text-xs font-semibold text-[#8B949E] hover:text-[#EDEDED] cursor-pointer"
+                className="px-4 py-2 text-xs font-mono font-bold uppercase text-[#555555] hover:text-[#111111] cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmittingSkill || !claimSkillName.trim()}
-                className="nx-btn-primary !py-2 !px-5 !text-xs cursor-pointer flex items-center gap-2"
+                className="px-5 py-2 text-xs font-mono font-black uppercase bg-[#2457A6] text-white border-2 border-[#111111] shadow-[2px_2px_0px_#111111] cursor-pointer flex items-center gap-2 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
               >
                 {isSubmittingSkill && <Loader2 size={13} className="animate-spin" />}
                 Save to Profile
@@ -596,21 +585,21 @@ export const SkillGapsView: React.FC = () => {
       {viewMode === 'onet' && (
         <div className="flex flex-col gap-6">
           {/* Target Role Bar */}
-          <div className="p-5 bg-[#121317] rounded-[10px] border border-white/8 shadow-[0_8px_24px_rgba(0,0,0,0.4)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="p-5 bg-[#FFFFFF] border-2 border-[#111111] shadow-[4px_4px_0px_#111111] flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[#FF5C1A]/15 border border-[#FF5C1A]/30 flex items-center justify-center text-[#FF5C1A] shrink-0">
-                <Compass size={18} />
+              <div className="w-10 h-10 bg-[#F4C430] border-2 border-[#111111] flex items-center justify-center text-[#111111] shrink-0 shadow-[2px_2px_0px_#111111]">
+                <Compass size={20} />
               </div>
               <div>
-                <p className="text-xs font-extrabold text-[#EDEDED]">Benchmark Role (O*NET)</p>
-                <p className="text-[11px] text-[#8B949E]">Standardized US Bureau of Labor Statistics & Ministry of Skill Development taxonomy</p>
+                <p className="text-xs font-mono font-black uppercase tracking-wider text-[#111111]">Benchmark Role (O*NET)</p>
+                <p className="text-[11px] font-mono text-[#555555]">Standardized US Bureau of Labor Statistics & Ministry of Skill Development taxonomy</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <select
                 value={selectedRoleId}
                 onChange={(e) => setSelectedRoleId(e.target.value)}
-                className="px-3.5 py-2 bg-[#1A1B20] border border-white/12 rounded-[8px] text-xs font-bold text-[#EDEDED] focus:outline-none focus:ring-2 focus:ring-[#FF5C1A]/30 cursor-pointer"
+                className="px-3.5 py-2 bg-[#F5F0E6] border-2 border-[#111111] text-xs font-mono font-bold text-[#111111] focus:outline-none cursor-pointer"
               >
                 {onetRoles.map((role) => (
                   <option key={role.id} value={role.id}>
@@ -621,18 +610,18 @@ export const SkillGapsView: React.FC = () => {
               <button
                 onClick={() => selectedRoleId && loadOnetGaps(selectedRoleId)}
                 disabled={isLoadingOnet}
-                className="p-2 text-[#8B949E] hover:text-[#EDEDED] bg-[#1A1B20] hover:bg-[#22242B] border border-white/8 rounded-[8px] transition-all cursor-pointer"
+                className="p-2 bg-[#FFFFFF] hover:bg-[#EFE7D8] border-2 border-[#111111] shadow-[2px_2px_0px_#111111] transition-all cursor-pointer text-[#111111]"
                 title="Refresh Gaps"
               >
-                <RefreshCw size={14} className={isLoadingOnet ? 'animate-spin text-[#FF5C1A]' : ''} />
+                <RefreshCw size={14} className={isLoadingOnet ? 'animate-spin text-[#E53935]' : ''} />
               </button>
             </div>
           </div>
 
           {isLoadingOnet && !onetGaps && (
-            <div className="p-12 flex flex-col items-center justify-center gap-3 text-[#8B949E]">
-              <Loader2 size={28} className="animate-spin text-[#3B82F6]" />
-              <p className="text-xs font-medium font-mono">Computing importance-weighted skill gaps against taxonomy...</p>
+            <div className="p-12 flex flex-col items-center justify-center gap-3 text-[#555555] bg-[#FFFFFF] border-2 border-[#111111]">
+              <Loader2 size={28} className="animate-spin text-[#2457A6]" />
+              <p className="text-xs font-bold font-mono uppercase">Computing importance-weighted skill gaps against taxonomy...</p>
             </div>
           )}
 
@@ -646,13 +635,13 @@ export const SkillGapsView: React.FC = () => {
                     <div className="flex items-center gap-6">
                       <MatchRing pct={onetGaps.gapSummary.coveragePercent} />
                       <div className="flex flex-col justify-center">
-                        <span className="text-sm font-bold tracking-tight mb-1" style={{ color: onetGaps.gapSummary.coveragePercent >= 70 ? '#22C55E' : onetGaps.gapSummary.coveragePercent >= 40 ? '#3B82F6' : '#FF5C1A' }}>
+                        <span className="text-sm font-mono font-black uppercase tracking-tight mb-1" style={{ color: onetGaps.gapSummary.coveragePercent >= 70 ? '#2457A6' : onetGaps.gapSummary.coveragePercent >= 40 ? '#B78103' : '#E53935' }}>
                           {onetGaps.gapSummary.coveragePercent >= 70 ? 'High Competency Match' : onetGaps.gapSummary.coveragePercent >= 40 ? 'Moderate Alignment' : 'Substantial Gaps Detected'}
                         </span>
-                        <span className="text-xs text-[#8B949E]">Matched against {onetGaps.role?.title} requirements.</span>
+                        <span className="text-xs font-mono text-[#555555]">Matched against {onetGaps.role?.title} requirements.</span>
                       </div>
                     </div>
-                    <div className="bg-[#1A1B20] rounded-[8px] p-4 border border-white/8">
+                    <div className="bg-[#F5F0E6] p-4 border-2 border-[#111111]">
                       <Stat label="Core Skills Matched" value={`${onetGaps.gapSummary.matchedRequired} of ${onetGaps.gapSummary.totalRequired}`} />
                       <Stat label="Missing Core Competencies" value={`${onetGaps.gapSummary.requiredMissing}`} />
                       <Stat label="Missing Preferred Skills" value={`${onetGaps.gapSummary.preferredMissing}`} />
@@ -663,22 +652,22 @@ export const SkillGapsView: React.FC = () => {
 
                 {/* Critical Priority Gaps */}
                 {onetGaps.gaps.filter(g => g.priority === 'CRITICAL').length > 0 && (
-                  <Section title={`Critical Gaps (${onetGaps.gaps.filter(g => g.priority === 'CRITICAL').length})`} className="border-red-500/30 bg-red-500/5">
+                  <Section title={`Critical Gaps (${onetGaps.gaps.filter(g => g.priority === 'CRITICAL').length})`} className="border-[#E53935]">
                     <div className="flex flex-col gap-3">
                       {onetGaps.gaps.filter(g => g.priority === 'CRITICAL').map((gap) => (
-                        <div key={gap.skillId} className="flex items-center justify-between p-3 bg-[#1A1B20] rounded-[8px] border border-red-500/20 shadow-sm">
+                        <div key={gap.skillId} className="flex items-center justify-between p-3 bg-[#FDEDEC] border-2 border-[#E53935] shadow-[2px_2px_0px_#111111]">
                           <div className="flex items-center gap-2.5">
-                            <span className="w-2 h-2 rounded-full bg-red-500" />
+                            <span className="w-2.5 h-2.5 bg-[#E53935]" />
                             <div>
-                              <p className="text-xs font-bold text-[#EDEDED]">{gap.skill}</p>
-                              <p className="text-[10px] text-[#8B949E]">{gap.category} • Required Core</p>
+                              <p className="text-xs font-mono font-black text-[#111111]">{gap.skill}</p>
+                              <p className="text-[10px] font-mono text-[#555555] uppercase">{gap.category} • Required Core</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 bg-red-500/15 text-red-400 rounded font-bold text-[9px] uppercase tracking-wider font-mono">
+                            <span className="px-2 py-0.5 bg-[#E53935] text-white font-black text-[9px] uppercase tracking-wider font-mono border border-[#111111]">
                               Critical
                             </span>
-                            <span className="text-[10px] text-[#8B949E] font-mono font-semibold">{Math.round(gap.importance * 100)}% imp</span>
+                            <span className="text-[10px] text-[#111111] font-mono font-bold">{Math.round(gap.importance * 100)}% imp</span>
                           </div>
                         </div>
                       ))}
@@ -693,11 +682,11 @@ export const SkillGapsView: React.FC = () => {
                       {onetGaps.gaps.filter(g => g.priority !== 'CRITICAL').map((gap) => (
                         <span
                           key={gap.skillId}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#FF5C1A]/10 text-[#FF5C1A] border border-[#FF5C1A]/20"
+                          className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-mono font-bold bg-[#FEF9E7] text-[#111111] border-2 border-[#F4C430] shadow-[2px_2px_0px_#111111]"
                         >
-                          <AlertCircle size={12} className="text-[#FF5C1A]" />
+                          <AlertCircle size={12} className="text-[#B78103]" />
                           <span>{gap.skill}</span>
-                          <span className="text-[9px] text-[#FF5C1A] font-bold uppercase font-mono">({gap.priority})</span>
+                          <span className="text-[9px] text-[#B78103] font-black uppercase">({gap.priority})</span>
                         </span>
                       ))}
                     </div>
@@ -722,7 +711,7 @@ export const SkillGapsView: React.FC = () => {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-[#8B949E] font-medium">No verified skills matching this role recorded yet. Click &quot;Verify / Add Skill&quot; above.</p>
+                    <p className="text-xs text-[#555555] font-mono font-medium">No verified skills matching this role recorded yet. Click &quot;Verify / Add Skill&quot; above.</p>
                   )}
                 </Section>
 
@@ -733,34 +722,34 @@ export const SkillGapsView: React.FC = () => {
                       {onetGaps.recommendations.map((course) => (
                         <div
                           key={course.courseId}
-                          className="p-4 rounded-[10px] border border-white/8 bg-[#1A1B20] hover:bg-[#22242B] transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                          className="p-4 border-2 border-[#111111] bg-[#FFFFFF] hover:bg-[#F5F0E6] shadow-[3px_3px_0px_#111111] transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-[#3B82F6]/15 text-[#3B82F6] flex items-center justify-center shrink-0 mt-0.5">
+                            <div className="w-10 h-10 bg-[#2457A6] border-2 border-[#111111] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-[2px_2px_0px_#111111]">
                               <BookOpen size={18} />
                             </div>
                             <div>
                               <div className="flex items-center gap-2 flex-wrap mb-1">
-                                <span className="text-xs font-bold text-[#EDEDED]">{course.title}</span>
+                                <span className="text-xs font-mono font-black text-[#111111]">{course.title}</span>
                                 {course.isGovt && (
-                                  <span className="px-2 py-0.5 bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30 rounded font-bold text-[9px] uppercase tracking-wider font-mono">
+                                  <span className="px-2 py-0.5 bg-[#F4C430] text-[#111111] border border-[#111111] font-bold text-[9px] uppercase tracking-wider font-mono">
                                     Govt Certified
                                   </span>
                                 )}
                                 {course.isFree && (
-                                  <span className="px-2 py-0.5 bg-[#3B82F6]/15 text-[#3B82F6] border border-[#3B82F6]/30 rounded font-bold text-[9px] uppercase tracking-wider font-mono">
+                                  <span className="px-2 py-0.5 bg-[#2457A6] text-white border border-[#111111] font-bold text-[9px] uppercase tracking-wider font-mono">
                                     Free
                                   </span>
                                 )}
                               </div>
-                              <p className="text-[11px] text-[#8B949E] font-medium">
-                                Provider: <strong className="text-[#EDEDED]">{course.provider}</strong> • {course.duration} • Level: {course.level}
+                              <p className="text-[11px] text-[#555555] font-mono">
+                                Provider: <strong className="text-[#111111]">{course.provider}</strong> • {course.duration} • Level: {course.level}
                               </p>
                               {course.addressesGaps.length > 0 && (
                                 <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                                  <span className="text-[10px] text-[#8B949E] font-bold uppercase font-mono">Closes:</span>
+                                  <span className="text-[10px] text-[#555555] font-bold uppercase font-mono">Closes:</span>
                                   {course.addressesGaps.map((g) => (
-                                    <span key={g} className="px-2 py-0.5 bg-[#121317] border border-white/8 text-[#EDEDED] text-[10px] font-semibold rounded-md font-mono">
+                                    <span key={g} className="px-2 py-0.5 bg-[#EFE7D8] border border-[#111111] text-[#111111] text-[10px] font-bold font-mono">
                                       {g}
                                     </span>
                                   ))}
@@ -772,7 +761,7 @@ export const SkillGapsView: React.FC = () => {
                             href={course.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="nx-btn-dark !py-2 !px-3.5 !text-xs shrink-0"
+                            className="px-4 py-2 bg-[#111111] text-white border-2 border-[#111111] font-mono text-xs font-bold uppercase shrink-0 flex items-center gap-1.5 shadow-[2px_2px_0px_#E53935] hover:bg-[#E53935] transition-colors"
                           >
                             <span>Enroll</span>
                             <ArrowUpRight size={13} />
@@ -781,8 +770,8 @@ export const SkillGapsView: React.FC = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="p-4 bg-[#1A1B20] rounded-[10px] border border-white/8 text-xs text-[#8B949E] font-medium flex items-center gap-3">
-                      <GraduationCap size={18} className="text-[#8B949E] shrink-0" />
+                    <div className="p-4 bg-[#F5F0E6] border-2 border-[#111111] text-xs text-[#555555] font-mono flex items-center gap-3">
+                      <GraduationCap size={18} className="text-[#111111] shrink-0" />
                       <span>Explore our full catalog of SWAYAM, NPTEL, and eSkillIndia programs on the Recommended Programs page.</span>
                     </div>
                   )}
@@ -805,21 +794,21 @@ export const SkillGapsView: React.FC = () => {
                 <div className="flex items-center gap-6">
                   <MatchRing pct={pct} />
                   <div className="flex flex-col justify-center">
-                    <span className="text-sm font-bold tracking-tight mb-1" style={{ color: matchColor }}>
+                    <span className="text-sm font-mono font-black uppercase tracking-tight mb-1" style={{ color: matchColor }}>
                       {matchLabel}
                     </span>
-                    <span className="text-xs text-[#8B949E]">Based on parsed JD vs Resume overlap.</span>
+                    <span className="text-xs font-mono text-[#555555]">Based on parsed JD vs Resume overlap.</span>
                   </div>
                 </div>
-                <div className="bg-[#1A1B20] rounded-[8px] p-4 border border-white/8">
+                <div className="bg-[#F5F0E6] border-2 border-[#111111] p-4">
                   <Stat label="Required Matched" value={`${matchedRequired.length} of ${requiredSkills.length}`} />
                   <Stat label="Nice-to-Have Matched" value={`${niceToHaveSkills.length - niceGaps.length} of ${niceToHaveSkills.length}`} />
                   <Stat label="Evidence Found" value={`${demonstrated.length} of ${candidateSkills.length}`} />
                 </div>
 
                 {resumeAnalysis?.dimensions && (
-                  <div className="bg-[#1A1B20] rounded-[8px] p-4 border border-white/8 flex flex-col gap-2.5">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B949E] mb-0.5 font-mono">Multi-Dimensional Scoring</p>
+                  <div className="bg-[#F5F0E6] border-2 border-[#111111] p-4 flex flex-col gap-2.5">
+                    <p className="text-[10px] font-mono font-black uppercase tracking-widest text-[#111111] mb-0.5">Multi-Dimensional Scoring</p>
                     <DimensionBar label="Keyword Alignment" value={resumeAnalysis.dimensions.keywordAlignment} weight="30%" />
                     <DimensionBar label="Quantified Impact" value={resumeAnalysis.dimensions.quantifiedImpact} weight="25%" />
                     <DimensionBar label="Evidence Depth" value={resumeAnalysis.dimensions.evidenceDepth} weight="20%" />
@@ -831,18 +820,18 @@ export const SkillGapsView: React.FC = () => {
             </Section>
 
             {requiredGaps.length > 0 ? (
-              <Section title={`Critical Required Gaps (${requiredGaps.length})`} className="border-[#FF5C1A]/30 bg-[#FF5C1A]/5">
+              <Section title={`Critical Required Gaps (${requiredGaps.length})`} className="border-[#E53935]">
                 <div className="flex flex-wrap gap-2.5 mb-4">
                   {requiredGaps.map((s) => <SkillPill key={s} skill={s} variant="gap-required" />)}
                 </div>
-                <div className="p-3 bg-[#1A1B20] rounded-[8px] border border-[#FF5C1A]/20 text-xs text-[#FF5C1A] font-medium flex gap-3">
-                  <AlertCircle size={16} className="shrink-0 text-[#FF5C1A]" />
-                  These technical competencies are explicitly demanded by the target JD but missing from your resume.
+                <div className="p-3 bg-[#FDEDEC] border-2 border-[#E53935] text-xs font-mono font-bold text-[#E53935] flex gap-3">
+                  <AlertCircle size={16} className="shrink-0 text-[#E53935]" />
+                  <span>These technical competencies are explicitly demanded by the target JD but missing from your resume.</span>
                 </div>
               </Section>
             ) : (
               <Section title="Required Gaps">
-                <div className="flex items-center gap-3 p-4 bg-[#22C55E]/10 rounded-[8px] text-[#22C55E] font-bold text-sm border border-[#22C55E]/20">
+                <div className="flex items-center gap-3 p-4 bg-[#EBF3FC] border-2 border-[#2457A6] text-[#2457A6] font-mono font-bold text-sm">
                   <CheckCircle2 size={20} />
                   <span>Zero critical gaps! You cover all core requirements.</span>
                 </div>
@@ -857,14 +846,14 @@ export const SkillGapsView: React.FC = () => {
               <Section title={`Verified Matches (${matchedRequired.length})`} className="h-full">
                 <div className="flex flex-wrap gap-2">
                   {matchedRequired.map((s) => <SkillPill key={s} skill={s} variant="matched" />)}
-                  {matchedRequired.length === 0 && <span className="text-xs text-[#8B949E] font-medium font-mono">None detected</span>}
+                  {matchedRequired.length === 0 && <span className="text-xs text-[#777777] font-medium font-mono">None detected</span>}
                 </div>
               </Section>
 
               <Section title={`Secondary Gaps (${niceGaps.length})`} className="h-full">
                 <div className="flex flex-wrap gap-2">
                   {niceGaps.map((s) => <SkillPill key={s} skill={s} variant="gap-nice" />)}
-                  {niceGaps.length === 0 && <span className="text-xs text-[#8B949E] font-medium font-mono">None detected</span>}
+                  {niceGaps.length === 0 && <span className="text-xs text-[#777777] font-medium font-mono">None detected</span>}
                 </div>
               </Section>
             </div>
@@ -872,20 +861,20 @@ export const SkillGapsView: React.FC = () => {
             <Section title="Extracted Candidate Skills (Resume Ground-Truth)">
               {demonstrated.length > 0 && (
                 <div className="mb-6">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B949E] mb-3 flex items-center gap-2 font-mono">
+                  <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#555555] mb-3 flex items-center gap-2">
                     <Briefcase size={12} /> Demonstrated in Work Experience & Projects
                   </p>
-                  <div className="flex flex-wrap gap-2.5 p-4 bg-[#1A1B20] rounded-[8px] border border-white/8">
+                  <div className="flex flex-wrap gap-2.5 p-4 bg-[#F5F0E6] border-2 border-[#111111]">
                     {demonstrated.map((s: CandidateSkill) => <SkillPill key={s.skill} skill={s.skill} variant="demonstrated" provenance={s.provenance} />)}
                   </div>
                 </div>
               )}
               {listedOnly.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B949E] mb-3 font-mono">
+                  <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#555555] mb-3">
                     Listed only &mdash; Needs contextual project evidence
                   </p>
-                  <div className="flex flex-wrap gap-2.5 p-4 bg-[#1A1B20] rounded-[8px] border border-white/8">
+                  <div className="flex flex-wrap gap-2.5 p-4 bg-[#F5F0E6] border-2 border-[#111111]">
                     {listedOnly.map((s: CandidateSkill) => <SkillPill key={s.skill} skill={s.skill} variant="listed" provenance={s.provenance} />)}
                   </div>
                 </div>
@@ -893,22 +882,21 @@ export const SkillGapsView: React.FC = () => {
             </Section>
 
             {/* Upskill Call to Action */}
-            <div className="rounded-[12px] p-6 md:p-8 flex items-center justify-between gap-6 flex-wrap sm:flex-nowrap bg-[#121317] border border-white/8 relative overflow-hidden group shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[#3B82F6]/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
-              <div className="flex items-start gap-4 relative z-10">
-                <div className="w-10 h-10 rounded-full bg-[#3B82F6]/20 flex items-center justify-center shrink-0">
-                  <GraduationCap size={20} className="text-[#3B82F6]" />
+            <div className="p-6 md:p-8 flex items-center justify-between gap-6 flex-wrap sm:flex-nowrap bg-[#FFFFFF] border-2 border-[#111111] shadow-[6px_6px_0px_#111111] relative">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-[#F4C430] border-2 border-[#111111] flex items-center justify-center shrink-0 shadow-[2px_2px_0px_#111111]">
+                  <GraduationCap size={22} className="text-[#111111]" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-[#EDEDED] mb-1.5">Targeted Next Step</p>
-                  <p className="text-xs text-[#8B949E] font-medium leading-relaxed max-w-md">
-                    Explore <strong className="text-[#EDEDED]">Recommended Programs</strong> for free Indian Government certifications to address your {requiredGaps.length} required gaps.
+                  <p className="text-sm font-mono font-black uppercase text-[#111111] mb-1">Targeted Next Step</p>
+                  <p className="text-xs text-[#555555] font-mono leading-relaxed max-w-md">
+                    Explore <strong className="text-[#111111]">Recommended Programs</strong> for free Indian Government certifications to address your {requiredGaps.length} required gaps.
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setActiveSidebarTab('recommended-programs')}
-                className="nx-btn-primary !py-3 !px-5 !text-xs cursor-pointer relative z-10"
+                className="px-5 py-3 text-xs font-mono font-black uppercase bg-[#E53935] text-white border-2 border-[#111111] shadow-[3px_3px_0px_#111111] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all cursor-pointer flex items-center gap-2 shrink-0"
               >
                 <span>View Govt Courses</span>
                 <ChevronRight size={14} strokeWidth={2.5} />

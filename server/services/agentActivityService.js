@@ -1,6 +1,5 @@
 import { EventEmitter } from 'events';
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma.js';
 
 class AgentActivityService extends EventEmitter {
   constructor() {

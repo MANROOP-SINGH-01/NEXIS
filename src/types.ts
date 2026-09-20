@@ -229,6 +229,9 @@ export interface CharacterState {
   activeAuditTaskId: string | null;
   setActiveAuditTaskId: (taskId: string | null) => void;
 
+  isAgentDrawerOpen: boolean;
+  setAgentDrawerOpen: (open: boolean) => void;
+
   // BYOK LLM Configuration
   llmConfig: LLMConfig;
 
@@ -292,9 +295,20 @@ export type CharacterStateKey =
   | 'error'
   | 'dragged'
   | 'grabbed'
+  | 'grabbed_head'
+  | 'grabbed_arm'
+  | 'grabbed_leg'
+  | 'grabbed_body'
   | 'airborne'
   | 'impact'
-  | 'recovering';
+  | 'recovering'
+  | 'recover_scratch'
+  | 'recover_head_scratch'
+  | 'recover_cheer'
+  | 'recover_celebrate'
+  | 'recover_fist_shake'
+  | 'recover_grumpy'
+  | 'recover_dazed';
 
 /**
  * Declarative definition of a character state.
@@ -510,4 +524,67 @@ export interface StructuredResume {
   education?: StructuredEducationItem[];
   projects?: StructuredProjectItem[];
   certifications?: string[];
+}
+
+export interface ResumeDocumentMetadata {
+  sourceFormat: string;
+  extractedAt: string;
+  version: string;
+  fileName: string;
+}
+
+export interface ResumeDocumentContact {
+  name: string;
+  title: string;
+  email: string;
+  phone: string;
+  location: string;
+  links: string[];
+}
+
+export interface ResumeDocumentEducation {
+  school: string;
+  degree: string;
+  year: string;
+  gpa?: string;
+}
+
+export interface ResumeDocumentExperience {
+  title: string;
+  company: string;
+  start: string;
+  end: string;
+  location?: string;
+  bullets: string[];
+}
+
+export interface ResumeDocumentProject {
+  name: string;
+  technologies?: string[];
+  bullets: string[];
+}
+
+export interface ResumeDocumentSkills {
+  core: string[];
+  tools?: string[];
+  cloud?: string[];
+  frameworks?: string[];
+}
+
+export interface ResumeDocumentSection {
+  title: string;
+  content: string[];
+}
+
+export interface ResumeDocument {
+  metadata: ResumeDocumentMetadata;
+  contact: ResumeDocumentContact;
+  summary: string;
+  education: ResumeDocumentEducation[];
+  experience: ResumeDocumentExperience[];
+  projects: ResumeDocumentProject[];
+  skills: ResumeDocumentSkills;
+  certifications?: string[];
+  achievements?: string[];
+  sections?: ResumeDocumentSection[];
 }

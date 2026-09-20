@@ -1,10 +1,8 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
-
+import prisma from '../lib/prisma.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 router.use(requireAuth);
 router.use((req, res, next) => {
@@ -44,27 +42,41 @@ router.post('/', async (req, res) => {
   }
   
   try {
-    const application = await prisma.jobApplication.create({
-      data: {
-        candidateId: req.candidateId,
-        jobTitle,
-        companyName,
-        applicationLink,
-        status,
-        notes,
-        events: {
-          create: {
-            status,
-            notes: 'Application tracked'
+    let application;
+    try {
+      application = await prisma.jobApplication.create({
+        data: {
+          candidateId: req.candidateId,
+          jobTitle,
+          companyName,
+          applicationLink,
+          status,
+          notes,
+          events: {
+            create: {
+              status,
+              notes: 'Application tracked'
+            }
           }
+        },
+        include: {
+          events: true
         }
-      },
-      include: {
-        events: true
-      }
-    });
+      });
+    } catch (eventErr) {
+      application = await prisma.jobApplication.create({
+        data: {
+          candidateId: req.candidateId,
+          jobTitle,
+          companyName,
+          applicationLink,
+          status,
+          notes,
+        }
+      });
+    }
     
-    res.status(201).json(application);
+    res.status(201).json({ application, ...application });
   } catch (error) {
     console.error('Error creating application:', error);
     res.status(500).json({ error: 'Failed to create application' });

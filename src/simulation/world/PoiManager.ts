@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { CharacterStateKey, PoiDef } from '../../types';
+export type { PoiDef };
 
 /**
  * Manages Points of Interest (POIs) in the world.

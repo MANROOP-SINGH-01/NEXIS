@@ -13,8 +13,8 @@ export class Stage {
   constructor(rendererElement: HTMLElement) {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(SCENE_BACKGROUND_COLOR);
-    // Depth fog fading toward dark command center void
-    this.scene.fog = new THREE.FogExp2(0x0a0b0e, 0.038);
+    // Gentle atmospheric depth fog seamlessly matching Bauhaus warm paper canvas
+    this.scene.fog = new THREE.FogExp2(0xF5F0E6, 0.007);
 
     this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 500);
     // Tightened isometric studio framing
@@ -30,7 +30,7 @@ export class Stage {
     this.controls.minPolarAngle = Math.PI / 4.5;
     this.controls.maxPolarAngle = Math.PI / 2.4;
     this.controls.minDistance = 3;
-    this.controls.maxDistance = 10;
+    this.controls.maxDistance = 30;
     this.controls.target.set(0, 0.7, 0);
 
     this.controls.addEventListener('start', () => {
@@ -44,13 +44,13 @@ export class Stage {
   }
 
   private setupLights() {
-    // 1. Studio ambient light for dark command-center baseline visibility
-    const ambientLight = new THREE.AmbientLight(0x1e293b, 0.75);
+    // 1. Studio ambient daylight for museum-grade clarity & paper warmth
+    const ambientLight = new THREE.AmbientLight(0xFFFBF2, 1.4);
     this.scene.add(ambientLight);
 
-    // 2. Primary Warm Studio Key Light with soft contact shadows
-    const keyLight = new THREE.DirectionalLight(0xffeedd, 1.4);
-    keyLight.position.set(11, 20, 11);
+    // 2. Primary Warm Gallery Key Light with crisp architectural contact shadows
+    const keyLight = new THREE.DirectionalLight(0xFFFDF8, 1.85);
+    keyLight.position.set(12, 22, 12);
     keyLight.castShadow = true;
     keyLight.shadow.camera.near = 0.1;
     keyLight.shadow.camera.far = 100;
@@ -60,27 +60,27 @@ export class Stage {
     keyLight.shadow.camera.left = -10;
     keyLight.shadow.mapSize.set(2048, 2048);
     keyLight.shadow.bias = -0.0001;
-    keyLight.shadow.radius = 2.5;
+    keyLight.shadow.radius = 2.0;
     keyLight.shadow.autoUpdate = true;
     this.scene.add(keyLight);
 
-    // 3. Cool Telemetry Cyan Fill Light (prevents muddy black shadow zones)
-    const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.6);
-    fillLight.position.set(-14, 15, -10);
+    // 3. Soft Skylight Fill (illuminates under desks and eliminates muddy dark shadows)
+    const fillLight = new THREE.DirectionalLight(0xEAEFF6, 0.95);
+    fillLight.position.set(-14, 16, -10);
     this.scene.add(fillLight);
 
-    // 4. Brand Orange Studio Rim Light (highlights avatar silhouettes and desk edges)
-    const rimLight = new THREE.DirectionalLight(0xff5c1a, 0.75);
+    // 4. Subtle Warm Studio Rim Light (cleanly sculpts avatar silhouettes against light paper background)
+    const rimLight = new THREE.DirectionalLight(0xFDF5E6, 0.7);
     rimLight.position.set(-8, 14, 14);
     this.scene.add(rimLight);
 
-    // 5. Workstation Screen & Luminescent Accent Lights
-    const deskGlow1 = new THREE.PointLight(0x38bdf8, 0.8, 6, 2);
-    deskGlow1.position.set(-2, 2.2, 0.5);
+    // 5. Warm Bauhaus Incandescent Table Lamp Glows (architectural task lighting)
+    const deskGlow1 = new THREE.PointLight(0xF4C430, 0.85, 6, 2);
+    deskGlow1.position.set(-2, 2.0, 0.5);
     this.scene.add(deskGlow1);
 
-    const deskGlow2 = new THREE.PointLight(0x818cf8, 0.7, 6, 2);
-    deskGlow2.position.set(2.5, 2.2, -1.5);
+    const deskGlow2 = new THREE.PointLight(0xF4C430, 0.8, 6, 2);
+    deskGlow2.position.set(2.5, 2.0, -1.5);
     this.scene.add(deskGlow2);
   }
 

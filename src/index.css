@@ -1,68 +1,149 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* ═══════════════════════════════════════════════════════════════
+   NEXIS — Bauhaus / Modernist Editorial Design System
+   Global Stylesheet
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import 'tailwindcss';
 
-:root {
-  color-scheme: dark;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --font-display: 'Inter', 'Plus Jakarta Sans', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  
-  /* NEXIS Dark AI Command-Center Layers */
-  --nx-canvas-bg: #0A0B0E;
-  --nx-canvas-tint: #0D0E13;
-  --nx-surface: #121317;
-  --nx-surface-warm: #16171D;
-  --nx-surface-alt: #1A1B20;
-  --nx-surface-hover: #1A1B20;
+@theme {
+  --color-darkDelegation: #111111;
+  --color-dark-delegation: #111111;
+  --color-bh-black: #111111;
+  --color-bh-paper: #F5F0E6;
+  --color-bh-cream: #EFE7D8;
+  --color-bh-white: #FFFFFF;
+  --color-bh-red: #E53935;
+  --color-bh-deep-red: #C92C2C;
+  --color-bh-yellow: #F4C430;
+  --color-bh-blue: #2457A6;
+  --color-bh-deep-blue: #173F7A;
+}
 
-  /* Hairline Borders */
-  --nx-border: rgba(255, 255, 255, 0.08);
-  --nx-border-hover: rgba(255, 255, 255, 0.16);
-  --nx-border-focus: rgba(255, 92, 26, 0.4);
-  --nx-border-subtle: rgba(255, 255, 255, 0.05);
+/* ── ROOT TOKENS ─────────────────────────────────────────────── */
+
+:root {
+  color-scheme: light;
+
+  /* Core Palette */
+  --bh-black: #111111;
+  --bh-paper: #F5F0E6;
+  --bh-cream: #EFE7D8;
+  --bh-white: #FFFFFF;
+  --bh-red: #E53935;
+  --bh-deep-red: #C92C2C;
+  --bh-yellow: #F4C430;
+  --bh-blue: #2457A6;
+  --bh-deep-blue: #173F7A;
 
   /* Typography */
-  --nx-text-primary: #EDEDED;
-  --nx-text-secondary: #9CA3AF;
-  --nx-text-muted: #6B7280;
-  --nx-text-inverse: #0A0B0E;
+  --font-heading: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  /* Legacy aliases */
+  --font-sans: var(--font-body);
+  --font-display: var(--font-heading);
 
-  /* Brand Primary: Command-Center Orange */
-  --nx-primary: #FF5C1A;
-  --nx-primary-hover: #E04006;
-  --nx-primary-active: #C23504;
-  --nx-primary-soft: rgba(255, 92, 26, 0.12);
-  --nx-primary-border: rgba(255, 92, 26, 0.35);
+  /* Text */
+  --bh-text-primary: #111111;
+  --bh-text-secondary: #4A4A4A;
+  --bh-text-muted: #7A7A7A;
+  --bh-text-inverse: #F5F0E6;
 
-  /* Secondary Accent: Telemetry Cyan-Blue */
-  --nx-secondary: #3B82F6;
-  --nx-secondary-soft: rgba(59, 130, 246, 0.15);
+  /* Surfaces */
+  --bh-surface: #F5F0E6;
+  --bh-surface-alt: #EFE7D8;
+  --bh-surface-white: #FFFFFF;
+  --bh-surface-dark: #111111;
 
-  /* Semantic Accents & Status */
-  --nx-success: #22C55E;
-  --nx-success-soft: rgba(34, 197, 94, 0.15);
-  --nx-warning: #F59E0B;
-  --nx-warning-soft: rgba(245, 158, 11, 0.15);
-  --nx-danger: #EF4444;
-  --nx-danger-soft: rgba(239, 68, 68, 0.15);
+  /* Borders */
+  --bh-border: #111111;
+  --bh-border-medium: #3A3A3A;
+  --bh-border-light: #C8C0B4;
+  --bh-border-subtle: #DDD6C8;
+
+  /* Semantic */
+  --bh-success: #2E7D32;
+  --bh-warning: #F4C430;
+  --bh-danger: #E53935;
+  --bh-info: #2457A6;
+
+  /* Agent Colors */
+  --bh-agent-director: #111111;
+  --bh-agent-vision: #2457A6;
+  --bh-agent-strategist: #E53935;
+  --bh-agent-writer: #173F7A;
+  --bh-agent-hunter: #F4C430;
+  --bh-agent-mirror: #C92C2C;
+
+  /* Shadows */
+  --bh-shadow-none: none;
+  --bh-shadow-hard-sm: 2px 2px 0px #111111;
+  --bh-shadow-hard-md: 4px 4px 0px #111111;
+  --bh-shadow-hard-lg: 6px 6px 0px #111111;
+  --bh-shadow-subtle: 0 1px 3px rgba(17, 17, 17, 0.08);
+
+  /* Motion */
+  --bh-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --bh-duration-fast: 120ms;
+  --bh-duration-normal: 200ms;
+  --bh-duration-slow: 400ms;
+
+  /* Agency Motion Curves & Timing */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring-soft: cubic-bezier(0.34, 1.35, 0.64, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --duration-micro: 120ms;
+  --duration-enter: 220ms;
+  --duration-drawer: 280ms;
+
+  /* Backward-compat aliases for nx-* variables */
+  --nx-canvas-bg: var(--bh-paper);
+  --nx-canvas-tint: var(--bh-cream);
+  --nx-surface: var(--bh-surface-white);
+  --nx-surface-warm: var(--bh-cream);
+  --nx-surface-alt: var(--bh-surface-alt);
+  --nx-surface-hover: var(--bh-cream);
+  --nx-border: var(--bh-border-light);
+  --nx-border-hover: var(--bh-border);
+  --nx-border-focus: var(--bh-red);
+  --nx-border-subtle: var(--bh-border-subtle);
+  --nx-text-primary: var(--bh-text-primary);
+  --nx-text-secondary: var(--bh-text-secondary);
+  --nx-text-muted: var(--bh-text-muted);
+  --nx-text-inverse: var(--bh-text-inverse);
+  --nx-primary: var(--bh-red);
+  --nx-primary-hover: var(--bh-deep-red);
+  --nx-primary-active: var(--bh-deep-red);
+  --nx-primary-soft: rgba(229, 57, 53, 0.1);
+  --nx-primary-border: rgba(229, 57, 53, 0.3);
+  --nx-secondary: var(--bh-blue);
+  --nx-secondary-soft: rgba(36, 87, 166, 0.1);
+  --nx-success: var(--bh-success);
+  --nx-success-soft: rgba(46, 125, 50, 0.1);
+  --nx-warning: var(--bh-yellow);
+  --nx-warning-soft: rgba(244, 196, 48, 0.15);
+  --nx-danger: var(--bh-danger);
+  --nx-danger-soft: rgba(229, 57, 53, 0.1);
 
   /* Compatibility mappings */
-  --color-surface-bg: var(--nx-canvas-bg);
-  --color-surface-card: var(--nx-surface);
-  --color-surface-elevated: var(--nx-surface-warm);
-  --color-surface-hover: var(--nx-surface-hover);
-  --color-surface-border: var(--nx-border);
-  --color-surface-border-subtle: var(--nx-border-subtle);
-
-  --color-primary: var(--nx-primary);
-  --color-primary-hover: var(--nx-primary-hover);
-  --color-primary-glow: rgba(255, 92, 26, 0.35);
-
-  --color-text-primary: var(--nx-text-primary);
-  --color-text-secondary: var(--nx-text-secondary);
-  --color-text-tertiary: var(--nx-text-muted);
-  --color-text-muted: var(--nx-text-muted);
+  --color-surface-bg: var(--bh-paper);
+  --color-surface-card: var(--bh-surface-white);
+  --color-surface-elevated: var(--bh-white);
+  --color-surface-hover: var(--bh-cream);
+  --color-surface-border: var(--bh-border-light);
+  --color-surface-border-subtle: var(--bh-border-subtle);
+  --color-primary: var(--bh-red);
+  --color-primary-hover: var(--bh-deep-red);
+  --color-primary-glow: rgba(229, 57, 53, 0.2);
+  --color-text-primary: var(--bh-text-primary);
+  --color-text-secondary: var(--bh-text-secondary);
+  --color-text-tertiary: var(--bh-text-muted);
+  --color-text-muted: var(--bh-text-muted);
 }
+
+/* ── BASE RESET ──────────────────────────────────────────────── */
 
 html,
 body,
@@ -70,199 +151,618 @@ body,
   width: 100%;
   height: 100%;
   margin: 0;
-  font-family: var(--font-sans);
-  background-color: var(--nx-canvas-bg);
-  color: var(--nx-text-primary);
+  font-family: var(--font-body);
+  background-color: var(--bh-paper);
+  color: var(--bh-text-primary);
   user-select: text;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── TYPOGRAPHY ──────────────────────────────────────────────── */
+
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sans);
+  font-family: var(--font-heading);
   letter-spacing: -0.02em;
-  color: var(--nx-text-primary);
+  color: var(--bh-text-primary);
+  font-weight: 700;
 }
+
+h1 { font-size: 40px; line-height: 1.1; }
+h2 { font-size: 32px; line-height: 1.15; }
+h3 { font-size: 24px; line-height: 1.2; }
+h4 { font-size: 20px; line-height: 1.25; }
+h5, h6 { font-size: 16px; line-height: 1.3; font-weight: 600; }
+
+/* ── INTERACTIVE ELEMENTS ────────────────────────────────────── */
 
 button, a {
   cursor: pointer;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all var(--bh-duration-fast) var(--bh-ease);
 }
 
-/* Command Center Dark Elevation Shadows */
+/* ── BAUHAUS UTILITY CLASSES ─────────────────────────────────── */
+
+/* Section Dividers */
+.bh-divider {
+  border: none;
+  border-top: 1px solid var(--bh-border);
+  margin: 0;
+}
+
+.bh-divider-thick {
+  border: none;
+  border-top: 2px solid var(--bh-border);
+  margin: 0;
+}
+
+.bh-divider-accent {
+  border: none;
+  border-top: 3px solid var(--bh-red);
+  margin: 0;
+  width: 48px;
+}
+
+/* Editorial Labels */
+.bh-label {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bh-text-muted);
+}
+
+.bh-section-label {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bh-text-secondary);
+}
+
+/* Section Numbers */
+.bh-number {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--bh-text-muted);
+}
+
+/* Card Styles */
+.bh-card {
+  background-color: var(--bh-surface-white);
+  border: 1px solid var(--bh-border-light);
+  transition: border-color var(--bh-duration-fast) var(--bh-ease);
+}
+
+.bh-card:hover {
+  border-color: var(--bh-border);
+}
+
+.bh-card-bordered {
+  background-color: var(--bh-surface-white);
+  border: 2px solid var(--bh-border);
+}
+
+/* Primary Button */
+.bh-btn-primary {
+  background-color: var(--bh-black);
+  color: var(--bh-text-inverse);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 2px solid var(--bh-black);
+  padding: 12px 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all var(--bh-duration-fast) var(--bh-ease);
+}
+
+.bh-btn-primary:hover {
+  background-color: var(--bh-red);
+  border-color: var(--bh-red);
+}
+
+.bh-btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* Secondary Button */
+.bh-btn-secondary {
+  background-color: transparent;
+  color: var(--bh-text-primary);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 2px solid var(--bh-border);
+  padding: 12px 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all var(--bh-duration-fast) var(--bh-ease);
+}
+
+.bh-btn-secondary:hover {
+  background-color: var(--bh-black);
+  color: var(--bh-text-inverse);
+  border-color: var(--bh-black);
+}
+
+/* Danger/CTA Button */
+.bh-btn-danger {
+  background-color: var(--bh-red);
+  color: var(--bh-white);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 2px solid var(--bh-red);
+  padding: 12px 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all var(--bh-duration-fast) var(--bh-ease);
+}
+
+.bh-btn-danger:hover {
+  background-color: var(--bh-deep-red);
+  border-color: var(--bh-deep-red);
+}
+
+/* Yellow Action Button */
+.bh-btn-yellow {
+  background-color: var(--bh-yellow);
+  color: var(--bh-black);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 2px solid var(--bh-yellow);
+  padding: 12px 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all var(--bh-duration-fast) var(--bh-ease);
+}
+
+.bh-btn-yellow:hover {
+  background-color: #D4A828;
+  border-color: #D4A828;
+}
+
+/* Navigation */
+.bh-nav-item {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bh-text-muted);
+  padding: 8px 16px;
+  transition: all var(--bh-duration-fast) var(--bh-ease);
+  border-left: 3px solid transparent;
+}
+
+.bh-nav-item:hover {
+  color: var(--bh-text-primary);
+  background-color: var(--bh-cream);
+}
+
+.bh-nav-item.active {
+  color: var(--bh-text-inverse);
+  background-color: var(--bh-black);
+  border-left-color: var(--bh-red);
+  font-weight: 600;
+}
+
+/* Card Elevation */
+.bh-shadow-card {
+  box-shadow: var(--bh-shadow-hard-sm);
+}
+
+.bh-shadow-elevated {
+  box-shadow: var(--bh-shadow-hard-md);
+}
+
+/* Metric Display */
+.bh-metric {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--bh-text-primary);
+}
+
+.bh-metric-label {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bh-text-muted);
+}
+
+/* ── SCROLLBAR (Bauhaus) ─────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bh-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--bh-border-light);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--bh-text-muted);
+}
+
+/* ── LEGACY COLOR OVERRIDES ──────────────────────────────────── */
+/* Remap old hardcoded Tailwind dark-mode classes used across
+   50+ components to the Bauhaus paper/cream palette.           */
+
+.bg-\[\#090A0F\],
+.bg-\[\#0A0B0E\] {
+  background-color: var(--bh-paper) !important;
+}
+
+.bg-\[\#12131C\],
+.bg-\[\#121317\] {
+  background-color: var(--bh-surface-white) !important;
+}
+
+.bg-\[\#12131c\] {
+  background-color: var(--bh-surface-white) !important;
+}
+
+.bg-\[\#1A1B28\],
+.bg-\[\#1A1B20\],
+.bg-\[\#16171D\] {
+  background-color: var(--bh-cream) !important;
+}
+
+.bg-\[\#F8F3EC\] {
+  background-color: var(--bh-paper) !important;
+}
+
+.bg-\[\#F5EFE6\] {
+  background-color: var(--bh-cream) !important;
+}
+
+.bg-\[\#FAF6F0\] {
+  background-color: var(--bh-surface-white) !important;
+}
+
+.bg-\[\#FFF0E4\] {
+  background-color: rgba(229, 57, 53, 0.08) !important;
+}
+
+/* Text color overrides */
+.text-white {
+  color: #FFFFFF !important;
+}
+
+.text-\[\#EDEDED\],
+.text-\[\#F8FAFC\] {
+  color: var(--bh-text-primary);
+}
+
+.text-\[\#9CA3AF\],
+.text-\[\#8B949E\] {
+  color: var(--bh-text-secondary) !important;
+}
+
+.text-\[\#6B7280\],
+.text-\[\#6E7681\] {
+  color: var(--bh-text-muted) !important;
+}
+
+.text-\[\#FF5C1A\],
+.text-\[\#8C3A04\] {
+  color: var(--bh-red) !important;
+}
+
+.text-\[\#181512\] {
+  color: var(--bh-text-primary) !important;
+}
+
+.text-\[\#6A6359\],
+.text-\[\#575047\] {
+  color: var(--bh-text-secondary) !important;
+}
+
+.text-\[\#999084\] {
+  color: var(--bh-text-muted) !important;
+}
+
+/* Border color overrides */
+.border-\[\#EADFCF\],
+.border-\[\#F5EFE6\],
+.border-\[\#D7CABB\],
+.border-\[\#E5DBCF\] {
+  border-color: var(--bh-border-light) !important;
+}
+
+.border-white\/10,
+.border-white\/8 {
+  border-color: var(--bh-border-light) !important;
+}
+
+.border-\[rgba\(255\,255\,255\,0\.08\)\] {
+  border-color: var(--bh-border-light) !important;
+}
+
+/* Shadow overrides — kill all dark-mode glow shadows */
+.shadow-\[#FF5C1A\]\/20,
+.shadow-indigo-600\/25,
+.shadow-indigo-500\/30,
+.shadow-indigo-500\/40,
+.shadow-rose-600\/25 {
+  box-shadow: none !important;
+}
+
+/* Selection */
+::selection {
+  background-color: rgba(229, 57, 53, 0.15);
+  color: var(--bh-deep-red);
+}
+
+/* ── REDUCED MOTION ──────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── LEGACY COMPONENT CLASS BRIDGES ──────────────────────────── */
+/* These bridge old nx-* classes to Bauhaus equivalents          */
+
 .nx-shadow-card {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--bh-shadow-hard-sm);
 }
 
 .nx-shadow-elevated {
-  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--bh-shadow-hard-md);
 }
 
 .nx-shadow-orange {
-  box-shadow: 0 0 24px rgba(255, 92, 26, 0.35);
+  box-shadow: none;
 }
 
-/* Segmented Capsule Navigation Control */
 .nx-nav-capsule {
-  background-color: #121317;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--bh-surface-white);
+  border: 2px solid var(--bh-border);
   padding: 4px;
-  border-radius: 9999px;
+  border-radius: 0;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 0;
 }
 
 .nx-nav-tab {
-  padding: 6px 16px;
-  border-radius: 9999px;
-  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 0;
+  font-family: var(--font-heading);
+  font-size: 12px;
   font-weight: 500;
-  color: #9CA3AF;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bh-text-muted);
+  transition: all var(--bh-duration-fast) var(--bh-ease);
   white-space: nowrap;
   border-bottom: 2px solid transparent;
 }
 
 .nx-nav-tab:hover {
-  color: #FFFFFF;
-  background-color: rgba(26, 27, 32, 0.6);
+  color: var(--bh-text-primary);
+  background-color: var(--bh-cream);
 }
 
 .nx-nav-tab.active {
-  background-color: #1A1B20;
-  color: #FFFFFF;
+  background-color: var(--bh-black);
+  color: var(--bh-text-inverse);
   font-weight: 600;
-  border-bottom: 2px solid #FF5C1A;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-bottom: 2px solid var(--bh-red);
+  box-shadow: none;
 }
 
-/* Command Center Action Buttons (Consistent Height Tiers) */
 .nx-btn-primary {
-  background: linear-gradient(135deg, #FF5C1A 0%, #E04006 100%);
-  color: #FFFFFF;
+  background: var(--bh-black);
+  color: var(--bh-text-inverse);
+  font-family: var(--font-heading);
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 0;
   height: 44px;
-  padding: 0 20px;
-  box-shadow: 0 0 24px rgba(255, 92, 26, 0.35);
+  padding: 0 24px;
+  box-shadow: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: none;
-  font-size: 13px;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 2px solid var(--bh-black);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: all var(--bh-duration-fast) var(--bh-ease);
 }
 
 .nx-btn-primary:hover {
-  transform: scale(1.02);
-  box-shadow: 0 0 30px rgba(255, 92, 26, 0.5);
+  background-color: var(--bh-red);
+  border-color: var(--bh-red);
+  transform: none;
+  box-shadow: none;
 }
 
 .nx-btn-primary:active {
-  transform: scale(0.99);
+  transform: scale(0.98);
 }
 
 .nx-btn-secondary {
-  background-color: #121317;
-  color: #EDEDED;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: transparent;
+  color: var(--bh-text-primary);
+  border: 2px solid var(--bh-border);
+  font-family: var(--font-heading);
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: 0;
   height: 36px;
   padding: 0 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-size: 13px;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: all var(--bh-duration-fast) var(--bh-ease);
 }
 
 .nx-btn-secondary:hover {
-  background-color: #1A1B20;
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #FFFFFF;
+  background-color: var(--bh-black);
+  border-color: var(--bh-black);
+  color: var(--bh-text-inverse);
 }
 
 .nx-btn-dark {
-  background-color: #121317;
-  color: #EDEDED;
+  background-color: transparent;
+  color: var(--bh-text-primary);
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: 0;
   height: 36px;
   padding: 0 16px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--bh-border-light);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   font-size: 13px;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all var(--bh-duration-fast) var(--bh-ease);
 }
 
 .nx-btn-dark:hover {
-  background-color: #1A1B20;
-  border-color: rgba(255, 255, 255, 0.25);
-  color: #FFFFFF;
+  background-color: var(--bh-cream);
+  border-color: var(--bh-border);
+  color: var(--bh-text-primary);
 }
 
-/* Card Hover Elevation */
+/* Card Hover */
 .nx-card-interactive {
   transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
 }
+
 .nx-card-interactive:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: var(--bh-shadow-hard-sm);
+  border-color: var(--bh-border);
 }
 
-/* Custom Dark Telemetry Scrollbar */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.12);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.22);
+/* Focus visible — black outline */
+:focus-visible {
+  outline: 2px solid var(--bh-black);
+  outline-offset: 2px;
 }
 
-/* Global Theme Harmonization for Legacy Color Utilities */
-.bg-\[\#F8F3EC\] {
-  background-color: #0A0B0E !important;
+/* ── AGENCY VISUAL CRAFT & MOTION UTILITIES ────────────────────── */
+
+@keyframes modal-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
-.bg-\[\#F5EFE6\] {
-  background-color: #121317 !important;
+
+@keyframes drawer-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
-.bg-\[\#FAF6F0\] {
-  background-color: #16171D !important;
+
+@keyframes subtle-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
-.bg-\[\#FFF0E4\] {
-  background-color: rgba(255, 92, 26, 0.12) !important;
+
+.animate-modal-enter {
+  animation: modal-enter var(--duration-enter) var(--ease-spring-soft) forwards;
 }
-.border-\[\#EADFCF\], 
-.border-\[\#F5EFE6\], 
-.border-\[\#D7CABB\], 
-.border-\[\#E5DBCF\] {
-  border-color: rgba(255, 255, 255, 0.08) !important;
+
+.animate-drawer-enter {
+  animation: drawer-slide-in var(--duration-drawer) var(--ease-sheet) forwards;
 }
-.text-\[\#181512\] {
-  color: #EDEDED !important;
+
+/* Double-Bezel (Doppelrand) Concentric Architecture */
+.double-bezel {
+  border: 2px solid var(--bh-border);
+  box-shadow: var(--bh-shadow-hard-md);
+  padding: 4px;
+  background-color: var(--bh-surface);
 }
-.text-\[\#6A6359\], 
-.text-\[\#575047\] {
-  color: #8B949E !important;
+
+.double-bezel-inner {
+  border: 1px solid var(--bh-border);
+  background-color: var(--bh-white);
 }
-.text-\[\#999084\] {
-  color: #6E7681 !important;
+
+/* Mobile & Touch Ergonomics (animate-expo Web Standard) */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
-.text-\[\#8C3A04\] {
-  color: #FF5C1A !important;
+
+.min-touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Hardware Acceleration */
+.motion-gpu {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+/* Global Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

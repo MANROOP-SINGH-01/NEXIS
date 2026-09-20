@@ -26,11 +26,12 @@ test.describe('NEXUS Core Journey E2E', () => {
   });
 
   test('User can load dashboard and see real data', async ({ page, context }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
     // 2. Set the authentication token in localStorage
     await page.goto('/');
     await page.evaluate(({ token, user }) => {
       localStorage.setItem('nexis-auth', JSON.stringify({
-        state: { token, user },
+        state: { token, user, hydrated: true },
         version: 0
       }));
       localStorage.setItem('forge-consents', JSON.stringify({
@@ -53,18 +54,17 @@ test.describe('NEXUS Core Journey E2E', () => {
       }));
     }, { token: userToken, user: userData });
 
-    // 3. Reload to apply token and bypass onboarding/login
-    await page.goto('/');
-
+    // 3. Navigate to /dashboard to load the workspace shell with sidebar
+    await page.goto('/dashboard');
 
     // 4. Verify Sidebar is visible indicating successful login
-    await expect(page.getByText('Skill Gaps', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText('Skill Intelligence', { exact: true }).first()).toBeVisible({ timeout: 10000 });
 
-    // 5. Navigate to Skill Gaps
-    await page.click('text=Skill Gaps');
+    // 5. Navigate to Skill Intelligence
+    await page.click('text=Skill Intelligence');
     
     // We expect the UI to render the skill gaps view without crashing, proving database is alive.
-    // If the database was not connected, the API would fail, and we'd see an error or empty state.
-    await expect(page.locator('text=Verify / Add Skill')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Skill Gaps Analysis').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('O*NET Industry Standard Taxonomy').first()).toBeVisible({ timeout: 10000 });
   });
 });

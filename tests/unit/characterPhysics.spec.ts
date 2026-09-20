@@ -7,6 +7,7 @@ import { ImpactController } from '../../src/simulation/physics/ImpactController'
 import { RecoveryController } from '../../src/simulation/physics/RecoveryController';
 import { SecondaryMotionController } from '../../src/simulation/physics/SecondaryMotionController';
 import { ObstacleSystem } from '../../src/simulation/physics/ObstacleSystem';
+import { PathAgent } from '../../src/simulation/pathfinding/PathAgent';
 
 function createMockSkeleton(): THREE.Skeleton {
   const names = ['root', 'hips', 'leg.L', 'leg.R', 'spine', 'head', 'arm.L', 'lower.arm.L', 'arm.R', 'lower.arm.R'];
@@ -293,6 +294,109 @@ test.describe('Physical Interaction System Tests', () => {
 
     // Must have active, non-zero recovery shimmy
     expect(Math.abs(wobble)).toBeGreaterThan(0.005);
+  });
+
+  test('CharacterPhysicsController produces anatomical pick-up hang poses based on grabbed body part', () => {
+    const physics = new CharacterPhysicsController();
+    physics.reset(new THREE.Vector3(0, 1.0, 0));
+
+    // 1. Foot grab inverts character upside-down
+    for (let i = 0; i < 10; i++) {
+      physics.updateGrabbed(new THREE.Vector3(0, 2.0, 0), 0.016, 'footL');
+    }
+    const eulerFoot = new THREE.Euler().setFromQuaternion(physics.orientation, 'YXZ');
+    // Roll must be large (near PI) representing inverted dangle
+    expect(Math.abs(eulerFoot.z)).toBeGreaterThan(1.8);
+
+    // 2. Arm grab rolls character sideways towards pulled arm
+    physics.reset(new THREE.Vector3(0, 1.0, 0));
+    for (let i = 0; i < 10; i++) {
+      physics.updateGrabbed(new THREE.Vector3(0, 2.0, 0), 0.016, 'armL');
+    }
+    const eulerArm = new THREE.Euler().setFromQuaternion(physics.orientation, 'YXZ');
+    expect(eulerArm.z).toBeGreaterThan(0.3);
+
+    // 3. Head grab hangs vertically with slight head-up pitch
+    physics.reset(new THREE.Vector3(0, 1.0, 0));
+    for (let i = 0; i < 10; i++) {
+      physics.updateGrabbed(new THREE.Vector3(0, 2.0, 0), 0.016, 'head');
+    }
+    const eulerHead = new THREE.Euler().setFromQuaternion(physics.orientation, 'YXZ');
+    expect(eulerHead.x).toBeLessThan(0);
+  });
+
+  test('Floaty cartoon gravity (-12 m/s^2) ensures a readable, comical airborne fall duration', () => {
+    const physics = new CharacterPhysicsController();
+    physics.reset(new THREE.Vector3(0, 2.5, 0)); // High in the air
+    physics.linearVelocity.set(0, 0, 0);
+
+    let frameCount = 0;
+    while (physics.position.y > 0 && frameCount < 200) {
+      physics.updateFreeFall(0.016);
+      frameCount++;
+    }
+
+    // From 2.5m with -12 m/s^2 and air drag, fall should take ~38-46 frames (~0.65 - 0.75s)
+    // NOT instant 9 frames like with -30 m/s^2 from 0.35m
+    expect(frameCount).toBeGreaterThanOrEqual(35);
+    expect(frameCount).toBeLessThanOrEqual(60);
+  });
+
+  test('PhysicalInteractionController imparts cartoon cartwheel flip when released from foot grab', () => {
+    const skeleton = createMockSkeleton();
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+    const controller = new PhysicalInteractionController(0, skeleton, camera);
+    controller.resetTo(new THREE.Vector3(0, 1.5, 0));
+
+    // Grab by foot
+    controller.startGrab(new THREE.Vector2(0, 0), new THREE.Vector3(0, 1.6, 0), -1, 'footL');
+    expect(controller.state).toBe('GRABBED');
+
+    // Release into air
+    controller.release();
+    expect(controller.state).toBe('AIRBORNE');
+    // Angular velocity around X should have spin from foot flip release
+    expect(Math.abs(controller.physics.angularVelocity.x)).toBeGreaterThan(2.0);
+  });
+
+  test('PathAgent triggers arrival when approaching final destination POI within relaxed 0.45m threshold', () => {
+    const mockBuffer = { setWaypoint: () => {} } as any;
+    const pathAgent = new PathAgent(1, mockBuffer);
+
+    // Path with destination at (2.0, 0, -3.0)
+    const waypoints = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(2.0, 0, -3.0)];
+    pathAgent.setPath(waypoints);
+    expect(pathAgent.isMoving).toBe(true);
+
+    // Agent approaches intermediate node
+    pathAgent.update(new THREE.Vector3(0.1, 0, 0.1), 0.016);
+    expect(pathAgent.isMoving).toBe(true);
+
+    // Agent approaches final destination, at distance 0.38m (greater than 0.25m, but within 0.45m)
+    const nearFinalPos = new THREE.Vector3(2.0, 0, -2.62); // dist = 0.38m
+    const arrived = pathAgent.update(nearFinalPos, 0.016);
+
+    expect(arrived).toBe(true);
+    expect(pathAgent.isMoving).toBe(false);
+  });
+
+  test('PathAgent stuck recovery triggers arrival if stalled near workstation desk', () => {
+    const mockBuffer = { setWaypoint: () => {} } as any;
+    const pathAgent = new PathAgent(1, mockBuffer);
+
+    const waypoints = [new THREE.Vector3(2.0, 0, -3.0)];
+    pathAgent.setPath(waypoints);
+
+    // Position stalled at 0.55m away from desk for > 0.8s
+    const stalledPos = new THREE.Vector3(2.0, 0, -2.45);
+    let arrived = false;
+    for (let f = 0; f < 60; f++) {
+      arrived = pathAgent.update(stalledPos, 0.016);
+      if (arrived) break;
+    }
+
+    expect(arrived).toBe(true);
+    expect(pathAgent.isMoving).toBe(false);
   });
 
 });

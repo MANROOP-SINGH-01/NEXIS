@@ -12,7 +12,7 @@ export const POI_PICK_RADIUS = 0.4;
 
 // ── Resource Loading ──────────────────────────────────────────
 /** Path to Draco decoders (hosted in public/vendor/). */
-export const DRACO_LIB_PATH = `${import.meta.env.BASE_URL}vendor/draco/`;
+export const DRACO_LIB_PATH = `${import.meta.env?.BASE_URL || '/'}vendor/draco/`;
 
 // ── Expression Atlas ─────────────────────────────────────────
 export const ATLAS_COLS = 2;
@@ -37,5 +37,5 @@ export const ENCOUNTER_RADIUS = 1.5;
 /** Zone ID used with three-pathfinding. */
 export const NAVMESH_ZONE = 'level';
 
-/** Color de fondo de la escena (Three.js) - Dark Command Center */
-export const SCENE_BACKGROUND_COLOR = 0x0a0b0e;
+/** Color de fondo de la escena (Three.js) - Bauhaus Paper Canvas */
+export const SCENE_BACKGROUND_COLOR = 0xF5F0E6;

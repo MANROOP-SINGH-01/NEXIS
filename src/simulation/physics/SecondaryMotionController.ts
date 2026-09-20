@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { BoneMapping } from './BoneMapping';
-import { CharacterRigMapping, LimbPhysicsConfig, ProceduralLimbKey } from './PhysicsTypes';
+import { CharacterRigMapping, LimbPhysicsConfig, ProceduralLimbKey, BodyPartId } from './PhysicsTypes';
 
 interface LimbSimulationState {
   currentAngle: THREE.Vector3;       // (pitch/x, yaw/y, roll/z) in radians
@@ -27,7 +27,7 @@ export class SecondaryMotionController {
       gravityInfluence: 1.2,
       velocityInfluence: 0.28,
       accelerationInfluence: 0.038,
-      maxDisplacementAngle: THREE.MathUtils.degToRad(75),
+      maxDisplacementAngle: THREE.MathUtils.degToRad(85),
     },
     lowerArmL: {
       stiffness: 180.0,
@@ -37,7 +37,7 @@ export class SecondaryMotionController {
       gravityInfluence: 1.0,
       velocityInfluence: 0.22,
       accelerationInfluence: 0.025,
-      maxDisplacementAngle: THREE.MathUtils.degToRad(60),
+      maxDisplacementAngle: THREE.MathUtils.degToRad(75),
     },
     armR: {
       stiffness: 140.0,
@@ -47,7 +47,7 @@ export class SecondaryMotionController {
       gravityInfluence: 1.2,
       velocityInfluence: 0.28,
       accelerationInfluence: 0.038,
-      maxDisplacementAngle: THREE.MathUtils.degToRad(75),
+      maxDisplacementAngle: THREE.MathUtils.degToRad(85),
     },
     lowerArmR: {
       stiffness: 180.0,
@@ -57,7 +57,7 @@ export class SecondaryMotionController {
       gravityInfluence: 1.0,
       velocityInfluence: 0.22,
       accelerationInfluence: 0.025,
-      maxDisplacementAngle: THREE.MathUtils.degToRad(60),
+      maxDisplacementAngle: THREE.MathUtils.degToRad(75),
     },
     legL: {
       stiffness: 160.0,
@@ -67,7 +67,7 @@ export class SecondaryMotionController {
       gravityInfluence: 1.4,
       velocityInfluence: 0.25,
       accelerationInfluence: 0.042,
-      maxDisplacementAngle: THREE.MathUtils.degToRad(55),
+      maxDisplacementAngle: THREE.MathUtils.degToRad(75),
     },
     legR: {
       stiffness: 160.0,
@@ -77,7 +77,7 @@ export class SecondaryMotionController {
       gravityInfluence: 1.4,
       velocityInfluence: 0.25,
       accelerationInfluence: 0.042,
-      maxDisplacementAngle: THREE.MathUtils.degToRad(55),
+      maxDisplacementAngle: THREE.MathUtils.degToRad(75),
     },
     spine: {
       stiffness: 220.0,
@@ -87,7 +87,7 @@ export class SecondaryMotionController {
       gravityInfluence: 0.4,
       velocityInfluence: 0.12,
       accelerationInfluence: 0.018,
-      maxDisplacementAngle: THREE.MathUtils.degToRad(22),
+      maxDisplacementAngle: THREE.MathUtils.degToRad(35),
     },
     head: {
       stiffness: 260.0,
@@ -97,7 +97,7 @@ export class SecondaryMotionController {
       gravityInfluence: 0.3,
       velocityInfluence: 0.10,
       accelerationInfluence: 0.014,
-      maxDisplacementAngle: THREE.MathUtils.degToRad(16),
+      maxDisplacementAngle: THREE.MathUtils.degToRad(35),
     },
   };
 
@@ -143,13 +143,19 @@ export class SecondaryMotionController {
    * @param bodyOrientation Current rotation quaternion of the character body
    * @param isAirborne Whether the character is in the air or held
    * @param delta Time step in seconds
+   * @param grabbedBodyPart Optional specific body part being actively pulled/held
+   * @param lookAtPoint Optional world coordinate target for head/eye tracking
+   * @param characterWorldPos Optional character position in world space
    */
   public update(
     bodyLinearVelocity: THREE.Vector3,
     bodyLinearAcceleration: THREE.Vector3,
     bodyOrientation: THREE.Quaternion,
     isAirborne: boolean,
-    delta: number
+    delta: number,
+    grabbedBodyPart?: BodyPartId | null,
+    lookAtPoint?: THREE.Vector3 | null,
+    characterWorldPos?: THREE.Vector3 | null
   ): void {
     if (delta <= 0.0001) return;
     const clampedDelta = Math.min(delta, 0.05); // Prevent spiral of death on tab unfocus
@@ -169,6 +175,8 @@ export class SecondaryMotionController {
     } else {
       this.airborneTimer = 0;
     }
+
+    const t = this.airborneTimer;
 
     for (const [key, state] of this.limbs.entries()) {
       const cfg = state.config;
@@ -194,9 +202,76 @@ export class SecondaryMotionController {
       targetDisplacement.x -= localVel.z * cfg.velocityInfluence * 0.08;
       targetDisplacement.z += localVel.x * cfg.velocityInfluence * 0.08;
 
-      // 3. Gravity dangle and cute clumsy falling animation when airborne
-      if (isAirborne) {
-        const t = this.airborneTimer;
+      // 3. Body-Part-Specific Grab Physics Override
+      if (grabbedBodyPart) {
+        if (grabbedBodyPart === 'head') {
+          // HEAD GRAB: Body hangs below head. Limbs dangle loosely.
+          if (key === 'spine') {
+            targetDisplacement.x += -0.15; // Spine stretches vertically
+          } else if (key.startsWith('arm')) {
+            targetDisplacement.x += 0.85; // Arms hang down
+            targetDisplacement.z += Math.sin(t * 8.0) * 0.08;
+          } else if (key.startsWith('leg')) {
+            targetDisplacement.x += 0.45; // Legs hang loosely with small dangle
+            targetDisplacement.z += Math.cos(t * 6.0) * 0.06;
+          }
+        } else if (grabbedBodyPart === 'handL' || grabbedBodyPart === 'lowerArmL' || grabbedBodyPart === 'armL') {
+          // LEFT ARM GRAB: Left arm extends toward pull; right arm counters; torso twists
+          if (key === 'armL') {
+            targetDisplacement.x += 0.95;
+            targetDisplacement.z += 0.65;
+          } else if (key === 'lowerArmL') {
+            targetDisplacement.x += 0.45;
+          } else if (key === 'armR') {
+            targetDisplacement.z -= 0.60; // Opposite arm flares out for balance
+            targetDisplacement.x += 0.20;
+          } else if (key === 'spine') {
+            targetDisplacement.y -= 0.28; // Torso twists toward pulled arm
+            targetDisplacement.z -= 0.15;
+          }
+        } else if (grabbedBodyPart === 'handR' || grabbedBodyPart === 'lowerArmR' || grabbedBodyPart === 'armR') {
+          // RIGHT ARM GRAB: Right arm extends; left arm counters; torso twists
+          if (key === 'armR') {
+            targetDisplacement.x += 0.95;
+            targetDisplacement.z -= 0.65;
+          } else if (key === 'lowerArmR') {
+            targetDisplacement.x += 0.45;
+          } else if (key === 'armL') {
+            targetDisplacement.z += 0.60; // Opposite arm flares out
+            targetDisplacement.x += 0.20;
+          } else if (key === 'spine') {
+            targetDisplacement.y += 0.28; // Torso twists toward right
+            targetDisplacement.z += 0.15;
+          }
+        } else if (grabbedBodyPart === 'footL' || grabbedBodyPart === 'calfL' || grabbedBodyPart === 'thighL') {
+          // LEFT LEG GRAB: Held leg extends; free leg kicks; upper body inverts
+          if (key === 'legL') {
+            targetDisplacement.x -= 1.15; // Leg extends toward pull
+          } else if (key === 'legR') {
+            targetDisplacement.x += Math.sin(t * 14.0) * 0.65 + 0.35; // Free leg bicycle kicks
+          } else if (key.startsWith('arm')) {
+            targetDisplacement.x += 1.05; // Arms hang down toward floor
+          } else if (key === 'spine') {
+            targetDisplacement.x -= 0.35; // Torso inverted
+          }
+        } else if (grabbedBodyPart === 'footR' || grabbedBodyPart === 'calfR' || grabbedBodyPart === 'thighR') {
+          // RIGHT LEG GRAB: Held leg extends; free leg kicks; upper body inverts
+          if (key === 'legR') {
+            targetDisplacement.x -= 1.15;
+          } else if (key === 'legL') {
+            targetDisplacement.x += Math.sin(t * 14.0) * 0.65 + 0.35;
+          } else if (key.startsWith('arm')) {
+            targetDisplacement.x += 1.05;
+          } else if (key === 'spine') {
+            targetDisplacement.x -= 0.35;
+          }
+        } else if (grabbedBodyPart === 'chest' || grabbedBodyPart === 'pelvis') {
+          // CENTER OF MASS GRAB: Torso is primary region; limbs lag behind motion
+          if (key.startsWith('arm') || key.startsWith('leg')) {
+            targetDisplacement.x += Math.sin(t * 10.0) * 0.25;
+          }
+        }
+      } else if (isAirborne) {
         const airSpeed = bodyLinearVelocity.length();
         const flailAmp = Math.min(1.0, 0.45 + airSpeed * 0.12);
         const flailFreq = 20.0;
@@ -249,6 +324,19 @@ export class SecondaryMotionController {
           } else if (key.startsWith('arm')) {
             targetDisplacement.x += Math.sin(timeSec * 1.6) * 0.025; // Gentle arm sway
           }
+        }
+      }
+
+      // 4. Head Look-At Tracking (track cursor or grab point)
+      if (key === 'head' && lookAtPoint && characterWorldPos) {
+        const toTarget = lookAtPoint.clone().sub(characterWorldPos).applyQuaternion(invOrientation);
+        if (toTarget.lengthSq() > 0.01) {
+          toTarget.normalize();
+          // Yaw (around Y) and Pitch (around X)
+          const targetYaw = Math.atan2(toTarget.x, toTarget.z);
+          const targetPitch = -Math.asin(Math.max(-1.0, Math.min(1.0, toTarget.y)));
+          targetDisplacement.y += THREE.MathUtils.clamp(targetYaw * 0.55, -0.6, 0.6);
+          targetDisplacement.x += THREE.MathUtils.clamp(targetPitch * 0.45, -0.5, 0.5);
         }
       }
 
@@ -356,5 +444,9 @@ export class SecondaryMotionController {
 
   public getLimbAngle(key: ProceduralLimbKey): THREE.Vector3 {
     return this.limbs.get(key)?.currentAngle ?? new THREE.Vector3();
+  }
+
+  public getLimbRotation(key: ProceduralLimbKey): THREE.Vector3 {
+    return this.getLimbAngle(key);
   }
 }

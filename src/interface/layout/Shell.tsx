@@ -15,8 +15,15 @@ export const Shell: React.FC<ShellProps> = ({ children, isFullscreen = false }) 
   const { setResumeForgeOpen } = useCoreStore();
 
   return (
-    <div className="w-screen h-screen bg-[#0A0B0E] text-[#EDEDED] overflow-hidden flex flex-row font-sans selection:bg-[#FF5C1A]/20 selection:text-[#FF5C1A]">
-      {/* Desktop App Sidebar */}
+    <div
+      className="w-full max-w-[100vw] h-screen h-dvh overflow-hidden overflow-x-hidden flex flex-row font-sans"
+      style={{
+        backgroundColor: '#F5F0E6',
+        color: '#111111',
+        fontFamily: "'Inter', sans-serif",
+      }}
+    >
+      {/* Desktop App Sidebar — Black Bauhaus navigation */}
       {!isFullscreen && (
         <div className="hidden md:flex">
           <AppSidebar />
@@ -34,7 +41,10 @@ export const Shell: React.FC<ShellProps> = ({ children, isFullscreen = false }) 
         )}
 
         {/* Dynamic Main Views Content */}
-        <main className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden relative pb-16 md:pb-0 bg-[#0A0B0E]">
+        <main
+          className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden relative pb-16 md:pb-0"
+          style={{ backgroundColor: '#F5F0E6' }}
+        >
           {children}
         </main>
 

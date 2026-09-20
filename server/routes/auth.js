@@ -6,6 +6,8 @@ import { otpLimiter } from '../middleware/rateLimit.js';
 
 const router = Router();
 
+import resilienceStore from '../lib/resilienceStore.js';
+
 // Helper: Normalize phone to E.164-like digits
 function normalizePhone(phone) {
   const cleaned = String(phone || '').replace(/[^0-9+]/g, '');
@@ -32,7 +34,7 @@ router.post('/auth/register', async (req, res) => {
       }
     });
 
-    if (existing) {
+    if (existing || resilienceStore.hasUser(cleanPhone, cleanEmail)) {
       return res.status(409).json({ error: 'An account with this phone number or email already exists.' });
     }
 
@@ -58,6 +60,22 @@ router.post('/auth/register', async (req, res) => {
 
     const { token } = await createSession(user.id);
 
+    // Mirror to resilience store
+    resilienceStore.addUser({
+      id: user.id,
+      phone: user.phone,
+      email: user.email,
+      passwordHash,
+      role: user.role,
+      candidateProfile: user.candidateProfile,
+      trainee: {
+        id: `trainee_${user.id}`,
+        userId: user.id,
+        name: user.candidateProfile?.name || String(name).trim(),
+        phoneNumber: cleanPhone,
+      },
+    });
+
     // Audit event
     await prisma.auditEvent.create({
       data: {
@@ -80,26 +98,48 @@ router.post('/auth/register', async (req, res) => {
     });
   } catch (err) {
     console.warn('[auth/register] Remote DB unreachable, using local resilience mode:', err.message);
-    const mockUser = {
-      id: `usr_${Date.now()}`,
+    if (resilienceStore.hasUser(cleanPhone, cleanEmail)) {
+      return res.status(409).json({ error: 'An account with this phone number or email already exists.' });
+    }
+
+    const passwordHash = await hashPassword(password);
+    const userId = `usr_${Date.now()}`;
+    const profileId = `prf_${Date.now()}`;
+    const traineeId = `trainee_${Date.now()}`;
+
+    const resilienceUser = {
+      id: userId,
       phone: cleanPhone,
       email: cleanEmail,
+      passwordHash,
       role: 'CANDIDATE',
       candidateProfile: {
-        id: `prf_${Date.now()}`,
+        id: profileId,
+        userId,
         name: String(name).trim(),
         profileCompleteness: 40,
-      }
+      },
+      trainee: {
+        id: traineeId,
+        userId,
+        name: String(name).trim(),
+        phoneNumber: cleanPhone,
+        preferredLanguage: 'en',
+      },
     };
+
+    resilienceStore.addUser(resilienceUser);
+    const { token } = resilienceStore.createSession(userId);
+
     return res.status(201).json({
       user: {
-        id: mockUser.id,
-        phone: mockUser.phone,
-        email: mockUser.email,
-        role: mockUser.role,
-        profile: mockUser.candidateProfile,
+        id: resilienceUser.id,
+        phone: resilienceUser.phone,
+        email: resilienceUser.email,
+        role: resilienceUser.role,
+        profile: resilienceUser.candidateProfile,
       },
-      token: 'nexis_resilience_session_' + Date.now(),
+      token,
     });
   }
 });
@@ -122,6 +162,25 @@ router.post('/auth/login', async (req, res) => {
     });
 
     if (!user) {
+      // Check resilience store if remote DB user is missing
+      const resUser = resilienceStore.findUserByIdentifier(cleanId);
+      if (resUser && resUser.passwordHash) {
+        const isValid = await verifyPassword(password, resUser.passwordHash);
+        if (!isValid) {
+          return res.status(401).json({ error: 'Invalid credentials.' });
+        }
+        const { token } = resilienceStore.createSession(resUser.id);
+        return res.json({
+          user: {
+            id: resUser.id,
+            phone: resUser.phone,
+            email: resUser.email,
+            role: resUser.role,
+            profile: resUser.candidateProfile,
+          },
+          token,
+        });
+      }
       return res.status(401).json({ error: 'Invalid credentials.' });
     }
 
@@ -157,31 +216,46 @@ router.post('/auth/login', async (req, res) => {
     });
   } catch (err) {
     console.warn('[auth/login] Remote DB unreachable, verifying via local resilience mode:', err.message);
-    const isDemoId = cleanId === 'demo' || cleanId.includes('98765') || cleanId.includes('candidate') || cleanId.includes('test');
-    if (isDemoId || password.length >= 6) {
-      const demoUser = {
-        id: 'usr_demo_resilience',
-        phone: isEmail ? '+919876543210' : normalizePhone(cleanId),
-        email: isEmail ? cleanId : 'candidate@nexis.gov.in',
-        role: 'CANDIDATE',
-        candidateProfile: {
-          id: 'prf_demo',
-          name: 'Priya Sharma',
-          profileCompleteness: 92,
-        },
-      };
+    const resUser = resilienceStore.findUserByIdentifier(cleanId);
+    if (resUser) {
+      if (resUser.passwordHash) {
+        const isValid = await verifyPassword(password, resUser.passwordHash);
+        if (!isValid) {
+          return res.status(401).json({ error: 'Invalid credentials.' });
+        }
+      }
+      const { token } = resilienceStore.createSession(resUser.id);
       return res.json({
         user: {
-          id: demoUser.id,
-          phone: demoUser.phone,
-          email: demoUser.email,
-          role: demoUser.role,
-          profile: demoUser.candidateProfile,
+          id: resUser.id,
+          phone: resUser.phone,
+          email: resUser.email,
+          role: resUser.role,
+          profile: resUser.candidateProfile,
         },
-        token: 'nexis_resilience_session_' + Date.now(),
+        token,
       });
     }
-    res.status(401).json({ error: 'Invalid credentials.' });
+
+    const isDemoId = cleanId === 'demo' || cleanId.includes('98765') || cleanId.includes('candidate');
+    if (isDemoId && (password === 'HardenedPassword!2026' || password === 'demo1234' || password === 'Demo@2026' || password.length >= 6)) {
+      const demoUser = resilienceStore.findUserById('usr_demo_resilience');
+      if (demoUser) {
+        const { token } = resilienceStore.createSession(demoUser.id);
+        return res.json({
+          user: {
+            id: demoUser.id,
+            phone: demoUser.phone,
+            email: demoUser.email,
+            role: demoUser.role,
+            profile: demoUser.candidateProfile,
+          },
+          token,
+        });
+      }
+    }
+
+    return res.status(401).json({ error: 'Invalid credentials.' });
   }
 });
 
@@ -203,14 +277,16 @@ router.post('/auth/logout', async (req, res) => {
   const authHeader = req.headers.authorization || '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
   if (token) {
-    await revokeSession(token);
+    resilienceStore.revokeSession(token);
+    await revokeSession(token).catch(() => {});
   }
   res.json({ success: true, message: 'Logged out successfully.' });
 });
 
 // POST /api/auth/logout-all
 router.post('/auth/logout-all', requireAuth, async (req, res) => {
-  await revokeAllUserSessions(req.user.id);
+  resilienceStore.revokeAllUserSessions(req.user.id);
+  await revokeAllUserSessions(req.user.id).catch(() => {});
   res.json({ success: true, message: 'Revoked all active sessions.' });
 });
 

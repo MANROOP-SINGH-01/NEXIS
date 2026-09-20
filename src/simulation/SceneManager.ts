@@ -17,6 +17,9 @@ import { getActiveAgentSet, useTeamStore } from '../integration/store/teamStore'
 import { useUiStore } from '../integration/store/uiStore';
 import { AgentBehavior, ChatMessage } from '../types';
 import { BUBBLE_Y_OFFSET } from './constants';
+import { AgentBehaviorEngine } from './behavior/AgentBehaviorEngine';
+import { AgentInteractionManager } from './behavior/AgentInteractionManager';
+import { AgentWorkspaceMemory } from './behavior/AgentWorkspaceMemory';
 
 function buildDirectorLocalReply(message: string, state: ReturnType<typeof useCoreStore.getState>): string {
   const text = String(message || '').toLowerCase()
@@ -85,6 +88,11 @@ export class SceneManager {
   private worldManager: WorldManager;
   private driverManager: DriverManager | null = null;
   private simulation: AgentSimulation | null = null;
+  private workspaceMemory: AgentWorkspaceMemory | null = null;
+  private interactionManager: AgentInteractionManager | null = null;
+  private behaviorEngine: AgentBehaviorEngine | null = null;
+  private inputManager: InputManager | null = null;
+  public isLoaded: boolean = false;
 
   private lastAgentSetId: string | null = null;
   private selectedIndex: number | null = null;
@@ -123,6 +131,40 @@ export class SceneManager {
   private startWatchingCoreStore() {
     this.unsubs.push(
       useCoreStore.subscribe((state, prevState) => {
+        // Feed real-time events into deterministic behavior engine
+        if (this.behaviorEngine) {
+          // 1. Resume content uploaded
+          if (state.currentResume.content && state.currentResume.content !== prevState.currentResume.content) {
+            this.behaviorEngine.handleCoreStoreEvent('RESUME_UPLOAD', { content: state.currentResume.content });
+          }
+
+          // 2. ATS Score calculation updated
+          const curAts = state.currentResume?.atsScore ?? state.resumeAnalysis?.atsCompatibility ?? null;
+          const prevAts = prevState.currentResume?.atsScore ?? prevState.resumeAnalysis?.atsCompatibility ?? null;
+          if (curAts !== null && curAts !== prevAts) {
+            this.behaviorEngine.handleCoreStoreEvent('ATS_SCORE', { score: curAts });
+          }
+
+          // 3. Discovered jobs count
+          const curJobs = (state.discoveredJobs || []).length;
+          const prevJobs = (prevState.discoveredJobs || []).length;
+          if (curJobs !== prevJobs && curJobs > 0) {
+            this.behaviorEngine.handleCoreStoreEvent('JOBS_FOUND', { count: curJobs });
+          }
+
+          // 4. Task status transitions
+          state.tasks.forEach(t => {
+            const pt = prevState.tasks.find(old => old.id === t.id);
+            if (!pt || pt.status !== t.status) {
+              if (t.status === 'in_progress') {
+                this.behaviorEngine!.handleCoreStoreEvent('TASK_PROGRESS', { agentId: t.assignedAgentId, title: t.title });
+              } else if (t.status === 'done') {
+                this.behaviorEngine!.handleCoreStoreEvent('TASK_DONE', { agentId: t.assignedAgentId, title: t.title });
+              }
+            }
+          });
+        }
+
         const agentIndices = Array.from(new Set(state.tasks.flatMap(t => [t.assignedAgentId].filter(id => id !== undefined && id !== 0))));
 
         agentIndices.forEach(id => {
@@ -169,7 +211,19 @@ export class SceneManager {
     const state = useUiStore.getState();
     this.characterManager.setInstanceCount(state.instanceCount);
     this.controller = new CharacterController(this.characterManager, this.navMesh, this.poiManager);
-    this.driverManager = new DriverManager(this.controller);
+    
+    // Instantiate Bauhaus Behavior System
+    this.workspaceMemory = new AgentWorkspaceMemory();
+    this.interactionManager = new AgentInteractionManager(this.controller, this.workspaceMemory);
+    this.behaviorEngine = new AgentBehaviorEngine(this.controller, this.interactionManager, this.workspaceMemory);
+
+    if (typeof window !== 'undefined') {
+      (window as any).__behaviorEngine = this.behaviorEngine;
+      (window as any).__workspaceMemory = this.workspaceMemory;
+      (window as any).__interactionManager = this.interactionManager;
+    }
+
+    this.driverManager = new DriverManager(this.controller, this.behaviorEngine);
     
     const activeSet = getActiveAgentSet();
     const playerIndex = activeSet.user.index;
@@ -179,14 +233,25 @@ export class SceneManager {
       if (agent.index !== playerIndex) this.driverManager!.registerNpc(agent.index, agent);
     });
 
-    new InputManager(
+    // Seat agents at their designated workstation desks on initial load
+    this.controller.warpAllToSpawn(playerIndex, getAllAgents(activeSet).map(a => a.index));
+
+    this.inputManager = new InputManager(
       this.engine.renderer.domElement, this.stage.camera,
       () => this.controller!.getCPUPositions(), () => this.controller!.getCount(),
-      (idx) => { if (useUiStore.getState().isChatting) useUiStore.getState().setChatting(false); this.selectedIndex = idx !== activeSet.user.index ? idx : null; useUiStore.getState().setSelectedNpc(this.selectedIndex); },
+      (idx) => {
+        if (useUiStore.getState().isChatting) useUiStore.getState().setChatting(false);
+        this.selectedIndex = idx !== activeSet.user.index ? idx : null;
+        useUiStore.getState().setSelectedNpc(this.selectedIndex);
+        if (idx !== null && this.controller) {
+          this.controller.playClickReaction(idx);
+        }
+      },
       (x, z) => this.driverManager?.getPlayerDriver().onFloorClick(x, z),
       (idx, pos) => {
         useUiStore.getState().setHoveredNpc(idx, pos);
-        this.characterManager.getPhysicsSystem()?.setHoveredIndex(idx);
+        const hoveredPart = this.inputManager?.getHoveredBodyPart() ?? null;
+        this.characterManager.getPhysicsSystem()?.setHoveredIndex(idx, hoveredPart);
       },
       () => this.poiManager.getAllPois(),
       (id, label, pos) => useUiStore.getState().setHoveredPoi(id, label, pos),
@@ -200,17 +265,27 @@ export class SceneManager {
         this.moveNpcToSpawn(idx); // agent paths back to default position on release
       },
       this.worldManager.getOffice() ?? undefined, (p) => this.navMesh.isPointOnNavMesh(p),
-      // ── Physical Clumsy Ninja-style Grab, Drag & Release Callbacks ─────────
-      (idx, pointerNDC, hitPointWorld) => {
+      (idx, pointerNDC, hitPointWorld, bodyPart = 'chest') => {
         this.stage.controls.enabled = false;
-        this.controller?.play(idx, 'grabbed');
+
+        // Select distinct picking up action and state based on grabbed body part
+        let grabState: import('../types').CharacterStateKey = 'grabbed_body';
+        if (bodyPart === 'head') {
+          grabState = 'grabbed_head';
+        } else if (bodyPart.includes('arm') || bodyPart.includes('hand')) {
+          grabState = 'grabbed_arm';
+        } else if (bodyPart.includes('leg') || bodyPart.includes('foot') || bodyPart.includes('calf') || bodyPart.includes('thigh')) {
+          grabState = 'grabbed_leg';
+        }
+
+        this.controller?.play(idx, grabState);
         this.characterManager.setPhysicsMode(idx, AgentBehavior.PHYSICAL);
         useUiStore.getState().setAgentStatus(idx, 'dragged');
 
         const phys = this.characterManager.getPhysicsSystem();
         if (phys) {
           const livePos = this.controller?.getCPUPosition(idx);
-          phys.handlePointerDown(idx, pointerNDC, hitPointWorld, -1, livePos ?? undefined);
+          phys.handlePointerDown(idx, pointerNDC, hitPointWorld, -1, livePos ?? undefined, undefined, bodyPart);
           const ctrl = phys.getController(idx);
           if (ctrl) {
             ctrl.onStateChange = (state) => {
@@ -219,19 +294,45 @@ export class SceneManager {
               } else if (state === 'IMPACT') {
                 this.controller?.play(idx, 'impact');
               } else if (state === 'RECOVERING' || state === 'SETTLING') {
-                this.controller?.play(idx, 'recovering');
+                const recoveryVariations: import('../types').CharacterStateKey[] = [
+                  'recover_scratch',      // Picks self up + scratches head bewildered (user requested!)
+                  'recover_cheer',        // Picks self up + dusts off & celebrates
+                  'recover_fist_shake',   // Picks self up + shakes fist at user
+                  'recover_dazed',        // Rapid dizzy shake-off
+                ];
+                const selected = recoveryVariations[Math.floor(Math.random() * recoveryVariations.length)];
+                this.controller?.play(idx, selected);
               } else if (state === 'IDLE') {
+                // Ensure landing position is completely clear of structures
+                const safeLandingPos = ObstacleSystem.findSafeFloorPosition(
+                  ctrl.physics.position,
+                  ObstacleSystem.AGENT_RADIUS,
+                  this.navMesh
+                );
+                ctrl.physics.position.copy(safeLandingPos);
+                this.characterManager.setPosition(idx, safeLandingPos);
+
                 // Synchronize character facing with landing orientation to prevent abrupt snapping
                 const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(ctrl.physics.orientation);
                 this.characterManager.setFacing(idx, forward.x, forward.z);
                 this.characterManager.setPhysicsMode(idx, AgentBehavior.IDLE);
-                this.controller?.play(idx, 'idle');
+                
+                // Only force 'idle' if not currently playing a multi-step recovery sequence
+                const curState = this.controller?.getState(idx);
+                if (!curState || (!curState.startsWith('recover') && curState !== 'impact')) {
+                  this.controller?.play(idx, 'idle');
+                }
                 useUiStore.getState().setAgentStatus(idx, 'idle');
 
-                // Only NPCs path back to spawn; the user/player stays where dropped!
+                // Return NPC back to their designated workstation desk after finishing recovery
                 const isUser = idx === getActiveAgentSet().user.index;
                 if (!isUser) {
-                  this.moveNpcToSpawn(idx);
+                  setTimeout(() => {
+                    const latestState = this.controller?.getState(idx);
+                    if (latestState === 'idle') {
+                      this.moveNpcToSpawn(idx);
+                    }
+                  }, 2400);
                 }
               }
             };
@@ -254,9 +355,13 @@ export class SceneManager {
     );
 
     this.engine.renderer.setAnimationLoop(this.animate.bind(this));
+    this.isLoaded = true;
 
     this.unsubs.push(useUiStore.subscribe((s, prev) => {
       if (s.instanceCount !== prev.instanceCount) this.controller?.setInstanceCount(s.instanceCount);
+      if (s.activeSidebarTab !== prev.activeSidebarTab && s.activeSidebarTab) {
+        this.behaviorEngine?.handleUserTabChange(s.activeSidebarTab);
+      }
       const team = useTeamStore.getState();
       if (team.selectedAgentSetId !== this.lastAgentSetId) {
         this.lastAgentSetId = team.selectedAgentSetId;
@@ -498,11 +603,54 @@ export class SceneManager {
     }
   }
 
+  public getPhysicsSystem() {
+    return this.characterManager.getPhysicsSystem();
+  }
+
   public moveNpcToSpawn(index: number, onArrival?: () => void): void {
     if (!this.controller) return;
-    const poi = this.poiManager.getPoi(`spawn-${index}`) || this.poiManager.getPoi(`idle-spawn-${index}`);
-    if (poi) this.controller.moveTo(index, poi.position, 'idle', onArrival, undefined, poi.quaternion);
-    else if (onArrival) onArrival();
+
+    let poi = this.poiManager.getPoi(`sit_work-${index}`);
+    if (!poi) {
+      poi = this.poiManager.getPoi(`sit_idle-${((index - 1) % 4) + 1}`);
+    }
+    if (!poi) {
+      poi = this.poiManager.getPoi(`spawn-${index}`) ||
+            this.poiManager.getPoi(`idle-spawn-${index}`);
+    }
+
+    if (!poi) {
+      onArrival?.();
+      return;
+    }
+
+    // Ensure the returning agent can reclaim their own workstation
+    if (poi.occupiedBy !== null && poi.occupiedBy !== index) {
+      this.poiManager.releaseAll(index);
+      poi.occupiedBy = null;
+    }
+
+    const currentPos = this.controller.getCPUPosition(index);
+    const walked = this.controller.walkToPoi(index, poi.id, () => {
+      onArrival?.();
+    }, currentPos ?? undefined);
+
+    // Fallback if pathfinding fails (e.g. dropped off navmesh or obstructed)
+    if (!walked) {
+      const isSitVariant = poi.arrivalState === 'sit_work' || poi.arrivalState === 'sit_idle' || poi.id.includes('sit');
+      if (isSitVariant) {
+        this.controller.prepareSitDown(index, poi.arrivalState as any);
+      }
+      this.characterManager.setPosition(index, poi.position);
+      if (!poi.id.startsWith('area')) {
+        this.characterManager.setOrientation(index, poi.quaternion);
+      }
+      this.characterManager.setPhysicsMode(index, isSitVariant ? AgentBehavior.SEATED : AgentBehavior.IDLE);
+      this.controller.play(index, isSitVariant ? (poi.id.includes('work') ? 'sit_work' : 'sit_idle') : poi.arrivalState);
+      this.poiManager.releaseAll(index);
+      this.poiManager.occupy(poi.id, index);
+      onArrival?.();
+    }
   }
 
   private async _triggerNpcGreeting(idx: number): Promise<void> {
@@ -568,10 +716,12 @@ export class SceneManager {
 
     this.stage.update();
     this.controller?.update(delta, this.engine.renderer);
+    this.behaviorEngine?.update(delta);
+    this.interactionManager?.update(delta);
     this.controller?.syncFromGPU(this.engine.renderer).then((pos) => {
       if (!pos || !this.controller) return;
       this.resolveWorldAndAgentCollisions(pos);
-      this.controller.updatePaths(pos);
+      this.controller.updatePaths(pos, delta);
       this.driverManager?.update(pos, delta);
       this.updateTransparency(pos, delta);
     });
@@ -637,11 +787,16 @@ export class SceneManager {
         seatedSet.add(i);
       } else if (i !== grabbedIdx) {
         // Enforce solid furniture & obstacle collision on standing/walking characters
-        if (ObstacleSystem.resolveCollision(p)) {
-          pos[i * 4] = p.x;
-          pos[i * 4 + 1] = p.y;
-          pos[i * 4 + 2] = p.z;
-          this.characterManager.setPosition(i, p);
+        // If agent is in the final approach to their target POI / workstation chair (< 0.65m),
+        // skip obstacle repulsion so they can enter their chair and sit down cleanly without pushback
+        const isApproaching = this.controller.isApproachingDestination(i, 0.65);
+        if (!isApproaching) {
+          if (ObstacleSystem.resolveCollision(p)) {
+            pos[i * 4] = p.x;
+            pos[i * 4 + 1] = p.y;
+            pos[i * 4 + 2] = p.z;
+            this.characterManager.setPosition(i, p);
+          }
         }
       }
       agentVecs.push(p);
@@ -694,6 +849,18 @@ export class SceneManager {
     this.controller.warpAllToSpawn(set.user.index, getAllAgents(set).map(a => a.index));
     this.stage.setFollowTarget(null);
     this.stage.setChatMode(false, false);
+  }
+
+  public getBehaviorEngine(): AgentBehaviorEngine | null {
+    return this.behaviorEngine;
+  }
+
+  public getWorkspaceMemory(): AgentWorkspaceMemory | null {
+    return this.workspaceMemory;
+  }
+
+  public getInteractionManager(): AgentInteractionManager | null {
+    return this.interactionManager;
   }
 
   public dispose() { this.isDisposed = true; this.resizeObserver.disconnect(); this.unsubs.forEach(u => u()); this.driverManager?.dispose(); this.engine.dispose(); }

@@ -23,20 +23,20 @@ const iconByAgent: Record<string, React.ComponentType<{ size?: number; className
   'Nexus-Director': Brain,
 }
 
-// Color-coded agent telemetry accents (consistent with 3D avatars)
-const agentColorMap: Record<string, { bg: string; text: string; dot: string }> = {
-  'Nexus-Vision': { bg: 'bg-[#3B82F6]/15', text: 'text-[#3B82F6]', dot: '#3B82F6' },
-  'Nexus-Strategist': { bg: 'bg-[#A855F7]/15', text: 'text-[#A855F7]', dot: '#A855F7' },
-  'Nexus-Writer': { bg: 'bg-[#10B981]/15', text: 'text-[#10B981]', dot: '#10B981' },
-  'Nexus-Hunter': { bg: 'bg-[#F59E0B]/15', text: 'text-[#F59E0B]', dot: '#F59E0B' },
-  'Nexus-Mirror': { bg: 'bg-[#EC4899]/15', text: 'text-[#EC4899]', dot: '#EC4899' },
-  'Nexus-Director': { bg: 'bg-[#FF5C1A]/15', text: 'text-[#FF5C1A]', dot: '#FF5C1A' },
+// Bauhaus agent telemetry accents with unique hues
+const agentColorMap: Record<string, { bg: string; text: string; dot: string; border: string }> = {
+  'Nexus-Vision': { bg: '#FFFFFF', text: '#2457A6', dot: '#2457A6', border: '#2457A6' },
+  'Nexus-Strategist': { bg: '#FFFFFF', text: '#7C3AED', dot: '#7C3AED', border: '#7C3AED' },
+  'Nexus-Writer': { bg: '#FFFFFF', text: '#10B981', dot: '#10B981', border: '#10B981' },
+  'Nexus-Hunter': { bg: '#FFFFFF', text: '#B45309', dot: '#F59E0B', border: '#F59E0B' },
+  'Nexus-Mirror': { bg: '#FFFFFF', text: '#0891B2', dot: '#06B6D4', border: '#06B6D4' },
+  'Nexus-Director': { bg: '#FFFFFF', text: '#111111', dot: '#111111', border: '#111111' },
 }
 
 const statusDotMap = {
-  completed: { dot: 'bg-[#3B82F6]', text: 'text-[#3B82F6]', label: 'COMPLETED' },
-  warning: { dot: 'bg-[#F59E0B]', text: 'text-[#F59E0B]', label: 'ATTENTION' },
-  success: { dot: 'bg-[#22C55E]', text: 'text-[#22C55E]', label: 'VERIFIED' },
+  completed: { dot: '#2457A6', text: '#2457A6', label: 'COMPLETED' },
+  warning: { dot: '#F4C430', text: '#8B6914', label: 'ATTENTION' },
+  success: { dot: '#2E7D32', text: '#2E7D32', label: 'VERIFIED' },
 }
 
 function formatTime(ts: number): string {
@@ -50,71 +50,102 @@ function formatTime(ts: number): string {
 const ForgeActivityTimelineEntry: React.FC<{ entry: ForgeActivity; isLast: boolean }> = ({ entry, isLast }) => {
   const [isOpen, setIsOpen] = useState(false)
   const Icon = entry.icon
-  const agentColor = agentColorMap[entry.agent] || { bg: 'bg-white/10', text: 'text-white', dot: '#FFFFFF' }
+  const agentColor = agentColorMap[entry.agent] || { bg: '#FFFFFF', text: '#111111', dot: '#111111', border: '#111111' }
   const statusMeta = statusDotMap[entry.status] || statusDotMap.completed
 
   return (
-    <div className="relative flex items-start gap-3.5 group animate-in fade-in slide-in-from-top-2 duration-200">
+    <div className="relative flex items-start gap-3 group animate-in fade-in slide-in-from-top-2 duration-150">
       {/* Vertical Connecting Timeline Line */}
       {!isLast && (
-        <div className="absolute left-4 top-8 bottom-0 w-[1px] bg-[rgba(255,255,255,0.08)] pointer-events-none" />
+        <div
+          className="absolute left-3.5 top-7 bottom-0 w-[2px] pointer-events-none"
+          style={{ backgroundColor: '#111111' }}
+        />
       )}
 
-      {/* Colored Icon Chip on Timeline */}
-      <div className={`relative z-10 w-8 h-8 rounded-lg ${agentColor.bg} ${agentColor.text} border border-white/5 flex items-center justify-center shrink-0 shadow-xs mt-0.5`}>
-        <Icon size={14} />
+      {/* Bauhaus Colored Icon Chip on Timeline */}
+      <div
+        className="relative z-10 w-7 h-7 flex items-center justify-center shrink-0 mt-0.5"
+        style={{
+          backgroundColor: agentColor.bg,
+          color: agentColor.text,
+          border: '2px solid #111111',
+          borderRadius: '0px',
+        }}
+      >
+        <Icon size={13} />
       </div>
 
       {/* Main Timeline Card Content */}
       <div className="flex-1 min-w-0 pb-4">
         <button
           onClick={() => setIsOpen((v) => !v)}
-          className="w-full text-left p-2 -m-2 rounded-lg hover:bg-[#1A1B20]/60 transition-colors cursor-pointer group-hover:bg-[#1A1B20]/40"
+          className="w-full text-left p-2 -m-2 transition-colors cursor-pointer hover:bg-[#FFFFFF]"
+          style={{ borderRadius: '0px' }}
         >
           <div className="flex items-center justify-between gap-2">
             {/* Agent Name + Status Dot */}
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-xs font-mono font-bold text-white truncate">
+              <span
+                className="text-xs font-bold text-[#111111] truncate uppercase"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
                 {entry.agent}
               </span>
-              <span className="flex items-center gap-1 text-[9px] font-mono font-medium">
-                <span className={`w-1.5 h-1.5 rounded-full ${statusMeta.dot}`} />
-                <span className={statusMeta.text}>{statusMeta.label}</span>
+              <span
+                className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider"
+                style={{ fontFamily: "'Space Grotesk', sans-serif", color: statusMeta.text }}
+              >
+                <span className="w-1.5 h-1.5" style={{ backgroundColor: statusMeta.dot }} />
+                <span>{statusMeta.label}</span>
               </span>
             </div>
 
             {/* Timestamp & Expand Indicator */}
             <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-[10px] font-mono text-[#6B7280]">
+              <span className="text-[10px] font-mono text-[#7A7A7A]">
                 {formatTime(entry.timestamp)}
               </span>
               {isOpen ? (
-                <ChevronDown size={13} className="text-[#6B7280]" />
+                <ChevronDown size={13} className="text-[#111111]" />
               ) : (
-                <ChevronRight size={13} className="text-[#6B7280]" />
+                <ChevronRight size={13} className="text-[#7A7A7A]" />
               )}
             </div>
           </div>
 
           {/* Action Header */}
-          <p className="text-xs font-medium text-[#EDEDED] mt-1 tracking-tight">
+          <p
+            className="text-xs font-medium text-[#222222] mt-1 tracking-tight"
+            style={{ fontFamily: "'Inter', sans-serif" }}
+          >
             {entry.action}
           </p>
         </button>
 
-        {/* Collapsible / Expandable Details */}
+        {/* Collapsible Details */}
         {isOpen ? (
-          <div className="mt-2 p-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#0A0B0E] text-[11px] font-mono text-[#9CA3AF] leading-relaxed animate-in fade-in slide-in-from-top-1 duration-150">
+          <div
+            className="mt-2 p-3 text-[11px] font-mono text-[#333333] leading-relaxed animate-in fade-in slide-in-from-top-1 duration-150"
+            style={{
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #111111',
+              borderRadius: '0px',
+              boxShadow: '2px 2px 0px #111111',
+            }}
+          >
             {entry.details}
             {entry.status === 'warning' && (
-              <div className="mt-2 flex items-center gap-1.5 text-[9px] font-mono font-bold uppercase tracking-widest text-[#F59E0B]">
+              <div className="mt-2 flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-[#E53935]">
                 <AlertTriangle size={11} />
                 Requires Review
               </div>
             )}
           </div>
         ) : (
-          <p className="text-[11px] text-[#6B7280] line-clamp-1 mt-0.5 leading-relaxed font-mono">
+          <p
+            className="text-[11px] text-[#7A7A7A] line-clamp-1 mt-0.5 leading-relaxed font-mono"
+          >
             {entry.details}
           </p>
         )}
@@ -173,44 +204,77 @@ export function ActionLogPanel() {
     : allEntries
 
   return (
-    <aside className="w-80 border-r border-[rgba(255,255,255,0.08)] bg-[#121317]/95 backdrop-blur-xl flex flex-col h-full z-20 shrink-0 font-sans shadow-lg overflow-hidden select-none">
-      {/* 1. Panel Header with 40px hit target actions */}
-      <div className="h-14 px-4 border-b border-[rgba(255,255,255,0.08)] bg-[#121317] flex items-center justify-between shrink-0">
+    <aside
+      className="w-full sm:w-72 lg:w-80 max-w-[calc(100vw-32px)] flex flex-col h-full min-h-0 z-20 shrink-0 font-sans overflow-hidden select-none"
+      style={{
+        backgroundColor: '#F5F0E6',
+        borderRight: '2px solid #111111',
+      }}
+    >
+      {/* 1. Panel Header */}
+      <div
+        className="h-14 px-4 flex items-center justify-between shrink-0"
+        style={{
+          backgroundColor: '#FFFFFF',
+          borderBottom: '2px solid #111111',
+        }}
+      >
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#3B82F6]/15 text-[#3B82F6] flex items-center justify-center">
+          <div
+            className="w-8 h-8 flex items-center justify-center text-[#111111]"
+            style={{
+              backgroundColor: '#F5F0E6',
+              border: '1px solid #111111',
+            }}
+          >
             <Activity size={16} />
           </div>
           <div>
-            <span className="text-xs font-mono font-bold text-white uppercase tracking-wider block">
+            <span
+              className="text-xs font-bold text-[#111111] uppercase tracking-wider block"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
               TELEMETRY FEED
             </span>
-            <span className="text-[10px] font-mono text-[#6B7280]">
+            <span
+              className="text-[10px] uppercase font-medium text-[#7A7A7A]"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
               {filterAgent ? `Filter: ${filterAgent.name}` : 'Live Agent Operations'}
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-1 relative">
-          {/* Filter button with 40px hit target */}
+          {/* Filter button */}
           <button
             onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
-            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
-              filterAgent ? 'bg-[#FF5C1A]/20 text-[#FF5C1A]' : 'text-[#6B7280] hover:text-white hover:bg-[#1A1B20]'
-            }`}
+            className="w-8 h-8 flex items-center justify-center transition-colors cursor-pointer text-[#111111] hover:bg-[#EFE7D8]"
+            style={{
+              backgroundColor: filterAgent ? '#111111' : '#FFFFFF',
+              color: filterAgent ? '#F5F0E6' : '#111111',
+              border: '1px solid #111111',
+              borderRadius: '0px',
+            }}
             title="Filter by Agent"
             aria-label="Filter by Agent"
           >
-            <Filter size={15} />
+            <Filter size={14} />
           </button>
 
-          {/* Close button with 40px hit target */}
+          {/* Close button */}
           <button
             onClick={() => setLogOpen(false)}
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-[#6B7280] hover:text-white hover:bg-[#1A1B20] transition-colors cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center text-[#111111] hover:bg-[#EFE7D8] transition-colors cursor-pointer"
+            style={{
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #111111',
+              borderRadius: '0px',
+            }}
             title="Close Feed"
             aria-label="Close Feed"
           >
-            <X size={16} />
+            <X size={15} />
           </button>
 
           {/* Dropdown Menu */}
@@ -220,20 +284,34 @@ export function ActionLogPanel() {
                 className="fixed inset-0 z-40" 
                 onClick={() => setIsFilterMenuOpen(false)} 
               />
-              <div className="absolute right-0 top-11 w-48 bg-[#16171D] border border-[rgba(255,255,255,0.12)] rounded-xl shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div
+                className="absolute right-0 top-10 w-48 shadow-[4px_4px_0px_#111111] py-1 z-50 animate-in fade-in zoom-in-95 duration-100"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  border: '2px solid #111111',
+                  borderRadius: '0px',
+                }}
+              >
                 <button
                   onClick={() => {
                     setLogOpen(true, null)
                     setIsFilterMenuOpen(false)
                   }}
-                  className={`w-full px-3.5 py-2 text-left text-xs font-mono font-medium flex items-center gap-2 hover:bg-[#1A1B20] transition-colors ${
-                    logFilterAgentIndex === null ? 'text-[#FF5C1A]' : 'text-[#9CA3AF]'
-                  }`}
+                  className="w-full px-3.5 py-2 text-left text-xs font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-[#F5F0E6] transition-colors"
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    color: logFilterAgentIndex === null ? '#E53935' : '#111111',
+                  }}
                 >
-                  <div className={`w-2 h-2 rounded-full ${logFilterAgentIndex === null ? 'bg-[#FF5C1A]' : 'border border-white/20'}`} />
+                  <div
+                    className="w-2 h-2"
+                    style={{
+                      backgroundColor: logFilterAgentIndex === null ? '#E53935' : '#C8C0B4',
+                    }}
+                  />
                   All Agents
                 </button>
-                <div className="h-px bg-white/10 my-1" />
+                <div className="h-[1px] bg-[#111111] my-1" />
                 {agents.map((agent) => (
                   <button
                     key={agent.index}
@@ -241,11 +319,13 @@ export function ActionLogPanel() {
                       setLogOpen(true, agent.index)
                       setIsFilterMenuOpen(false)
                     }}
-                    className={`w-full px-3.5 py-1.5 text-left text-xs font-mono font-medium flex items-center gap-2 hover:bg-[#1A1B20] transition-colors ${
-                      logFilterAgentIndex === agent.index ? 'text-white font-bold' : 'text-[#9CA3AF]'
-                    }`}
+                    className="w-full px-3.5 py-1.5 text-left text-xs font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-[#F5F0E6] transition-colors"
+                    style={{
+                      fontFamily: "'Space Grotesk', sans-serif",
+                      color: logFilterAgentIndex === agent.index ? '#111111' : '#555555',
+                    }}
                   >
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: agent.color }} />
+                    <div className="w-2 h-2" style={{ backgroundColor: agent.color }} />
                     {agent.name}
                   </button>
                 ))}
@@ -259,8 +339,10 @@ export function ActionLogPanel() {
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
         {activityEntries.length === 0 ? (
           <div className="py-20 text-center">
-            <Activity size={24} className="mx-auto text-[#6B7280] opacity-40 mb-2" />
-            <p className="text-xs font-mono text-[#6B7280]">Awaiting live telemetry events...</p>
+            <Activity size={24} className="mx-auto text-[#7A7A7A] opacity-40 mb-2" />
+            <p className="text-xs uppercase tracking-wider text-[#7A7A7A]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              Awaiting live telemetry events...
+            </p>
           </div>
         ) : (
           <div className="relative">

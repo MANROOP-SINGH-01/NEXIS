@@ -2,8 +2,10 @@ import * as THREE from 'three/webgpu';
 
 import { PoiDef } from '../../types';
 import { CHARACTER_Y_OFFSET, PICK_RADIUS, POI_PICK_RADIUS } from '../constants';
+import { BodyPartRegistry } from '../physics/BodyPartRegistry';
+import { BodyPartHitResult, BodyPartId } from '../physics/PhysicsTypes';
 
-const DRAG_THRESHOLD_PX = 4;
+const DRAG_THRESHOLD_PX = 3;
 const FLOOR_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // y=0
 
 export class InputManager {
@@ -20,6 +22,8 @@ export class InputManager {
   private isDragging = false;
   private draggedAgentIdx: number | null = null;
   private lastAgentHitPoint: THREE.Vector3 | null = null;
+  private lastHitBodyPart: BodyPartId = 'chest';
+  private hoveredBodyPart: BodyPartId | null = null;
   private lastPointerTime = 0;
 
   public selectedIndex: number | null = null;
@@ -39,7 +43,7 @@ export class InputManager {
     private onDragEnd: (index: number) => void,
     private raycastObject?: THREE.Object3D,
     private isPointValid?: (point: THREE.Vector3) => boolean,
-    private onPhysicalGrab?: (index: number, pointerNDC: THREE.Vector2, hitPointWorld?: THREE.Vector3) => void,
+    private onPhysicalGrab?: (index: number, pointerNDC: THREE.Vector2, hitPointWorld?: THREE.Vector3, bodyPart?: BodyPartId) => void,
     private onPhysicalMove?: (pointerNDC: THREE.Vector2, delta: number) => void,
     private onPhysicalRelease?: (index: number) => void,
   ) {
@@ -130,7 +134,12 @@ export class InputManager {
             this.isDragging = true;
             this.lastPointerTime = performance.now();
             if (this.draggedAgentIdx !== null && this.onPhysicalGrab) {
-              this.onPhysicalGrab(this.draggedAgentIdx, this.pointer, this.lastAgentHitPoint ?? undefined);
+              this.onPhysicalGrab(
+                this.draggedAgentIdx,
+                this.pointer,
+                this.lastAgentHitPoint ?? undefined,
+                this.lastHitBodyPart
+              );
             }
           }
           
@@ -174,7 +183,7 @@ export class InputManager {
       : hoveredIdx;
 
     if (effectiveHoverIdx !== null) {
-      this.canvas.style.cursor = 'pointer';
+      this.canvas.style.cursor = 'grab';
 
       // Project 3D position to 2D for the bubble
       const positions = this.getPositions();
@@ -215,6 +224,10 @@ export class InputManager {
     }
   }
 
+  public getHoveredBodyPart(): BodyPartId | null {
+    return this.hoveredBodyPart;
+  }
+
   private getAgentAtPointer(): number | null {
     this.raycaster.setFromCamera(this.pointer, this.camera);
     const positions = this.getPositions();
@@ -222,6 +235,35 @@ export class InputManager {
     if (!positions || count === 0) return null;
 
     const ray = this.raycaster.ray;
+
+    // 1. Precise anatomical body-part capsule raycast
+    let closestCapsuleT = Infinity;
+    let closestCapsuleIdx: number | null = null;
+    let closestCapsuleHit: BodyPartHitResult | null = null;
+
+    for (let i = 0; i < count; i++) {
+      const cx = positions[i * 4];
+      const cy = positions[i * 4 + 1];
+      const cz = positions[i * 4 + 2];
+      const charPos = new THREE.Vector3(cx, cy, cz);
+      const charQuat = new THREE.Quaternion();
+
+      const hit = BodyPartRegistry.raycastCharacter(i, ray, charPos, charQuat);
+      if (hit && hit.distance < closestCapsuleT) {
+        closestCapsuleT = hit.distance;
+        closestCapsuleIdx = i;
+        closestCapsuleHit = hit;
+      }
+    }
+
+    if (closestCapsuleIdx !== null && closestCapsuleHit) {
+      this.lastAgentHitPoint = closestCapsuleHit.hitPoint;
+      this.lastHitBodyPart = closestCapsuleHit.bodyPart;
+      this.hoveredBodyPart = closestCapsuleHit.bodyPart;
+      return closestCapsuleIdx;
+    }
+
+    // 2. Fallback to bounding sphere for forgiving interaction
     let closestT = Infinity;
     let closestIdx: number | null = null;
 
@@ -249,8 +291,21 @@ export class InputManager {
 
     if (closestIdx !== null && closestT < Infinity) {
       this.lastAgentHitPoint = ray.origin.clone().addScaledVector(ray.direction, closestT);
+      const cy = positions[closestIdx * 4 + 1];
+      const relY = this.lastAgentHitPoint.y - cy;
+      if (relY > 0.8) {
+        this.lastHitBodyPart = 'head';
+      } else if (relY > 0.5) {
+        this.lastHitBodyPart = 'chest';
+      } else if (relY > 0.25) {
+        this.lastHitBodyPart = 'pelvis';
+      } else {
+        this.lastHitBodyPart = 'footL';
+      }
+      this.hoveredBodyPart = this.lastHitBodyPart;
     } else {
       this.lastAgentHitPoint = null;
+      this.hoveredBodyPart = null;
     }
 
     return closestIdx;

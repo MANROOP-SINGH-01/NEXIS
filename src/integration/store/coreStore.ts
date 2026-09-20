@@ -367,7 +367,7 @@ export const useCoreStore = create<CoreState>()(
       boardroomHistories: {},
       agentStatuses: {},
       isKanbanOpen: true,
-      isLogOpen: true,
+      isLogOpen: false,
       isFinalOutputOpen: false,
       logFilterAgentIndex: null,
       isResizing: false,

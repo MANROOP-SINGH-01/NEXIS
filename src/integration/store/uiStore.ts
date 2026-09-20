@@ -76,6 +76,9 @@ export const useUiStore = create<CharacterState>()(
     activeAuditTaskId: null,
     setActiveAuditTaskId: (taskId: string | null) => set({ activeAuditTaskId: taskId }),
 
+    isAgentDrawerOpen: false,
+    setAgentDrawerOpen: (open: boolean) => set({ isAgentDrawerOpen: open }),
+
     llmConfig: (() => {
       try {
         const saved = localStorage.getItem('byok-config');
@@ -92,10 +95,11 @@ export const useUiStore = create<CharacterState>()(
     setInspectorTab: (tab: 'info' | 'chat') => set({ inspectorTab: tab }),
     setInstanceCount: (count: number) => set({ instanceCount: count }),
 
-    setSelectedNpc: (index: number | null) => set({
+    setSelectedNpc: (index: number | null) => set((s) => ({
       selectedNpcIndex: index,
       selectedPosition: null,
-    }),
+      isAgentDrawerOpen: index === null ? false : s.isAgentDrawerOpen,
+    })),
     setSelectedPosition: (pos: { x: number; y: number } | null) => set({ selectedPosition: pos }),
     setHoveredNpc: (index: number | null, pos: { x: number; y: number } | null) => set({
       hoveredNpcIndex: index,

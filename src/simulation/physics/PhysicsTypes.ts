@@ -59,10 +59,57 @@ export interface LimbPhysicsConfig {
 }
 
 /**
+ * Individual anatomical body regions that can be independently targeted,
+ * grabbed, pulled, and physically simulated.
+ */
+export type BodyPartId =
+  | 'head'
+  | 'chest'
+  | 'pelvis'
+  | 'armL'
+  | 'lowerArmL'
+  | 'handL'
+  | 'armR'
+  | 'lowerArmR'
+  | 'handR'
+  | 'thighL'
+  | 'calfL'
+  | 'footL'
+  | 'thighR'
+  | 'calfR'
+  | 'footR';
+
+/**
+ * Procedural landing and recovery outcomes evaluated dynamically from physics trajectories.
+ */
+export type FallOutcomeType =
+  | 'LAND_STANDING'
+  | 'LAND_STUMBLE'
+  | 'LAND_ROLL'
+  | 'LAND_BACK'
+  | 'LAND_FRONT'
+  | 'FULL_RAGDOLL';
+
+/**
+ * Result of analytical ray-collider intersection against a specific character body part.
+ */
+export interface BodyPartHitResult {
+  agentId: number;
+  bodyPart: BodyPartId;
+  boneIndex: number;
+  hitPoint: THREE.Vector3;
+  hitNormal: THREE.Vector3;
+  localPoint: THREE.Vector3;
+  worldPoint: THREE.Vector3;
+  distance: number;
+}
+
+/**
  * State of a grabbed character.
  */
 export interface GrabInfo {
   characterIndex: number;
+  bodyPart: BodyPartId;
   grabPointWorld: THREE.Vector3;
   grabOffsetLocal: THREE.Vector3;
   targetPointWorld: THREE.Vector3;
@@ -70,6 +117,9 @@ export interface GrabInfo {
   grabDistance: number;
   grabbedBoneIndex: number;
   timeGrabbed: number;
+  constraintStiffness: number;
+  stiffness?: number;
+  damping: number;
 }
 
 /**
@@ -82,6 +132,7 @@ export interface ImpactInfo {
   restitution: number;
   wobbleIntensity: number;
   timeSinceImpact: number;
+  outcomeType?: FallOutcomeType;
 }
 
 /**
@@ -89,13 +140,13 @@ export interface ImpactInfo {
  * Keeps agents strictly contained within visible walls and floor.
  */
 export const OFFICE_BOUNDS = {
-  minX: -3.90,
-  maxX: 3.90,
-  minZ: -3.90,
-  maxZ: 3.90,
+  minX: -5.20,
+  maxX: 5.20,
+  minZ: -5.20,
+  maxZ: 5.20,
   floorY: 0.0,
   ceilY: 3.50,
-  maxHeldY: 1.20,
+  maxHeldY: 2.90,
 };
 
 /**
@@ -118,9 +169,9 @@ export interface CharacterPhysicsSettings {
   maxFollowSpeed: number;           // Velocity clamp (m/s)
 
   // Airborne & Gravity
-  gravity: number;                  // Gravity acceleration m/s^2 (-30.0)
-  airDrag: number;                  // Linear air resistance (0.97)
-  angularDrag: number;              // Rotational air resistance (0.90)
+  gravity: number;                  // Gravity acceleration m/s^2 (-12.0 for floaty comical air time)
+  airDrag: number;                  // Linear air resistance (0.96)
+  angularDrag: number;              // Rotational air resistance (0.88)
 
   // Torso tilt & lean (dynamic pendulum swing)
   maxTiltPitch: number;             // Max forward/back lean (radians)
@@ -130,7 +181,7 @@ export interface CharacterPhysicsSettings {
   // Ground collision & impact
   minImpactVelocity: number;        // Threshold for triggering impact reaction (m/s)
   maxSquashCompression: number;     // Max vertical compression on hard landing
-  bounceRestitution: number;        // Elasticity of landing (0.15)
+  bounceRestitution: number;        // Elasticity of landing (0.32)
   settleThresholdSpeed: number;     // Speed below which settling begins
 
   // Recovery
@@ -147,25 +198,25 @@ export const DEFAULT_PHYSICS_SETTINGS: CharacterPhysicsSettings = {
   ceilY: OFFICE_BOUNDS.ceilY,
   maxHeldY: OFFICE_BOUNDS.maxHeldY,
 
-  followStiffness: 160.0,
-  followDamping: 20.0,
+  followStiffness: 300.0,
+  followDamping: 26.0,
   bodyMass: 1.0,
-  maxFollowSpeed: 14.0,
+  maxFollowSpeed: 45.0,
 
-  gravity: -30.0,
-  airDrag: 0.97,
-  angularDrag: 0.90,
+  gravity: -12.0,
+  airDrag: 0.96,
+  angularDrag: 0.88,
 
-  maxTiltPitch: THREE.MathUtils.degToRad(28),
-  maxTiltRoll: THREE.MathUtils.degToRad(24),
-  tiltResponsiveness: 0.22,
+  maxTiltPitch: THREE.MathUtils.degToRad(35),
+  maxTiltRoll: THREE.MathUtils.degToRad(32),
+  tiltResponsiveness: 0.25,
 
-  minImpactVelocity: 0.8,
-  maxSquashCompression: 0.16,
-  bounceRestitution: 0.15,
-  settleThresholdSpeed: 0.10,
+  minImpactVelocity: 0.6,
+  maxSquashCompression: 0.22,
+  bounceRestitution: 0.32,
+  settleThresholdSpeed: 0.12,
 
-  recoveryDuration: 0.65,
+  recoveryDuration: 0.85,
   proceduralBlendSpeed: 9.0,
 };
 

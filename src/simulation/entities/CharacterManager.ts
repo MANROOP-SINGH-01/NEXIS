@@ -5,7 +5,7 @@ import {
   atan,
   attribute, cos, float, Fn, If, instanceIndex, mat3,
   mat4, mix, positionLocal, sin, storage, texture, uint, uniform, uv, vec3,
-  vec4
+  vec4, vertexColor
 } from 'three/tsl';
 import * as THREE from 'three/webgpu';
 import { getAllAgents, getAllCharacters } from '../../data/agents';
@@ -15,7 +15,8 @@ import { AgentStateBuffer } from '../behavior/AgentStateBuffer';
 import { ExpressionBuffer } from '../behavior/ExpressionBuffer';
 import { DRACO_LIB_PATH } from '../constants';
 import { InteractivePhysicsSystem } from '../physics/InteractivePhysicsSystem';
-import { PoiManager } from '../world/PoiManager';
+import { PoiManager, PoiDef } from '../world/PoiManager';
+import { AccessoryFactory } from './AccessoryFactory';
 
 export class CharacterManager {
   private instanceCount = getAllAgents(getActiveAgentSet()).length + 1;
@@ -111,16 +112,44 @@ export class CharacterManager {
       }
 
       const coreMeshes = allMeshes.filter(m => {
-        const n = m.name.toLowerCase();
-        // Omit unskinned, co-planar accessory meshes that cause pixel-level z-fighting dithering on character heads
-        return !n.includes('cap') && !n.includes('headphones');
+        // Keep body, eyes, mouth, cap, headphones
+        return true;
       });
 
-      this.meshData = coreMeshes.map(m => ({
-        name: m.name,
-        geometry: m.geometry,
-        material: m.material as THREE.MeshStandardMaterial
-      }));
+      this.meshData = coreMeshes.map(m => {
+        const n = m.name.toLowerCase();
+        let geom = m.geometry;
+        if (n.includes('cap')) {
+          geom = AccessoryFactory.cleanCapGeometry(m.geometry);
+        }
+        return {
+          name: m.name,
+          geometry: geom,
+          material: m.material as THREE.MeshStandardMaterial
+        };
+      });
+
+      // Add signature procedural accessories
+      this.meshData.push({
+        name: 'accessory_glasses',
+        geometry: AccessoryFactory.createGlassesGeometry(),
+        material: new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.18, metalness: 0.15 })
+      });
+      this.meshData.push({
+        name: 'accessory_fedora',
+        geometry: AccessoryFactory.createFedoraGeometry(),
+        material: new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.55, metalness: 0.2 })
+      });
+      this.meshData.push({
+        name: 'accessory_antenna',
+        geometry: AccessoryFactory.createAntennaGeometry(),
+        material: new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.2, metalness: 0.9 })
+      });
+      this.meshData.push({
+        name: 'accessory_crown',
+        geometry: AccessoryFactory.createCrownGeometry(),
+        material: new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.22, metalness: 0.85 })
+      });
 
       const firstSkinnedMesh = skinnedMeshes[0];
       if (firstSkinnedMesh) {
@@ -204,6 +233,10 @@ export class CharacterManager {
    */
   public async syncFromGPU(renderer: any): Promise<Float32Array | null> {
     if (!this.posAttribute) return null;
+    // WebGL fallback mode does not have GPU compute passes; preserve authoritative CPU positions
+    if (renderer?.backend?.isWebGLBackend) {
+      return this.debugPosArray;
+    }
     try {
       const buffer = await renderer.getArrayBufferAsync(this.posAttribute);
       this.debugPosArray = new Float32Array(buffer);
@@ -212,9 +245,9 @@ export class CharacterManager {
           if (this.physicsSystem.isCharacterPhysical(i)) {
             const ctrl = this.physicsSystem.getController(i);
             if (ctrl) {
-              const clampedX = Math.max(-3.90, Math.min(3.90, ctrl.physics.position.x));
-              const clampedZ = Math.max(-3.90, Math.min(3.90, ctrl.physics.position.z));
-              const clampedY = Math.max(0.0, Math.min(1.35, ctrl.physics.position.y));
+              const clampedX = Math.max(-5.20, Math.min(5.20, ctrl.physics.position.x));
+              const clampedZ = Math.max(-5.20, Math.min(5.20, ctrl.physics.position.z));
+              const clampedY = Math.max(0.0, Math.min(3.20, ctrl.physics.position.y));
               this.debugPosArray[i * 4 + 0] = clampedX;
               this.debugPosArray[i * 4 + 1] = clampedY;
               this.debugPosArray[i * 4 + 2] = clampedZ;
@@ -261,9 +294,9 @@ export class CharacterManager {
           if (this.physicsSystem.isCharacterPhysical(i)) {
             const ctrl = this.physicsSystem.getController(i);
             if (ctrl) {
-              const clampedX = Math.max(-3.90, Math.min(3.90, ctrl.physics.position.x));
-              const clampedZ = Math.max(-3.90, Math.min(3.90, ctrl.physics.position.z));
-              const clampedY = Math.max(0.0, Math.min(1.35, ctrl.physics.position.y));
+              const clampedX = Math.max(-5.20, Math.min(5.20, ctrl.physics.position.x));
+              const clampedZ = Math.max(-5.20, Math.min(5.20, ctrl.physics.position.z));
+              const clampedY = Math.max(0.0, Math.min(3.20, ctrl.physics.position.y));
               arr[i * 4 + 0] = clampedX;
               arr[i * 4 + 1] = clampedY;
               arr[i * 4 + 2] = clampedZ;
@@ -282,8 +315,12 @@ export class CharacterManager {
       }
     }
 
-    if (this.computeNode) {
-      renderer.compute(this.computeNode);
+    if (this.computeNode && !renderer.backend?.isWebGLBackend) {
+      try {
+        renderer.compute(this.computeNode);
+      } catch {
+        // WebGL fallback mode does not support GPU compute passes
+      }
     }
   }
 
@@ -323,37 +360,67 @@ export class CharacterManager {
       if (i === system.user.index) {
         // Player spawns at (0,0,0)
         posArray[i * 4 + 0] = 0;
+        posArray[i * 4 + 1] = 0;
         posArray[i * 4 + 2] = 0;
         agentsBuffer[i] = null;
       } else {
-        const poi = spawnPois[spawnIndex % spawnPois.length];
+        // Look for dedicated workstation desk first: sit_work-${i}
+        let poi: PoiDef | null = this.poiManager?.getPoi(`sit_work-${i}`) || null;
+        if (!poi) {
+          poi = this.poiManager?.getPoi(`sit_idle-${((i - 1) % 4) + 1}`) || null;
+        }
+        if (!poi && spawnPois.length > 0) {
+          poi = spawnPois[spawnIndex % spawnPois.length];
+          spawnIndex++;
+        }
+
         if (poi) {
           this.poiManager?.occupy(poi.id, i);
           posArray[i * 4 + 0] = poi.position.x;
+          posArray[i * 4 + 1] = poi.position.y || 0;
           posArray[i * 4 + 2] = poi.position.z;
-          spawnIndex++;
           agentsBuffer[i] = poi;
         } else {
           posArray[i * 4 + 0] = (Math.random() - 0.5) * spawnRadius * 2;
+          posArray[i * 4 + 1] = 0;
           posArray[i * 4 + 2] = (Math.random() - 0.5) * spawnRadius * 2;
           agentsBuffer[i] = null;
         }
         posArray[i * 4 + 3] = 1;
-        velArray[i * 4 + 0] = (Math.random() - 0.5) * 0.1;
-        velArray[i * 4 + 2] = (Math.random() - 0.5) * 0.1;
+        velArray[i * 4 + 0] = 0;
+        velArray[i * 4 + 1] = 0;
+        velArray[i * 4 + 2] = 0;
+        velArray[i * 4 + 3] = 0;
       }
 
       colorArray[i * 3 + 0] = tempColor.r;
       colorArray[i * 3 + 1] = tempColor.g;
       colorArray[i * 3 + 2] = tempColor.b;
 
-      // Accessory logic: 0=None, 1=Headphones, 2=Cap
-      if (i === system.user.index) {
-        accessoryArray[i] = 0;
-      } else if (i === system.leadAgent.index) {
-        accessoryArray[i] = 1;
+      // Accessory assignment:
+      // 0 = None
+      // 1 = Headphones (Agent 3 - Nexus-Strategist)
+      // 2 = Cap (Agent 4 - Nexus-Writer)
+      // 3 = Glasses (Agent 2 - Nexus-Vision & User 0)
+      // 4 = Fedora (Agent 1 - Nexus-Director)
+      // 5 = Antenna (Agent 5 - Nexus-Hunter)
+      // 6 = Crown (Agent 6 - Nexus-Mirror)
+      if (i === 0) {
+        accessoryArray[i] = 3; // User wears developer nerd glasses
+      } else if (i === 1) {
+        accessoryArray[i] = 4; // Director wears executive fedora
+      } else if (i === 2) {
+        accessoryArray[i] = 3; // Vision wears glasses
+      } else if (i === 3) {
+        accessoryArray[i] = 1; // Strategist wears headphones
+      } else if (i === 4) {
+        accessoryArray[i] = 2; // Writer wears cap
+      } else if (i === 5) {
+        accessoryArray[i] = 5; // Hunter wears robot antenna
+      } else if (i === 6) {
+        accessoryArray[i] = 6; // Mirror wears golden crown
       } else {
-        accessoryArray[i] = 2;
+        accessoryArray[i] = ((i - 1) % 6) + 1;
       }
     }
 
@@ -368,19 +435,28 @@ export class CharacterManager {
     this.positionStorage = storage(this.posAttribute, 'vec4', this.instanceCount);
     this.velocityStorage = storage(this.velAttribute, 'vec4', this.instanceCount);
 
-    // Physics & state buffer — all start at mode 0 (IDLE)
+    // Physics & state buffer — initialize seated at desks for agents
     this.agentStateBuffer = new AgentStateBuffer(this.instanceCount);
     for (let i = 0; i < this.instanceCount; i++) {
-      this.setPhysicsMode(i, AgentBehavior.IDLE);
+      const poi = agentsBuffer[i];
+      const isSeated = poi && (poi.id.includes('sit') || poi.arrivalState === 'sit_work' || poi.arrivalState === 'sit_idle');
 
-      // Initial animation: start with a random negative time so they are out of sync
-      const meta = this.animationsMeta[AnimationName.IDLE];
-      if (meta) {
-        this.agentStateBuffer.setAnimation(i, meta.index, true, -Math.random() * 10);
+      if (isSeated) {
+        this.setPhysicsMode(i, AgentBehavior.SEATED);
+        const animName = poi.id.includes('work') ? AnimationName.SIT_WORK : AnimationName.SIT_IDLE;
+        const meta = this.animationsMeta[animName] || this.animationsMeta[AnimationName.IDLE];
+        if (meta) {
+          this.agentStateBuffer.setAnimation(i, meta.index, true, -Math.random() * 10);
+        }
+      } else {
+        this.setPhysicsMode(i, AgentBehavior.IDLE);
+        const meta = this.animationsMeta[AnimationName.IDLE];
+        if (meta) {
+          this.agentStateBuffer.setAnimation(i, meta.index, true, -Math.random() * 10);
+        }
       }
 
       // APPLY POI ORIENTATION
-      const poi = agentsBuffer[i];
       if (poi && (poi.id.includes('spawn') || poi.id.includes('sit'))) {
         this.setOrientation(i, poi.quaternion);
       }
@@ -468,15 +544,33 @@ export class CharacterManager {
 
       // Solo dejamos el atributo que NO se calcula en el Compute Shader
       instancedGeometry.setAttribute('instanceColor', this.colorAttribute);
-      if (this.accessoryAttribute) instancedGeometry.setAttribute('accessoryType', this.accessoryAttribute);
+      if (this.accessoryAttribute) {
+        instancedGeometry.setAttribute('accessoryType', this.accessoryAttribute);
+      } else {
+        instancedGeometry.setAttribute('accessoryType', new THREE.InstancedBufferAttribute(new Float32Array(this.instanceCount), 1));
+      }
 
       if (this.physicsSystem) {
         instancedGeometry.setAttribute('procWeight', this.physicsSystem.proceduralWeightAttribute);
         instancedGeometry.setAttribute('instanceOrientation', this.physicsSystem.orientationAttribute);
+      } else {
+        instancedGeometry.setAttribute('procWeight', new THREE.InstancedBufferAttribute(new Float32Array(this.instanceCount), 1));
+        const defaultOrientations = new Float32Array(this.instanceCount * 4);
+        for (let i = 0; i < this.instanceCount; i++) defaultOrientations[i * 4 + 3] = 1.0;
+        instancedGeometry.setAttribute('instanceOrientation', new THREE.InstancedBufferAttribute(defaultOrientations, 4));
       }
 
       const material = new THREE.MeshStandardNodeMaterial();
-      const isAccessory = name.toLowerCase().includes('headphones') || name.toLowerCase().includes('cap');
+      const isEyes = name.toLowerCase().includes('eyes');
+      const isMouth = name.toLowerCase().includes('mouth');
+      const isHeadphones = name.toLowerCase().includes('headphones');
+      const isCap = name.toLowerCase().includes('cap');
+      const isGlasses = name.toLowerCase().includes('glasses');
+      const isFedora = name.toLowerCase().includes('fedora');
+      const isAntenna = name.toLowerCase().includes('antenna');
+      const isCrown = name.toLowerCase().includes('crown');
+
+      const isAccessory = isHeadphones || isCap || isGlasses || isFedora || isAntenna || isCrown;
       const isBody = name.toLowerCase().includes('body');
       material.roughness = isBody ? 0.40 : (isAccessory ? 0.30 : 0.85);
       material.metalness = isAccessory ? 0.65 : 0.08;
@@ -489,41 +583,70 @@ export class CharacterManager {
       const instanceAlpha = animParams.z;
       const accessoryType = attribute('accessoryType', 'float');
 
-      const isEyes = name.toLowerCase().includes('eyes');
-      const isMouth = name.toLowerCase().includes('mouth');
-      const isHeadphones = name.toLowerCase().includes('headphones');
-      const isCap = name.toLowerCase().includes('cap');
-
       if (isEyes) {
         material.uvNode = uv().add(expressionData.xy);
       } else if (isMouth) {
         material.uvNode = uv().add(expressionData.zw);
       }
 
-      // Solo coloreamos el mesh cuyo nombre sea 'body' o accesorios
-      material.transparent = true;
+      // Transparency & Visibility: only facial features (eyes/mouth) use transparency decal blending
+      material.transparent = isEyes || isMouth;
 
+      let isVisible = float(1.0);
       if (isHeadphones) {
-        material.opacityNode = accessoryType.equal(float(1)).select(instanceAlpha, float(0));
+        isVisible = accessoryType.equal(float(1));
       } else if (isCap) {
-        material.opacityNode = accessoryType.equal(float(2)).select(instanceAlpha, float(0));
+        isVisible = accessoryType.equal(float(2));
+      } else if (isGlasses) {
+        isVisible = accessoryType.equal(float(3));
+      } else if (isFedora) {
+        isVisible = accessoryType.equal(float(4));
+      } else if (isAntenna) {
+        isVisible = accessoryType.equal(float(5));
+      } else if (isCrown) {
+        isVisible = accessoryType.equal(float(6));
       }
 
       if (isBody || isAccessory) {
         material.depthWrite = true;
         material.depthTest = true;
 
-        const baseAlpha = isAccessory ? material.opacityNode : (map ? texture(map).a.mul(instanceAlpha) : instanceAlpha);
-
-        if (map) {
+        if (isGlasses) {
+          const vCol = vertexColor().rgb;
+          material.colorNode = vec4(vCol, instanceAlpha);
+          // Glint luminescence: white glints emit crisp light so the meme shine is vivid under all angles/shadows
+          const isWhiteGlint = vCol.r.greaterThan(float(0.5));
+          material.emissiveNode = isWhiteGlint.select(vec3(0.9, 0.9, 0.9), vec3(0.0));
+          material.roughness = 0.18;
+          material.metalness = 0.15;
+        } else if (isFedora) {
+          material.colorNode = vec4(vec3(0.18, 0.20, 0.26), instanceAlpha);
+          material.roughness = 0.55;
+          material.metalness = 0.2;
+        } else if (isAntenna) {
+          material.colorNode = vec4(vec3(0.95, 0.60, 0.15), instanceAlpha);
+          material.roughness = 0.2;
+          material.metalness = 0.9;
+        } else if (isCrown) {
+          material.colorNode = vec4(vec3(0.98, 0.78, 0.12), instanceAlpha);
+          material.roughness = 0.22;
+          material.metalness = 0.85;
+        } else if (isHeadphones) {
+          material.colorNode = vec4(vec3(0.14, 0.16, 0.24), instanceAlpha);
+          material.roughness = 0.3;
+          material.metalness = 0.65;
+        } else if (isCap) {
+          material.colorNode = vec4(vec3(0.15, 0.65, 0.45), instanceAlpha);
+          material.roughness = 0.5;
+          material.metalness = 0.1;
+        } else if (map) {
           const texColor = texture(map);
-          material.colorNode = vec4(texColor.rgb.mul(instanceColor), baseAlpha);
+          material.colorNode = vec4(texColor.rgb.mul(instanceColor), texColor.a.mul(instanceAlpha));
         } else {
-          material.colorNode = vec4(instanceColor, baseAlpha);
+          material.colorNode = vec4(instanceColor, instanceAlpha);
         }
       } else {
-        // Eyes / mouth: rendered on top of the body surface with polygon offset to avoid
-        // z-fighting, but still respect the depth buffer so they are occluded by walls etc.
+        // Eyes / mouth: rendered on top of the body surface with polygon offset
         material.depthWrite = false;
         material.depthTest = true;
         material.polygonOffset = true;
@@ -538,16 +661,17 @@ export class CharacterManager {
         }
       }
 
-      // Special skinning for static accessories
-      if ((isHeadphones || isCap) && this.headBoneIndex !== -1 && !geometry.attributes.skinIndex) {
-        const skinIndices = new Float32Array(geometry.attributes.position.count * 4).fill(this.headBoneIndex);
-        const skinWeights = new Float32Array(geometry.attributes.position.count * 4).fill(0);
-        for (let i = 0; i < geometry.attributes.position.count; i++) skinWeights[i * 4] = 1.0;
+      // Guarantee skinIndex and skinWeight exist on all character geometries so GLSLNodeBuilder attribute('skinIndex') never encounters null
+      if (!instancedGeometry.attributes.skinIndex) {
+        const posCount = geometry.attributes.position ? geometry.attributes.position.count : 0;
+        const targetBone = (isAccessory || isEyes || isMouth) && this.headBoneIndex !== -1 ? this.headBoneIndex : 0;
+        const skinIndices = new Float32Array(posCount * 4).fill(targetBone);
+        const skinWeights = new Float32Array(posCount * 4).fill(0);
+        for (let i = 0; i < posCount; i++) skinWeights[i * 4] = 1.0;
         instancedGeometry.setAttribute('skinIndex', new THREE.BufferAttribute(skinIndices, 4));
         instancedGeometry.setAttribute('skinWeight', new THREE.BufferAttribute(skinWeights, 4));
       }
 
-      const isVisible = isHeadphones ? accessoryType.equal(float(1)) : (isCap ? accessoryType.equal(float(2)) : float(1));
       const vertexNode = this.createVertexNode(isVisible.and(instanceAlpha.greaterThan(0)));
       material.positionNode = vertexNode;
       (material as any).castShadowPositionNode = vertexNode;
@@ -659,9 +783,9 @@ export class CharacterManager {
         finalPosition.assign(skinMat.mul(vec4(positionLocal, 1.0)).xyz);
       }
 
-      const offscreenPos = vec3(0, float(-9999.0), 0);
-      const worldPos = rotationMat.mul(finalPosition).add(instancePos);
-      return isVisibleNode.select(worldPos, offscreenPos);
+      const visiblePos = isVisibleNode.select(finalPosition, vec3(0, 0, 0));
+      const worldPos = rotationMat.mul(visiblePos).add(instancePos);
+      return worldPos;
     })();
   }
 
@@ -717,9 +841,9 @@ export class CharacterManager {
   public setPosition(index: number, position: THREE.Vector3): void {
     if (!this.posAttribute || index < 0 || index >= this.instanceCount) return;
     const arr = this.posAttribute.array as Float32Array;
-    const cx = Math.max(-3.90, Math.min(3.90, position.x));
-    const cy = Math.max(0.0, Math.min(1.35, position.y));
-    const cz = Math.max(-3.90, Math.min(3.90, position.z));
+    const cx = Math.max(-5.20, Math.min(5.20, position.x));
+    const cy = Math.max(0.0, Math.min(3.20, position.y));
+    const cz = Math.max(-5.20, Math.min(5.20, position.z));
     arr[index * 4 + 0] = cx;
     arr[index * 4 + 1] = cy;
     arr[index * 4 + 2] = cz;

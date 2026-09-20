@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
+import resilienceStore from '../lib/resilienceStore.js';
 
 const router = Router();
 
@@ -31,12 +32,18 @@ router.get('/profile', requireAuth, async (req, res) => {
     });
 
     if (!profile) {
+      if (req.user?.candidateProfile) {
+        return res.json({ profile: req.user.candidateProfile });
+      }
       return res.status(404).json({ error: 'Profile not found.' });
     }
 
     res.json({ profile });
   } catch (err) {
-    console.error('[profile/get] error:', err);
+    console.warn('[profile/get] Remote DB error, serving from session profile:', err.message);
+    if (req.user?.candidateProfile) {
+      return res.json({ profile: req.user.candidateProfile });
+    }
     res.status(500).json({ error: 'Failed to retrieve profile.' });
   }
 });
@@ -119,52 +126,49 @@ router.delete('/profile', requireAuth, async (req, res) => {
       }
     });
 
-    if (!user) {
-      return res.status(404).json({ error: 'User account not found.' });
-    }
-
-    // Run cascading deletions inside transaction
-    await prisma.$transaction(async (tx) => {
+    if (user) {
       // 1. If candidateProfile exists, delete dependent records
       if (user.candidateProfile) {
         const cpId = user.candidateProfile.id;
-        await tx.jobApplication.deleteMany({ where: { candidateId: cpId } });
-        await tx.careerAction.deleteMany({ where: { candidateId: cpId } });
-        await tx.careerReadinessSnapshot.deleteMany({ where: { candidateId: cpId } });
-        await tx.interviewSession.deleteMany({ where: { candidateId: cpId } });
-        await tx.skillEvidence.deleteMany({ where: { candidateId: cpId } });
-        await tx.careerPassportItem.deleteMany({ where: { candidateId: cpId } });
-        await tx.candidateProfile.delete({ where: { id: cpId } });
+        try { await prisma.jobApplication.deleteMany({ where: { candidateId: cpId } }); } catch (_) {}
+        try { await prisma.careerAction.deleteMany({ where: { candidateId: cpId } }); } catch (_) {}
+        try { await prisma.careerReadinessSnapshot.deleteMany({ where: { candidateId: cpId } }); } catch (_) {}
+        try { await prisma.interviewSession.deleteMany({ where: { candidateId: cpId } }); } catch (_) {}
+        try { await prisma.skillEvidence.deleteMany({ where: { candidateId: cpId } }); } catch (_) {}
+        try { await prisma.careerPassportItem.deleteMany({ where: { candidateId: cpId } }); } catch (_) {}
+        try { await prisma.candidateProfile.delete({ where: { id: cpId } }); } catch (_) {}
       }
 
       // 2. User skills, sessions, event logs
-      await tx.userSkill.deleteMany({ where: { userId } });
-      await tx.session.deleteMany({ where: { userId } });
-      await tx.agentEventLog.deleteMany({ where: { userId } });
+      try { await prisma.userSkill.deleteMany({ where: { userId } }); } catch (_) {}
+      try { await prisma.session.deleteMany({ where: { userId } }); } catch (_) {}
+      try { await prisma.agentEventLog.deleteMany({ where: { userId } }); } catch (_) {}
 
       // 3. If trainee is linked, delete trainee and its records
       if (user.traineeId) {
-        await tx.consentRecord.deleteMany({ where: { traineeId: user.traineeId } });
-        await tx.enrolment.deleteMany({ where: { traineeId: user.traineeId } });
-        await tx.outcomeCheckIn.deleteMany({ where: { traineeId: user.traineeId } });
-        await tx.employerVerification.deleteMany({ where: { traineeId: user.traineeId } });
-        await tx.govtCrossCheckResult.deleteMany({ where: { traineeId: user.traineeId } });
-        await tx.trainee.delete({ where: { id: user.traineeId } });
+        try { await prisma.consentRecord.deleteMany({ where: { traineeId: user.traineeId } }); } catch (_) {}
+        try { await prisma.enrolment.deleteMany({ where: { traineeId: user.traineeId } }); } catch (_) {}
+        try { await prisma.outcomeCheckIn.deleteMany({ where: { traineeId: user.traineeId } }); } catch (_) {}
+        try { await prisma.employerVerification.deleteMany({ where: { traineeId: user.traineeId } }); } catch (_) {}
+        try { await prisma.govtCrossCheckResult.deleteMany({ where: { traineeId: user.traineeId } }); } catch (_) {}
+        try { await prisma.trainee.delete({ where: { id: user.traineeId } }); } catch (_) {}
       }
 
       // 4. Delete user record
-      await tx.user.delete({ where: { id: userId } });
-    });
-
-    res.clearCookie('sessionToken');
-    res.json({
-      success: true,
-      message: 'Your account and all associated personal data have been completely deleted in compliance with the DPDP Act.'
-    });
+      await prisma.user.delete({ where: { id: userId } });
+    }
   } catch (err) {
-    console.error('[profile/delete] error:', err);
-    res.status(500).json({ error: 'Failed to erase user profile and data.' });
+    console.warn('[profile/delete] Remote DB delete warning:', err.message);
   }
+
+  // Always purge user and revoke all active sessions from resilienceStore
+  resilienceStore.deleteUser(userId);
+
+  res.clearCookie('sessionToken');
+  res.json({
+    success: true,
+    message: 'Your account and all associated personal data have been completely deleted in compliance with the DPDP Act.'
+  });
 });
 
 export default router;

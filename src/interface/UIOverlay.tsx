@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { getAgentSet, getAllAgents, getAllCharacters } from '../data/agents';
 import { useUiStore } from '../integration/store/uiStore';
@@ -7,9 +6,7 @@ import InfoModal from './InfoModal';
 import { MessageSquareWarning, PartyPopper, Siren, Loader2 } from 'lucide-react';
 import { Task, useCoreStore } from '../integration/store/coreStore';
 import { useTeamStore, useActiveTeam } from '../integration/store/teamStore';
-import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../theme/brand';
-
-
+import { USER_COLOR } from '../theme/brand';
 
 interface AlertBubbleProps {
   icon: React.ReactNode;
@@ -19,7 +16,7 @@ interface AlertBubbleProps {
   onClick?: () => void;
 }
 
-const AlertBubble: React.FC<AlertBubbleProps> = ({ icon, position, visible, color = '#facc15', onClick }) => {
+const AlertBubble: React.FC<AlertBubbleProps> = ({ icon, position, visible, color = '#F4C430', onClick }) => {
   if (!visible) return null;
 
   return (
@@ -28,7 +25,7 @@ const AlertBubble: React.FC<AlertBubbleProps> = ({ icon, position, visible, colo
       style={{
         left: position.x,
         top: position.y,
-        transform: 'translate(-50%, -100%) translateY(-10px)'
+        transform: 'translate(-50%, -100%) translateY(-10px)',
       }}
       onClick={(e) => {
         if (onClick) {
@@ -38,8 +35,15 @@ const AlertBubble: React.FC<AlertBubbleProps> = ({ icon, position, visible, colo
       }}
     >
       <div
-        className={`bg-darkDelegation/90  p-1.5 rounded-full border border-white/10 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-transform ${onClick ? 'hover:border-white/30' : ''}`}
-        style={{ color }}
+        className={`p-1.5 shadow-[2px_2px_0px_#111111] flex items-center justify-center transition-transform ${
+          onClick ? 'hover:scale-105 active:scale-95' : ''
+        }`}
+        style={{
+          backgroundColor: '#FFFFFF',
+          border: '2px solid #111111',
+          borderRadius: '0px',
+          color,
+        }}
       >
         {icon}
       </div>
@@ -58,24 +62,24 @@ function getAgentPhaseLabel(
   fallback: string,
 ): PhaseLabel {
   if (isGeneratingAsset && agentIndex === leadAgentIndex) {
-    return { text: 'Delivering...', className: 'text-indigo-400 animate-pulse' };
+    return { text: 'Delivering...', className: 'text-[#2457A6] animate-pulse' };
   }
   if (agentIndex === leadAgentIndex && phase === 'done') {
-    return { text: 'Project Ready!', className: 'text-yellow-400' };
+    return { text: 'Project Ready!', className: 'text-[#F4C430]' };
   }
   const holdTask = tasks.find(
-    t => t.assignedAgentId === agentIndex && t.status === 'on_hold',
+    (t) => t.assignedAgentId === agentIndex && t.status === 'on_hold',
   );
   if (holdTask && phase !== 'done') {
-    return { text: 'Approval Needed', className: 'text-[#7EACEA]' };
+    return { text: 'Approval Needed', className: 'text-[#E53935]' };
   }
   const activeTask = tasks.find(
-    t => t.assignedAgentId === agentIndex && t.status === 'in_progress',
+    (t) => t.assignedAgentId === agentIndex && t.status === 'in_progress',
   );
   if (activeTask) {
-    return { text: 'Working', className: 'text-emerald-400' };
+    return { text: 'Working', className: 'text-[#2E7D32]' };
   }
-  return { text: fallback, className: 'text-white/70' };
+  return { text: fallback, className: 'text-[#7A7A7A]' };
 }
 
 const UIOverlay: React.FC = () => {
@@ -98,48 +102,38 @@ const UIOverlay: React.FC = () => {
   const npcAgents = getAllAgents(system);
   const allPossibleAgents = getAllCharacters(system);
 
-  const selectedAgent = selectedNpcIndex != null ? allPossibleAgents.find(a => a.index === selectedNpcIndex) as any ?? null : null;
-  const hoveredAgent = hoveredNpcIndex != null ? allPossibleAgents.find(a => a.index === hoveredNpcIndex) as any ?? null : null;
-
+  const selectedAgent = selectedNpcIndex != null ? allPossibleAgents.find((a) => a.index === selectedNpcIndex) as any ?? null : null;
+  const hoveredAgent = hoveredNpcIndex != null ? allPossibleAgents.find((a) => a.index === hoveredNpcIndex) as any ?? null : null;
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden select-none">
+    <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden select-none font-sans">
       {/* 1. Parallel Alert Bubbles System */}
       {npcAgents.map((agent) => {
         const pos = npcScreenPositions[agent.index];
         if (!pos) return null;
 
-        // Condition: Alert disappears when hovered
         const isCurrentlyHovered = hoveredNpcIndex === agent.index || selectedNpcIndex === agent.index;
         if (isCurrentlyHovered) return null;
 
         let alertIcon: React.ReactNode = null;
-        let alertColor = '#facc15'; // Default yellow
+        let alertColor = '#F4C430'; // Bauhaus yellow
 
-        // Check specific conditions
-        // - Lead Agent (index 1) idle: siren
         if (agent.index === system.leadAgent.index && isGeneratingAsset) {
-          alertIcon = <Loader2 size={18} className="animate-spin" />;
-          alertColor = '#818cf8'; // Indigo-400
-        }
-        else if (agent.index === system.leadAgent.index && phase === 'idle') {
-          alertIcon = <Siren size={18} />;
-          alertColor = '#ffffff'; // White for siren
-        }
-        // - Lead Agent (index 1) project finished: party-popper
-        else if (agent.index === system.leadAgent.index && phase === 'done') {
-          alertIcon = <PartyPopper size={18} />;
-          alertColor = '#facc15'; // Yellow
-        }
-        // - Any agent waiting for USER approval (target 0): message-square-warning
-        else {
-          const pendingTask = tasks.find(t => 
-            t.status === 'on_hold' && 
-            t.assignedAgentId === agent.index
+          alertIcon = <Loader2 size={16} className="animate-spin" />;
+          alertColor = '#2457A6'; // Bauhaus blue
+        } else if (agent.index === system.leadAgent.index && phase === 'idle') {
+          alertIcon = <Siren size={16} />;
+          alertColor = '#111111';
+        } else if (agent.index === system.leadAgent.index && phase === 'done') {
+          alertIcon = <PartyPopper size={16} />;
+          alertColor = '#F4C430';
+        } else {
+          const pendingTask = tasks.find(
+            (t) => t.status === 'on_hold' && t.assignedAgentId === agent.index,
           );
           if (pendingTask) {
-            alertIcon = <MessageSquareWarning size={18} />;
-            alertColor = USER_COLOR;
+            alertIcon = <MessageSquareWarning size={16} />;
+            alertColor = '#E53935'; // Bauhaus red
           }
         }
 
@@ -157,9 +151,8 @@ const UIOverlay: React.FC = () => {
         );
       })}
 
-      {/* 2. Selection/Hover/Project Ready Bubble (Detailed) */}
+      {/* 2. Selection/Hover Bubble (Bauhaus Editorial Badge) */}
       {(() => {
-        // Priority 1: Selected Agent
         if (selectedAgent && selectedPosition) {
           const isLeadAgentProjectReady = selectedAgent.index === system.leadAgent.index && phase === 'done';
           const label = getAgentPhaseLabel(selectedAgent.index, system.leadAgent.index, tasks, phase, isGeneratingAsset, '');
@@ -170,31 +163,51 @@ const UIOverlay: React.FC = () => {
               style={{
                 left: selectedPosition.x,
                 top: selectedPosition.y,
-                transform: 'translate(-50%, -100%) translateY(-10px)'
+                transform: 'translate(-50%, -100%) translateY(-10px)',
               }}
             >
-              <div className="bg-darkDelegation/90  px-3 py-1.5 rounded-full border border-white/10 shadow-xl flex items-center gap-2 whitespace-nowrap animate-in fade-in zoom-in-95 duration-200">
+              <div
+                className="px-3 py-1.5 flex items-center gap-2 whitespace-nowrap shadow-[3px_3px_0px_#111111] animate-in fade-in zoom-in-95 duration-150"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  border: '2px solid #111111',
+                  borderRadius: '0px',
+                }}
+              >
                 <div
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ backgroundColor: selectedAgent.color }}
+                  className="w-2 h-2 shrink-0"
+                  style={{ backgroundColor: selectedAgent.color, borderRadius: '0px' }}
                 />
                 <div className="flex items-center gap-1.5">
                   {selectedAgent.index === system.user.index ? (
-
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white">{selectedAgent.name} (You)</span>
+                    <span
+                      className="text-[10px] font-bold uppercase tracking-widest text-[#111111]"
+                      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                    >
+                      {selectedAgent.name} (You)
+                    </span>
                   ) : isLeadAgentProjectReady ? (
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${label.className}`}>
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-widest ${label.className}`}
+                      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                    >
                       {label.text}
                     </span>
                   ) : (
                     <>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-white">
+                      <span
+                        className="text-[10px] font-bold uppercase tracking-widest text-[#111111]"
+                        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                      >
                         {selectedAgent.name}
                       </span>
                       {label.text && (
                         <>
-                          <span className="text-[10px] font-medium uppercase tracking-widest text-white/40">·</span>
-                          <span className={`text-[10px] font-bold uppercase tracking-widest ${label.className}`}>
+                          <span className="text-[10px] text-[#7A7A7A]">/</span>
+                          <span
+                            className={`text-[10px] font-bold uppercase tracking-widest ${label.className}`}
+                            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                          >
                             {label.text}
                           </span>
                         </>
@@ -207,7 +220,6 @@ const UIOverlay: React.FC = () => {
           );
         }
 
-        // Priority 2: Hovered Agent with dynamic phase label (only if not selected)
         if (hoveredAgent && hoverPosition && hoveredNpcIndex !== selectedNpcIndex) {
           const isLeadAgentProjectReady = hoveredAgent.index === system.leadAgent.index && phase === 'done';
           const label = getAgentPhaseLabel(hoveredAgent.index, system.leadAgent.index, tasks, phase, isGeneratingAsset, '');
@@ -218,31 +230,51 @@ const UIOverlay: React.FC = () => {
               style={{
                 left: hoverPosition.x,
                 top: hoverPosition.y,
-                transform: 'translate(-50%, -100%) translateY(-10px)'
+                transform: 'translate(-50%, -100%) translateY(-10px)',
               }}
             >
-              <div className="bg-darkDelegation/90  px-3 py-1.5 rounded-full border border-white/10 shadow-xl flex items-center gap-2 whitespace-nowrap animate-in fade-in zoom-in-95 duration-200">
+              <div
+                className="px-3 py-1.5 flex items-center gap-2 whitespace-nowrap shadow-[2px_2px_0px_#111111] animate-in fade-in zoom-in-95 duration-150"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #111111',
+                  borderRadius: '0px',
+                }}
+              >
                 <div
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ backgroundColor: hoveredAgent.color }}
+                  className="w-2 h-2 shrink-0"
+                  style={{ backgroundColor: hoveredAgent.color, borderRadius: '0px' }}
                 />
                 <div className="flex items-center gap-1.5">
                   {hoveredAgent.index === system.user.index ? (
-
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white">{hoveredAgent.name} (You)</span>
+                    <span
+                      className="text-[10px] font-bold uppercase tracking-widest text-[#111111]"
+                      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                    >
+                      {hoveredAgent.name} (You)
+                    </span>
                   ) : isLeadAgentProjectReady ? (
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${label.className}`}>
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-widest ${label.className}`}
+                      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                    >
                       {label.text}
                     </span>
                   ) : (
                     <>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-white">
+                      <span
+                        className="text-[10px] font-bold uppercase tracking-widest text-[#111111]"
+                        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                      >
                         {hoveredAgent.name}
                       </span>
                       {label.text && (
                         <>
-                          <span className="text-[10px] font-medium uppercase tracking-widest text-white/40">·</span>
-                          <span className={`text-[10px] font-bold uppercase tracking-widest ${label.className}`}>
+                          <span className="text-[10px] text-[#7A7A7A]">/</span>
+                          <span
+                            className={`text-[10px] font-bold uppercase tracking-widest ${label.className}`}
+                            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                          >
                             {label.text}
                           </span>
                         </>
@@ -265,11 +297,23 @@ const UIOverlay: React.FC = () => {
           style={{
             left: hoverPosition.x,
             top: hoverPosition.y,
-            transform: 'translate(-50%, -100%) translateY(-10px)'
+            transform: 'translate(-50%, -100%) translateY(-10px)',
           }}
         >
-          <div className="bg-darkDelegation/90  px-3 py-1.5 rounded-full border border-white/10 shadow-xl flex items-center gap-2 whitespace-nowrap animate-in fade-in zoom-in-95 duration-200">
-            <span className="text-[10px] font-black uppercase tracking-widest text-white">{hoveredPoiLabel}</span>
+          <div
+            className="px-3 py-1 flex items-center gap-2 whitespace-nowrap shadow-[2px_2px_0px_#111111]"
+            style={{
+              backgroundColor: '#111111',
+              color: '#F5F0E6',
+              borderRadius: '0px',
+            }}
+          >
+            <span
+              className="text-[10px] font-bold uppercase tracking-widest"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              {hoveredPoiLabel}
+            </span>
           </div>
         </div>
       )}

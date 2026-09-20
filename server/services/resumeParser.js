@@ -1,9 +1,44 @@
-/**
- * FILE: server/services/resumeParser.js
- * PURPOSE: Resume text extraction, section detection, and structured data parsing.
- * DEPENDENCIES: None
- * USED BY: server/services/resumeBuilder.js, routes/resume.js
- */
+import { parseDocxBuffer } from './docxParser.js'
+import { normalizeTextToResumeDocument } from './documentNormalizer.js'
+
+export async function parseResumeBuffer(buffer, options = {}) {
+  const fileName = options.fileName || options.originalname || ''
+  const mimeType = options.mimeType || options.mimetype || ''
+
+  const isDocx = /\.docx$/i.test(fileName) || mimeType.includes('wordprocessingml') || mimeType.includes('docx')
+
+  if (isDocx) {
+    const docxResult = await parseDocxBuffer(buffer, { fileName, ...options })
+    return {
+      format: 'docx',
+      fileName,
+      pages: 1,
+      text: docxResult.text,
+      document: docxResult.document,
+    }
+  }
+
+  // Default to PDF
+  const { PDFParse } = await import('pdf-parse')
+  const parser = new PDFParse({ data: buffer })
+  const textResult = await parser.getText()
+  await parser.destroy()
+
+  const text = (textResult.text || '').trim()
+  const document = normalizeTextToResumeDocument(text, {
+    sourceFormat: 'pdf',
+    fileName,
+    ...options,
+  })
+
+  return {
+    format: 'pdf',
+    fileName,
+    pages: textResult.pages?.length || textResult.total || 1,
+    text,
+    document,
+  }
+}
 
 export function isSectionHeader(line) {
   const u = String(line || '').toUpperCase().replace(/[^A-Z\s&]/g, '').trim()

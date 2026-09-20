@@ -14,18 +14,25 @@ export const AgentActivityHUD: React.FC = () => {
 
   return (
     <div 
-      className="absolute inset-0 bg-zinc-950 flex flex-col p-6 z-40 text-white animate-in fade-in duration-300"
+      className="absolute inset-0 flex flex-col p-6 z-40 animate-in fade-in duration-200 overflow-y-auto"
+      style={{
+        backgroundColor: '#F5F0E6',
+        fontFamily: "'Space Grotesk', sans-serif",
+        color: '#111111',
+      }}
       aria-live="polite"
       role="status"
     >
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between pb-6 mb-6 border-b-2 border-[#111111]">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-zinc-100 flex items-center gap-3">
-            <Zap className="w-6 h-6 text-yellow-500" />
-            2D Activity Fallback
-          </h2>
-          <p className="text-zinc-400 mt-1 text-sm">
-            3D rendering suspended due to sustained low framerate. Real-time telemetry active.
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2.5 h-2.5 bg-[#E53935]" />
+            <h2 className="text-xl font-black tracking-widest uppercase text-[#111111]">
+              01 // 2D TELEMETRY OVERLAY
+            </h2>
+          </div>
+          <p className="text-xs font-bold text-[#7A7A7A] uppercase tracking-wider">
+            3D rendering suspended. Real-time autonomous node telemetry active.
           </p>
         </div>
         <button
@@ -37,90 +44,46 @@ export const AgentActivityHUD: React.FC = () => {
               setLowFpsFallback(false);
             }
           }}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition-all shadow-md shadow-blue-500/20 active:scale-95 cursor-pointer"
+          className="px-5 py-2.5 bg-[#111111] hover:bg-[#E53935] text-white text-xs font-black uppercase tracking-widest transition-colors cursor-pointer border border-[#111111] shadow-[3px_3px_0px_#111111]"
         >
-          Resume 3D Render
+          RESUME 3D WORKSPACE →
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-max">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {agents.map((agent) => {
           const status = agentStatuses[agent.index] || 'idle';
           
           return (
             <div 
               key={agent.index}
-              className={`p-5 rounded-xl border flex flex-col gap-3 transition-colors ${
-                status === 'working' 
-                  ? 'bg-blue-900/20 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]' 
-                  : status === 'talking'
-                  ? 'bg-emerald-900/20 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
-                  : status === 'success'
-                  ? 'bg-green-900/20 border-green-500/30'
-                  : status === 'error'
-                  ? 'bg-red-900/20 border-red-500/30'
-                  : status === 'dragged'
-                  ? 'bg-orange-900/20 border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.1)]'
-                  : 'bg-zinc-900/50 border-zinc-800'
-              }`}
+              className="p-5 flex flex-col gap-3 transition-colors bg-[#FFFFFF] border-2 border-[#111111] shadow-[3px_3px_0px_#111111]"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${
-                    status === 'working' ? 'bg-blue-500/20 text-blue-400' :
-                    status === 'talking' ? 'bg-emerald-500/20 text-emerald-400' :
-                    status === 'success' ? 'bg-green-500/20 text-green-400' :
-                    status === 'error' ? 'bg-red-500/20 text-red-400' :
-                    status === 'dragged' ? 'bg-orange-500/20 text-orange-400' :
-                    'bg-zinc-800 text-zinc-400'
-                  }`}>
-                    <Bot className="w-5 h-5" />
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="text-[10px] font-bold text-[#7A7A7A] uppercase tracking-widest mb-0.5">
+                    NODE 0{agent.index + 1}
                   </div>
-                  <div>
-                    <div className="font-semibold text-zinc-200">{agent.name}</div>
-                    <div className="text-xs text-zinc-500">{agent.description}</div>
-                  </div>
+                  <div className="text-sm font-black uppercase text-[#111111]">{agent.name}</div>
+                  <div className="text-xs text-[#555555] mt-0.5 leading-snug">{agent.description}</div>
                 </div>
-                
-                {status === 'working' && <Activity className="w-4 h-4 text-blue-400 animate-pulse" />}
-                {status === 'talking' && <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />}
-                {status === 'success' && <CheckCircle2 className="w-4 h-4 text-green-400" />}
-                {status === 'error' && <AlertCircle className="w-4 h-4 text-red-400" />}
-                {status === 'dragged' && <Move className="w-4 h-4 text-orange-400 animate-bounce" />}
-                {status === 'idle' && <CheckCircle2 className="w-4 h-4 text-zinc-600" />}
+                <span className="text-xs">
+                  {status === 'working' ? '■' : status === 'talking' ? '▲' : status === 'success' ? '●' : '○'}
+                </span>
               </div>
 
-              <div className="mt-2 text-sm">
-                {status === 'working' && (
-                  <span className="text-blue-400 flex items-center gap-2">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                    </span>
-                    Processing task...
-                  </span>
-                )}
-                {status === 'talking' && (
-                  <span className="text-emerald-400 flex items-center gap-2">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                    Communicating...
-                  </span>
-                )}
-                {status === 'success' && (
-                  <span className="text-green-400">Task completed</span>
-                )}
-                {status === 'error' && (
-                  <span className="text-red-400">Task failed</span>
-                )}
-                {status === 'dragged' && (
-                  <span className="text-orange-400">Repositioning...</span>
-                )}
-                {status === 'idle' && (
-                  <span className="text-zinc-500">Standby</span>
-                )}
+              <div className="mt-2 pt-2 border-t border-[#111111]/10 flex items-center justify-between text-xs font-bold uppercase tracking-wider">
+                <span className="text-[10px] text-[#7A7A7A]">STATUS</span>
+                <span style={{
+                  color: status === 'working' ? '#2457A6' : status === 'talking' ? '#F4C430' : status === 'success' ? '#2E7D32' : status === 'error' ? '#E53935' : '#111111'
+                }}>
+                  {status === 'working' ? '■ PROCESSING' :
+                   status === 'talking' ? '▲ COMMUNICATING' :
+                   status === 'success' ? '● COMPLETE' :
+                   status === 'error' ? '✖ FAILED' :
+                   status === 'dragged' ? '▲ REPOSITIONING' :
+                   '○ STANDBY'}
+                </span>
               </div>
             </div>
           );

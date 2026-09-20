@@ -23,6 +23,7 @@ import { useCoreStore } from '../integration/store/coreStore'
 import { useUiStore } from '../integration/store/uiStore'
 import { getAuthHeaders } from '../integration/store/authStore'
 import { jsPDF } from 'jspdf'
+import { colors } from '../theme/bauhaus';
 
 function tokenize(text: string): string[] {
   return String(text || '')
@@ -224,22 +225,26 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
     return text.trim() ? text.trim().split(/\s+/).length : 0
   }
 
-  const handlePdfUpload = async (file: File) => {
-    if (!file || file.type !== 'application/pdf') {
-      setError('Please upload a valid PDF resume.')
+  const handleDocumentUpload = async (file: File) => {
+    const isDoc = file.name.endsWith('.docx') || file.name.endsWith('.doc')
+    const isPdf = file.name.endsWith('.pdf') || file.type === 'application/pdf'
+    if (!isDoc && !isPdf) {
+      setError('Please upload a PDF or Microsoft Word (.docx) resume file.')
       return
     }
 
     setError(null)
     setLoading(true)
-    setOrchestrationStep('Extracting PDF structure...')
+    const formatLabel = isDoc ? 'Word (.docx)' : 'PDF'
+    setOrchestrationStep(`Extracting ${formatLabel} structure...`)
     try {
       let extractedText = ''
       let pages = 1
 
-      // 1. Server-side PDF extraction attempt
+      // 1. Server-side dual-format extraction attempt
       try {
         const form = new FormData()
+        form.append('resume', file)
         form.append('resumePdf', file)
         const res = await fetch('/api/resume/extract', {
           method: 'POST',
@@ -255,11 +260,14 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
         if (res.ok && json?.text) {
           extractedText = json.text
           pages = json.pages || 1
+          if (json.document || json.structured) {
+            setStructuredResume(json.document || json.structured)
+          }
         }
       } catch { }
 
-      // 2. Client-side fallback if server is unreachable
-      if (!extractedText.trim()) {
+      // 2. Client-side fallback if server is unreachable (for PDF)
+      if (!extractedText.trim() && isPdf) {
         try {
           const buffer = await file.arrayBuffer()
           const textDecoder = new TextDecoder('utf-8')
@@ -291,16 +299,17 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
       clearResumeAnalysis()
       addNexusActivityEntry({
         agentType: 'writer',
-        action: 'Resume PDF Parsed',
+        action: `Resume ${isDoc ? 'Word (DOCX)' : 'PDF'} Parsed`,
         result: {
           fileName: file.name,
+          format: isDoc ? 'docx' : 'pdf',
           pages,
           preview: extractedText.slice(0, 180),
         },
         impact: 'positive',
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'PDF extraction failed')
+      setError(err instanceof Error ? err.message : 'Resume extraction failed')
     } finally {
       setLoading(false)
       setOrchestrationStep('')
@@ -516,54 +525,82 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
   }
 
   return (
-    <aside className="w-96 shrink-0 border-l border-[rgba(255,255,255,0.08)] bg-[#121317]/95 backdrop-blur-xl flex flex-col h-full z-20 font-sans shadow-[-8px_0_32px_rgba(0,0,0,0.5)] overflow-hidden select-none">
-      {/* 1. Header Bar with 40px hit target close button */}
-      <div className="h-14 px-4 border-b border-[rgba(255,255,255,0.08)] bg-[#121317] flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#FF5C1A] text-white flex items-center justify-center shadow-md shadow-[#FF5C1A]/20">
-            <Cpu size={16} />
-          </div>
+    <aside
+      className="w-full sm:w-[420px] md:w-[460px] max-w-[calc(100vw-32px)] shrink-0 flex flex-col h-full min-h-0 z-40 font-sans overflow-hidden select-none"
+      style={{
+        backgroundColor: '#F5F0E6',
+        borderLeft: '2px solid #111111',
+      }}
+    >
+      {/* 1. Bauhaus Header Bar */}
+      <div
+        className="h-14 px-5 flex items-center justify-between shrink-0"
+        style={{
+          backgroundColor: '#FFFFFF',
+          borderBottom: '2px solid #111111',
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className="w-3 h-3 bg-[#E53935] shrink-0"
+            title="Nexus Mission 01"
+          />
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-white tracking-wider uppercase">
-                MISSION DISPATCH
-              </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-semibold bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] shadow-[0_0_6px_#22C55E]" />
-                LIVE
-              </span>
-            </div>
-            <p className="text-[10px] text-[#6B7280]">
-              Autonomous Multi-Agent Telemetry
-            </p>
+            <span
+              className="text-sm font-black text-[#111111] tracking-widest uppercase block leading-tight"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              MISSION // 01
+            </span>
+            <span
+              className="text-[10px] uppercase font-bold tracking-wider text-[#7A7A7A] block"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              Candidate Pipeline Workspace
+            </span>
           </div>
         </div>
 
         {onClose && (
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-[#6B7280] hover:text-white hover:bg-[#1A1B20] transition-colors cursor-pointer"
-            title="Collapse Dispatch Panel"
-            aria-label="Collapse Dispatch Panel"
+            className="h-8 px-2.5 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 text-[#111111] hover:bg-[#EFE7D8] transition-colors cursor-pointer"
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              border: '1px solid #111111',
+              borderRadius: '0px',
+            }}
+            title="Close Mission Drawer"
+            aria-label="Close Mission Drawer"
           >
-            <X size={16} />
+            <X size={13} />
+            <span>CLOSE</span>
           </button>
         )}
       </div>
 
       {/* 2. Scrollable Configuration Body */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-        {/* Quick Demo Preset Trigger */}
-        <div className="bg-[#16171D] border border-[rgba(255,255,255,0.08)] rounded-[10px] p-3.5 shadow-xs">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#9CA3AF] flex items-center gap-1.5">
-              <Sparkles size={12} className="text-[#FF5C1A]" />
-              Quick Priming
+      <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar">
+        {/* Section 11: Quick Priming / Demo Scenario */}
+        <div
+          className="p-4"
+          style={{
+            backgroundColor: '#FFFFFF',
+            border: '2px solid #111111',
+          }}
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <span
+              className="text-[10px] font-bold uppercase tracking-widest text-[#7A7A7A]"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              01 // DEMO SCENARIO
             </span>
             {(resumeLen > 0 || jdLen > 0) && (
               <button
                 onClick={handleClearAll}
-                className="text-[10px] font-mono text-[#6B7280] hover:text-[#EF4444] flex items-center gap-1 cursor-pointer transition-colors"
+                className="text-[10px] font-bold uppercase tracking-wider text-[#7A7A7A] hover:text-[#E53935] flex items-center gap-1 cursor-pointer transition-colors"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                 title="Clear all fields"
               >
                 <RotateCcw size={10} />
@@ -571,52 +608,95 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
               </button>
             )}
           </div>
+
+          <div className="mb-3">
+            <h4
+              className="text-base font-black text-[#111111] uppercase tracking-tight"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              Priya Sharma
+            </h4>
+            <p className="text-[11px] text-[#555555]">
+              Lead Full-Stack Engineer • Razorpay Target Scenario
+            </p>
+          </div>
+
           <button
             onClick={handleLoadDemo}
-            className="w-full h-9 rounded-lg bg-[#FF5C1A]/10 hover:bg-[#FF5C1A]/20 text-[#FF5C1A] border border-[#FF5C1A]/30 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99]"
+            className="group w-full h-10 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer transition-all duration-150 ease-out hover:-translate-y-0.5 active:translate-y-0.5 hover:bg-[#FFFFFF] motion-reduce:transform-none"
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              backgroundColor: '#F5F0E6',
+              color: '#111111',
+              border: '2px solid #111111',
+              boxShadow: '2px 2px 0px #111111',
+            }}
           >
-            <Zap size={14} className="fill-[#FF5C1A]" />
-            <span>Load Demo Candidate (Priya Sharma)</span>
+            <Zap size={13} className="fill-[#F4C430] text-[#111111] transition-transform duration-150 group-hover:scale-110" />
+            <span>LOAD DEMO SCENARIO</span>
+            <span className="transition-transform duration-150 ease-out group-hover:translate-x-1">→</span>
           </button>
         </div>
 
-        {/* Card 1: Candidate Resume (Elevated Glass Card) */}
-        <div className="bg-[#16171D] border border-[rgba(255,255,255,0.08)] rounded-[10px] p-4 shadow-xs space-y-3">
+        {/* Section 12: Candidate Resume Dropzone */}
+        <div
+          className="p-4 relative"
+          style={{
+            backgroundColor: '#FFFFFF',
+            border: '2px solid #111111',
+          }}
+        >
           <input
             ref={fileRef}
             type="file"
-            accept="application/pdf"
+            accept=".pdf,.docx,.doc,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword"
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0]
-              if (file) void handlePdfUpload(file)
+              if (file) void handleDocumentUpload(file)
             }}
           />
 
-          {/* Card Header Row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-[#3B82F6]/15 text-[#3B82F6] flex items-center justify-center">
-                <FileText size={13} />
-              </div>
-              <span className="text-xs font-mono font-semibold uppercase tracking-wider text-white">
-                CANDIDATE RESUME
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 bg-[#111111]" />
+              <span
+                className="text-[10px] font-bold uppercase tracking-widest text-[#111111]"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                02 // CANDIDATE RESUME
               </span>
             </div>
 
             {isResumeReady ? (
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium text-[#22C55E] bg-[#22C55E]/10 border border-[#22C55E]/20 px-2 py-0.5 rounded-full">
+              <span
+                className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5"
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  backgroundColor: 'rgba(46,125,50,0.1)',
+                  color: '#2E7D32',
+                  border: '1px solid rgba(46,125,50,0.3)',
+                }}
+              >
                 <CheckCircle2 size={10} />
                 {wordCount(currentResume.content)} words
               </span>
             ) : (
-              <span className="text-[10px] font-mono text-[#F59E0B] bg-[#F59E0B]/10 border border-[#F59E0B]/20 px-2 py-0.5 rounded-full">
+              <span
+                className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5"
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  backgroundColor: '#F5F0E6',
+                  color: '#E53935',
+                  border: '1px solid #E53935',
+                }}
+              >
                 Required
               </span>
             )}
           </div>
 
-          {/* Dropzone / Upload State */}
+          {/* Editorial Dropzone */}
           <div
             onDragOver={(e) => {
               e.preventDefault()
@@ -627,56 +707,73 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
               e.preventDefault()
               setIsDragOver(false)
               const file = e.dataTransfer.files?.[0]
-              if (file) void handlePdfUpload(file)
+              if (file) void handleDocumentUpload(file)
             }}
             onClick={() => fileRef.current?.click()}
-            className={`border border-dashed rounded-lg p-3 text-center transition-all cursor-pointer ${
-              isDragOver
-                ? 'border-[#FF5C1A] bg-[#FF5C1A]/10'
-                : isResumeReady
-                ? 'border-[rgba(255,255,255,0.12)] bg-[#121317] hover:border-[rgba(255,255,255,0.25)]'
-                : 'border-[rgba(255,255,255,0.12)] bg-[#121317] hover:border-[#FF5C1A] hover:bg-[#1A1B20]'
-            }`}
+            className="p-4 text-center transition-all cursor-pointer relative"
+            style={{
+              backgroundColor: isDragOver ? 'rgba(229,57,53,0.05)' : '#F5F0E6',
+              border: `2px dashed ${isDragOver ? '#E53935' : '#111111'}`,
+            }}
           >
+            {/* Small red Bauhaus corner accent */}
+            <span className="absolute top-1 right-1 w-2 h-2 bg-[#E53935]" />
+
             {resumeFileName ? (
               <div className="flex items-center justify-between gap-2 text-left">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-7 h-7 rounded-md bg-[#FF5C1A]/15 text-[#FF5C1A] flex items-center justify-center shrink-0">
-                    <FileText size={14} />
+                  <div
+                    className="w-8 h-8 flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: '#111111', color: '#F5F0E6' }}
+                  >
+                    <FileText size={15} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-mono font-medium text-white truncate max-w-[170px]">
+                    <p className="text-xs font-mono font-bold text-[#111111] truncate max-w-[190px]">
                       {resumeFileName}
                     </p>
-                    <p className="text-[10px] text-[#6B7280]">
-                      Click to replace PDF
+                    <p className="text-[10px] text-[#555555]">
+                      Click to replace ({resumeFileName.endsWith('.docx') ? 'Word' : 'PDF'})
                     </p>
                   </div>
                 </div>
-                <span className="text-[10px] font-mono text-[#FF5C1A] hover:underline shrink-0">
+                <span
+                  className="text-[10px] font-bold uppercase text-[#E53935] hover:underline shrink-0"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                >
                   Change
                 </span>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-1.5 py-2">
-                <UploadCloud size={20} className="text-[#6B7280]" />
-                <span className="text-xs font-medium text-white">
-                  Drop PDF or click to upload
+                <UploadCloud size={24} className="text-[#111111]" />
+                <span
+                  className="text-xs font-bold uppercase tracking-tight text-[#111111]"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                >
+                  Drop your resume here
                 </span>
-                <span className="text-[10px] text-[#6B7280] font-mono">
-                  Parsed locally & privately
+                <span className="text-[10px] text-[#7A7A7A] font-mono">
+                  PDF / DOCX • Parsed privately
                 </span>
+                <div
+                  className="mt-1 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#111111] bg-[#FFFFFF] border border-[#111111]"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                >
+                  [ UPLOAD RESUME → ]
+                </div>
               </div>
             )}
           </div>
 
-          {/* Body Monospace Preview with Fade-out Gradient */}
+          {/* Inspect Parsed Content */}
           {currentResume.content && (
-            <div>
+            <div className="mt-2">
               <button
                 type="button"
                 onClick={() => setIsResumePreviewOpen(!isResumePreviewOpen)}
-                className="w-full flex items-center justify-between text-[11px] font-mono text-[#9CA3AF] hover:text-white py-1 cursor-pointer"
+                className="w-full flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[#555555] hover:text-[#111111] py-1 cursor-pointer"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
               >
                 <span>{isResumePreviewOpen ? 'Collapse Parsed Text' : 'Inspect Parsed Text'}</span>
                 {isResumePreviewOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
@@ -689,44 +786,80 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
                       setCurrentResumeContent(e.target.value)
                       clearResumeAnalysis()
                     }}
-                    className="w-full bg-[#0A0B0E] border border-[rgba(255,255,255,0.08)] rounded-lg p-2.5 text-[12px] text-[#EDEDED] font-mono leading-relaxed focus:outline-none focus:border-[#FF5C1A] resize-y custom-scrollbar"
-                    rows={6}
+                    className="w-full p-2.5 text-[12px] text-[#111111] font-mono leading-relaxed focus:outline-none resize-y custom-scrollbar"
+                    style={{
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #111111',
+                    }}
+                    rows={5}
                   />
-                  {/* Subtle fade-out gradient indicator at bottom */}
-                  <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-[#0A0B0E] to-transparent rounded-b-lg" />
                 </div>
               )}
             </div>
           )}
         </div>
 
-        {/* Card 2: Target Job Description (Elevated Glass Card) */}
-        <div className="bg-[#16171D] border border-[rgba(255,255,255,0.08)] rounded-[10px] p-4 shadow-xs space-y-3">
-          {/* Card Header Row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-[#FF5C1A]/15 text-[#FF5C1A] flex items-center justify-center">
-                <Target size={13} />
-              </div>
-              <span className="text-xs font-mono font-semibold uppercase tracking-wider text-white">
-                TARGET JOB DESCRIPTION
+        {/* Section 13: Target Job Description */}
+        <div
+          className="p-4"
+          style={{
+            backgroundColor: '#FFFFFF',
+            border: '2px solid #111111',
+          }}
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 bg-[#2457A6]" />
+              <span
+                className="text-[10px] font-bold uppercase tracking-widest text-[#111111]"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                03 // TARGET ROLE & JD
               </span>
             </div>
 
             {isJdReady ? (
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium text-[#22C55E] bg-[#22C55E]/10 border border-[#22C55E]/20 px-2 py-0.5 rounded-full">
+              <span
+                className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5"
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  backgroundColor: 'rgba(46,125,50,0.1)',
+                  color: '#2E7D32',
+                  border: '1px solid rgba(46,125,50,0.3)',
+                }}
+              >
                 <CheckCircle2 size={10} />
                 {jdLen} chars
               </span>
             ) : (
-              <span className="text-[10px] font-mono text-[#F59E0B] bg-[#F59E0B]/10 border border-[#F59E0B]/20 px-2 py-0.5 rounded-full">
+              <span
+                className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5"
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  backgroundColor: '#F5F0E6',
+                  color: '#E53935',
+                  border: '1px solid #E53935',
+                }}
+              >
                 Required
               </span>
             )}
           </div>
 
-          {/* Quick preset pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+          <div className="mb-2">
+            <p
+              className="text-xs font-bold uppercase text-[#111111] tracking-tight"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              DESIRED ROLE: SOFTWARE ENGINEER
+            </p>
+            <p className="text-[10px] font-mono text-[#7A7A7A]">
+              TARGET SKILLS: React • Node.js • TypeScript • System Architecture
+            </p>
+          </div>
+
+          {/* Quick preset triggers */}
+          <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 custom-scrollbar">
             {SAMPLE_PRESETS.map((preset) => (
               <button
                 key={preset.name}
@@ -734,7 +867,13 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
                   setTargetJD(preset.jd)
                   clearResumeAnalysis()
                 }}
-                className="px-2.5 py-1 rounded-full text-[10px] font-mono font-medium bg-[#121317] hover:bg-[#1A1B20] text-[#9CA3AF] hover:text-white border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.16)] transition-all shrink-0 cursor-pointer"
+                className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider transition-all shrink-0 cursor-pointer hover:bg-[#EFE7D8]"
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  backgroundColor: '#F5F0E6',
+                  color: '#111111',
+                  border: '1px solid #111111',
+                }}
                 title={`Load ${preset.name} JD`}
               >
                 + {preset.name}
@@ -749,72 +888,115 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
                 setTargetJD(e.target.value)
                 if (!e.target.value.trim()) clearResumeAnalysis()
               }}
-              placeholder="Paste target job requirements, skills, or job description here..."
-              className="w-full bg-[#0A0B0E] border border-[rgba(255,255,255,0.08)] rounded-lg p-2.5 text-[12px] text-[#EDEDED] font-mono placeholder-[#6B7280] focus:outline-none focus:border-[#FF5C1A] focus:ring-1 focus:ring-[#FF5C1A]/20 resize-none leading-relaxed custom-scrollbar"
+              placeholder="Paste target job requirements, skills, or JD text here..."
+              className="w-full p-2.5 text-[12px] text-[#111111] font-mono placeholder-[#888888] focus:outline-none resize-none leading-relaxed custom-scrollbar"
+              style={{
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #111111',
+              }}
               rows={4}
             />
-            {/* Fade-out gradient at bottom */}
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-[#0A0B0E] to-transparent rounded-b-lg" />
           </div>
         </div>
 
-        {/* Section 3: Multi-Agent Telemetry Roster */}
-        <div className="bg-[#16171D] border border-[rgba(255,255,255,0.08)] rounded-[10px] p-3.5 space-y-2">
-          <div className="flex items-center justify-between text-[11px] font-mono font-semibold uppercase tracking-wider text-[#9CA3AF]">
-            <span>Active Agent Roster</span>
-            <span className="text-[#22C55E] flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
-              4 Standing By
+        {/* Section 14: Active Agent Roster (Clean Editorial List) */}
+        <div
+          className="p-4"
+          style={{
+            backgroundColor: '#FFFFFF',
+            border: '2px solid #111111',
+          }}
+        >
+          <div
+            className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-[#111111] mb-2"
+            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+          >
+            <span>AGENTS / 06</span>
+            <span className="text-[#2E7D32] flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-[#2E7D32]" />
+              SYNCHRONIZED
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
-            <div className="p-2 rounded-lg bg-[#121317] border border-[rgba(255,255,255,0.08)] flex items-center gap-2">
-              <Eye size={13} className="text-[#3B82F6]" />
-              <span className="text-[#EDEDED]">Vision (Audit)</span>
-            </div>
-            <div className="p-2 rounded-lg bg-[#121317] border border-[rgba(255,255,255,0.08)] flex items-center gap-2">
-              <Brain size={13} className="text-[#A855F7]" />
-              <span className="text-[#EDEDED]">Strategist (Fit)</span>
-            </div>
-            <div className="p-2 rounded-lg bg-[#121317] border border-[rgba(255,255,255,0.08)] flex items-center gap-2">
-              <Pencil size={13} className="text-[#10B981]" />
-              <span className="text-[#EDEDED]">Writer (Tailor)</span>
-            </div>
-            <div className="p-2 rounded-lg bg-[#121317] border border-[rgba(255,255,255,0.08)] flex items-center gap-2">
-              <Target size={13} className="text-[#F59E0B]" />
-              <span className="text-[#EDEDED]">Hunter (Match)</span>
-            </div>
+          <div className="divide-y divide-[#111111] border-t border-b border-[#111111] text-[11px]">
+            {[
+              { code: '01', name: 'DIRECTOR', role: 'Career Strategy', color: colors.agents.director },
+              { code: '02', name: 'VISION', role: 'Visual UX Audit', color: colors.agents.vision },
+              { code: '03', name: 'STRATEGIST', role: 'JD Intent Mining', color: colors.agents.strategist },
+              { code: '04', name: 'WRITER', role: 'Resume Tailoring', color: colors.agents.writer },
+              { code: '05', name: 'HUNTER', role: 'Opportunity Radar', color: colors.agents.hunter },
+              { code: '06', name: 'MIRROR', role: 'Interview Pressure', color: colors.agents.mirror },
+            ].map((item) => (
+              <div
+                key={item.code}
+                className="py-1.5 px-1 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 shrink-0" style={{ backgroundColor: item.color }} />
+                  <span className="font-mono text-[10px] text-[#7A7A7A]">{item.code}</span>
+                  <span
+                    className="font-bold text-[#111111] uppercase tracking-tight"
+                    style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                  >
+                    {item.name}
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono text-[#555555]">{item.role}</span>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Dynamic Orchestration Progress */}
         {loading && (
-          <div className="bg-[#FF5C1A]/10 border border-[#FF5C1A]/30 rounded-[10px] p-3 flex items-center gap-2.5 text-xs font-mono text-[#FF5C1A] animate-pulse">
-            <Loader2 size={16} className="animate-spin shrink-0 text-[#FF5C1A]" />
+          <div
+            className="p-3 flex items-center gap-2.5 text-xs font-mono font-bold animate-pulse"
+            style={{
+              backgroundColor: 'rgba(229,57,53,0.08)',
+              border: '2px solid #E53935',
+              color: '#E53935',
+            }}
+          >
+            <Loader2 size={16} className="animate-spin shrink-0 text-[#E53935]" />
             <span>{orchestrationStep || 'Orchestrating agent mesh...'}</span>
           </div>
         )}
 
         {/* Error / Warning Alert */}
         {error && (
-          <div className="text-xs font-mono text-[#EF4444] bg-[#EF4444]/10 border border-[#EF4444]/25 rounded-[10px] p-3 flex items-start gap-2">
-            <AlertTriangle size={14} className="shrink-0 mt-0.5 text-[#EF4444]" />
+          <div
+            className="text-xs font-mono p-3 flex items-start gap-2"
+            style={{
+              backgroundColor: 'rgba(229,57,53,0.08)',
+              border: '2px solid #E53935',
+              color: '#C92C2C',
+            }}
+          >
+            <AlertTriangle size={14} className="shrink-0 mt-0.5 text-[#E53935]" />
             <span className="leading-snug">{error}</span>
           </div>
         )}
       </div>
 
-      {/* 3. Bottom Execution Tier: "RUN AGENT MESH" (Primary Action) */}
-      <div className="p-4 border-t border-[rgba(255,255,255,0.08)] bg-[#121317] space-y-2 shrink-0">
+      {/* 3. Section 15: Primary Action Tier: "RUN AGENT MESH" */}
+      <div
+        className="p-5 space-y-2 shrink-0"
+        style={{
+          backgroundColor: '#FFFFFF',
+          borderTop: '2px solid #111111',
+        }}
+      >
         <button
           onClick={handleRun}
           disabled={!canRun || loading}
-          className={`w-full h-11 rounded-lg font-bold text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
-            !canRun || loading
-              ? 'bg-[#1A1B20] text-[#6B7280] border border-[rgba(255,255,255,0.08)] cursor-not-allowed shadow-none'
-              : 'bg-gradient-to-r from-[#FF5C1A] to-[#E04006] text-white shadow-[0_0_24px_rgba(255,92,26,0.35)] hover:scale-[1.02] active:scale-[0.99]'
-          }`}
+          className="group w-full h-12 font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer transition-all duration-150 ease-out disabled:cursor-not-allowed disabled:transform-none hover:-translate-y-0.5 active:translate-y-0.5 motion-reduce:transform-none"
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            backgroundColor: !canRun || loading ? '#EFE7D8' : '#E53935',
+            color: !canRun || loading ? '#888888' : '#FFFFFF',
+            border: '2px solid #111111',
+            boxShadow: !canRun || loading ? 'none' : '4px 4px 0px #111111',
+          }}
           title={canRun ? 'Execute Multi-Agent Pipeline' : 'Provide both Candidate Resume & Target Job Description to run'}
         >
           {loading ? (
@@ -824,15 +1006,19 @@ export default function PhaseOneControlPanel({ onClose }: PhaseOneControlPanelPr
             </>
           ) : (
             <>
-              <Play size={14} className="fill-current" />
+              <Play size={15} className="fill-current transition-transform duration-150 group-hover:scale-110" />
               <span>RUN AGENT MESH</span>
+              <span className="transition-transform duration-150 ease-out group-hover:translate-x-1">→</span>
             </>
           )}
         </button>
 
         {!canRun && !loading && (
-          <p className="text-[10px] font-mono text-center text-[#6B7280]">
-            {!resumeLen ? '⚡ Upload PDF or click "Load Demo Candidate"' : 'Paste Target Job Description (>30 chars)'}
+          <p
+            className="text-[10px] text-center text-[#7A7A7A] uppercase font-bold tracking-wider"
+            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+          >
+            {!resumeLen ? 'Upload resume or click "Load Demo"' : 'Paste Target Job Description'}
           </p>
         )}
       </div>

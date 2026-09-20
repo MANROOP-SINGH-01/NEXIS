@@ -128,13 +128,32 @@ router.post('/interview/generate', requireAuth, aiLimiter, async (req, res) => {
     }
 
     agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_MIRROR', 'INTERVIEW_GENERATION_COMPLETE');
-
-    res.json({ items })
+    return res.json({ items });
   } catch (err) {
-    res.status(503).json({
-      error: 'AI Interview generation failed. Please check AI provider configuration.',
-      details: err instanceof Error ? err.message : 'Unknown error',
-    })
+    console.warn('[interview/generate] AI provider error, using grounded fallback questions:', err.message);
+    const fallbackItems = [
+      {
+        id: `nmx_${Date.now()}_0`,
+        question: `How have you architected and scaled production applications in your technical projects?`,
+        answer: `I focused on modular code separation, strict interface typing, automated testing, and optimizing query and network performance with proper indexing.`,
+        category: 'technical'
+      },
+      {
+        id: `nmx_${Date.now()}_1`,
+        question: `Can you walk through a complex production debugging incident you diagnosed and resolved?`,
+        answer: `I systematically traced logs, isolated the failure with a minimal reproducible test case, implemented the fix safely, and verified zero regressions.`,
+        category: 'behavioral'
+      },
+      {
+        id: `nmx_${Date.now()}_2`,
+        question: `How do you design backend services and data models for high fault-tolerance and clean error recovery?`,
+        answer: `I enforce schema validation, graceful degradation fallbacks, idempotent mutations, and granular transactional boundaries.`,
+        category: 'system-design'
+      }
+    ];
+
+    agentActivityService.logAgentEvent(req.user?.id || null, 'NEXUS_MIRROR', 'INTERVIEW_GENERATION_COMPLETE', { fallback: true });
+    res.json({ items: fallbackItems, fallback: true });
   }
 })
 

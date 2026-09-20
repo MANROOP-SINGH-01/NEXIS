@@ -1,4 +1,4 @@
-﻿import PDFDocument from 'pdfkit'
+import PDFDocument from 'pdfkit'
 
 /**
  * FILE: server/services/pdfGenerator.js
@@ -26,8 +26,8 @@ export function buildResumePdfFromStructured(sr) {
       const rightMargin = doc.page.margins.right
       const contentWidth = doc.page.width - leftMargin - rightMargin // ~499.28 pt
 
-      // Extract and clean sections
-      const h = sr?.header || {}
+      // Extract and clean sections (supports both ResumeDocument and legacy structured format)
+      const h = sr?.contact || sr?.header || {}
       const name = String(h.name || '').trim()
       const title = String(h.title || '').trim()
       const contactParts = [h.email, h.phone, h.location].filter((x) => x && String(x).trim())
@@ -52,7 +52,9 @@ export function buildResumePdfFromStructured(sr) {
         (p) => p && (p.name || (Array.isArray(p.bullets) && p.bullets.length))
       )
 
-      const certifications = (Array.isArray(sr?.certifications) ? sr.certifications : [])
+      const rawCerts = Array.isArray(sr?.certifications) ? sr.certifications : []
+      const rawAchievements = Array.isArray(sr?.achievements) ? sr.achievements : []
+      const certifications = [...rawCerts, ...rawAchievements]
         .map((c) => String(c).trim())
         .filter(Boolean)
 

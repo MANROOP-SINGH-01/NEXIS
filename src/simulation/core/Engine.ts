@@ -1,6 +1,40 @@
 
 import * as THREE from 'three/webgpu';
 
+// Safeguard for WebGL fallback mode in Three.js when storage buffers have itemSize > 4 (e.g. bakedAnimationsBuffer mat4)
+try {
+  const BAN = (THREE as any).BufferAttributeNode;
+  if (BAN && BAN.prototype) {
+    const origGetNodeType = BAN.prototype.getNodeType;
+    BAN.prototype.getNodeType = function (builder: any) {
+      if (this.bufferType === null) {
+        if (!this.attribute) {
+          if (this.value && this.value.itemSize) {
+            const sz = this.value.itemSize;
+            const t = sz === 16 ? 'mat4' : (sz === 4 ? 'vec4' : (sz === 3 ? 'vec3' : (sz === 2 ? 'vec2' : 'float')));
+            this.bufferType = t;
+            return t;
+          }
+          this.bufferType = 'vec4';
+          return 'vec4';
+        }
+      }
+      return origGetNodeType.call(this, builder);
+    };
+  }
+  const threeObj: any = THREE;
+  const GNB = threeObj ? threeObj.GLSLNodeBuilder : null;
+  if (GNB && GNB.prototype) {
+    const origGNB = GNB.prototype.getTypeFromAttribute;
+    GNB.prototype.getTypeFromAttribute = function (attribute: any) {
+      if (!attribute) return 'vec4';
+      return origGNB.call(this, attribute);
+    };
+  }
+} catch (e) {
+  console.warn('BufferAttributeNode safeguard skipped:', e);
+}
+
 export class Engine {
   public renderer: THREE.WebGPURenderer;
   public timer: THREE.Timer;

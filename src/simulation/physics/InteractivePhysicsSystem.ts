@@ -1,7 +1,8 @@
 import * as THREE from 'three/webgpu';
-import { PhysicalInteractionController } from './PhysicalInteractionController';
-import { PhysicalState } from './PhysicsTypes';
+import { BodyPartRegistry } from './BodyPartRegistry';
 import { ObstacleSystem } from './ObstacleSystem';
+import { PhysicalInteractionController } from './PhysicalInteractionController';
+import { BodyPartHitResult, BodyPartId, PhysicalState } from './PhysicsTypes';
 
 /**
  * System-level manager for all interactive physical characters in the scene.
@@ -12,6 +13,7 @@ export class InteractivePhysicsSystem {
   private controllers = new Map<number, PhysicalInteractionController>();
   private activeGrabbedIndex: number | null = null;
   private hoveredIndex: number | null = null;
+  private hoveredBodyPart: BodyPartId | null = null;
 
   // Shared GPU buffers (packed for all instances)
   // 10 bones * 16 floats = 160 floats per instance
@@ -74,7 +76,16 @@ export class InteractivePhysicsSystem {
     return this.hoveredIndex;
   }
 
-  public setHoveredIndex(index: number | null): void {
+  public getHoveredBodyPart(): BodyPartId | null {
+    return this.hoveredBodyPart;
+  }
+
+  public setHoveredBodyPart(part: BodyPartId | null): void {
+    this.hoveredBodyPart = part;
+  }
+
+  public setHoveredIndex(index: number | null, part: BodyPartId | null = null): void {
+    this.hoveredBodyPart = part;
     if (this.hoveredIndex === index) return;
     if (this.hoveredIndex !== null && this.hoveredIndex !== this.activeGrabbedIndex) {
       const prev = this.controllers.get(this.hoveredIndex);
@@ -88,6 +99,47 @@ export class InteractivePhysicsSystem {
   }
 
   /**
+   * Performs hit testing across all character instances in the scene against all 15 anatomical body parts.
+   */
+  public raycastAllCharacters(
+    ray: THREE.Ray,
+    positions: (THREE.Vector3 | null | undefined)[],
+    orientations?: (THREE.Quaternion | null | undefined)[]
+  ): { characterIndex: number; hit: BodyPartHitResult } | null {
+    let closestOverall: { characterIndex: number; hit: BodyPartHitResult } | null = null;
+    let minDistance = Infinity;
+
+    for (let i = 0; i < this.maxInstances; i++) {
+      const ctrl = this.controllers.get(i);
+      const pos = positions[i] ?? (ctrl ? ctrl.physics.position : null);
+      if (!pos) continue;
+
+      const quat = orientations?.[i] ?? (ctrl ? ctrl.physics.orientation : new THREE.Quaternion());
+      const rigMapping = ctrl?.rigMapping;
+      const skeleton = ctrl?.skeleton;
+
+      const hitResult = BodyPartRegistry.raycastCharacter(
+        i,
+        ray,
+        pos,
+        quat,
+        rigMapping,
+        skeleton
+      );
+
+      if (hitResult && hitResult.distance < minDistance) {
+        minDistance = hitResult.distance;
+        closestOverall = {
+          characterIndex: i,
+          hit: hitResult,
+        };
+      }
+    }
+
+    return closestOverall;
+  }
+
+  /**
    * Attempts to grab a character at pointer coordinates.
    */
   public handlePointerDown(
@@ -96,7 +148,8 @@ export class InteractivePhysicsSystem {
     hitPointWorld?: THREE.Vector3,
     boneIndex: number = -1,
     currentWorldPosition?: THREE.Vector3,
-    currentWorldOrientation?: THREE.Quaternion
+    currentWorldOrientation?: THREE.Quaternion,
+    bodyPart: BodyPartId = 'chest'
   ): boolean {
     // Only one character grabbed at a time: if an active grab was somehow pending, release it immediately!
     if (this.activeGrabbedIndex !== null) {
@@ -111,7 +164,7 @@ export class InteractivePhysicsSystem {
     }
 
     this.activeGrabbedIndex = characterIndex;
-    controller.startGrab(pointerNDC, hitPointWorld, boneIndex);
+    controller.startGrab(pointerNDC, hitPointWorld, boneIndex, bodyPart);
     return true;
   }
 

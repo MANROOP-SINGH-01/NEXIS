@@ -1,6 +1,7 @@
 import prisma from '../lib/prisma.js';
 import { validateSession } from '../services/authService.js';
 import { resolveGithubIdentity } from '../utils/auth.js';
+import resilienceStore from '../lib/resilienceStore.js';
 
 export async function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization || '';
@@ -10,21 +11,17 @@ export async function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Authentication required. Please log in.' });
   }
 
-  // 0. Resilience session token bypass
-  if (token.startsWith('nexis_resilience_session_')) {
-    req.user = {
-      id: 'usr_demo_resilience',
-      phone: '+919876543210',
-      email: 'candidate@nexis.gov.in',
-      role: 'CANDIDATE',
-      candidateProfile: {
-        id: 'prf_demo',
-        name: 'Priya Sharma',
-        profileCompleteness: 92,
-      },
-    };
+  // 0. Resilience session validation
+  const resilienceUser = resilienceStore.validateSession(token);
+  if (resilienceUser) {
+    req.user = resilienceUser;
     req.sessionToken = token;
     return next();
+  }
+
+  // If token is a resilience token but was revoked or user was deleted under DPDP, reject immediately
+  if (token.startsWith('nexis_resilience_session_')) {
+    return res.status(401).json({ error: 'Session invalid or expired. Please log in again.' });
   }
 
   // 1. Session token validation (primary User auth system)

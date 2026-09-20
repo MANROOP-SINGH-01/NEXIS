@@ -137,7 +137,7 @@ export const ApplicationPreparationModal: React.FC = () => {
         </div>
 
         {/* Modal Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-[#0A0B0E]">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-[#F5F0E6]">
           {activeProposal.stage === 'field-approval' && (
             <>
               {/* Security Banner */}
@@ -300,7 +300,7 @@ export const ApplicationPreparationModal: React.FC = () => {
                       STAR Aligned
                     </span>
                   </div>
-                  <div className="flex-1 bg-[#0A0B0E] p-3.5 rounded-lg border border-white/8 text-[11px] text-[#EDEDED] leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap">
+                  <div className="flex-1 bg-[#F5F0E6] p-3.5 rounded-lg border border-white/8 text-[11px] text-[#EDEDED] leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap">
                     {currentResume.content || activeProposal.tailoredResumeText || 'Tailored resume generated for target job specifications.'}
                   </div>
                 </div>
@@ -316,7 +316,7 @@ export const ApplicationPreparationModal: React.FC = () => {
                       ~300 Words
                     </span>
                   </div>
-                  <div className="flex-1 bg-[#0A0B0E] p-3.5 rounded-lg border border-white/8 text-[11px] text-[#EDEDED] leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap">
+                  <div className="flex-1 bg-[#F5F0E6] p-3.5 rounded-lg border border-white/8 text-[11px] text-[#EDEDED] leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap">
                     {activeProposal.coverLetterText || 'Targeted cover letter ready for submission.'}
                   </div>
                 </div>
@@ -354,7 +354,7 @@ export const ApplicationPreparationModal: React.FC = () => {
                   id="confirm-truth"
                   checked={confirmedTruthful}
                   onChange={(e) => setConfirmedTruthful(e.target.checked)}
-                  className="w-4 h-4 rounded bg-[#0A0B0E] border-white/20 text-[#FF5C1A] focus:ring-[#FF5C1A] cursor-pointer"
+                  className="w-4 h-4 rounded bg-[#F5F0E6] border-white/20 text-[#FF5C1A] focus:ring-[#FF5C1A] cursor-pointer"
                 />
                 <label htmlFor="confirm-truth" className="text-xs text-[#EDEDED] font-medium cursor-pointer select-none">
                   I have reviewed all fields and confirm that all representations accurately reflect my genuine experience and profile.

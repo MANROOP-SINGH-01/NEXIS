@@ -16,9 +16,8 @@ import {
   Lock, 
   ChevronRight 
 } from 'lucide-react';
-import { Button } from '../primitives/Button';
-import { Badge } from '../primitives/Badge';
-import { Card } from '../primitives/Card';
+import { GeometricAccent } from '../bauhaus/GeometricAccent';
+import { colors } from '../../theme/bauhaus';
 
 interface LandingPageProps {
   onEnterApp: () => void;
@@ -30,247 +29,241 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onGoLogin 
     {
       name: 'NEXUS DIRECTOR',
       role: 'Master Task Orchestrator',
-      color: '#6366F1',
-      desc: 'Coordinates multi-agent parallel pipelines and schedules career goals.',
+      color: colors.agents.director,
+      desc: 'Coordinates multi-agent parallel pipelines and schedules strategic career goals.',
       badge: 'ORCHESTRATION',
     },
     {
       name: 'NEXUS VISION',
       role: 'CV & ATS Deep Scanner',
-      color: '#06B6D4',
+      color: colors.agents.vision,
       desc: 'Parses PDFs, extracts core skills, and eliminates formatting pitfalls.',
       badge: 'ANALYSIS',
     },
     {
       name: 'NEXUS STRATEGIST',
       role: 'Market Gap Synthesizer',
-      color: '#10B981',
-      desc: 'Cross-references current talent telemetry against active market demands.',
+      color: colors.agents.strategist,
+      desc: 'Cross-references current talent telemetry against active O*NET market demands.',
       badge: 'STRATEGY',
     },
     {
       name: 'NEXUS WRITER',
       role: 'Precision Tailoring Engine',
-      color: '#F59E0B',
+      color: colors.agents.writer,
       desc: 'Generates role-tailored resumes and high-impact accomplishment bullets.',
       badge: 'SYNTHESIS',
     },
     {
       name: 'NEXUS HUNTER',
       role: 'Real-time Opportunity Radar',
-      color: '#8B5CF6',
+      color: colors.agents.hunter,
       desc: 'Scrapes, indexes, and ranks verified live jobs matching your profile.',
       badge: 'DISCOVERY',
     },
     {
       name: 'NEXUS MIRROR',
-      role: 'Audit & Self-Correction Inspector',
-      color: '#FF6B6B',
+      role: 'Audit & Recursive Inspector',
+      color: colors.agents.mirror,
       desc: 'Validates factual consistency, detects hallucinations, and confirms truth.',
       badge: 'VERIFICATION',
     },
   ];
 
   return (
-    <div className="min-h-screen bg-[#090a0f] text-zinc-100 overflow-x-hidden selection:bg-indigo-500/30 selection:text-indigo-200">
-      {/* Background Decorative Memphis Geometry */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/3 right-10 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl" />
-        {/* Subtle grid */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-40" />
-      </div>
-
+    <div className="min-h-screen bg-[#F5F0E6] text-[#111111] overflow-x-hidden selection:bg-[#E53935] selection:text-white font-sans">
+      
       {/* Top Navbar */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#090a0f]/80 border-b border-zinc-800/80">
+      <header className="sticky top-0 z-50 bg-[#F5F0E6]/95 backdrop-blur-md border-b-2 border-[#111111]">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 p-[1px] shadow-lg shadow-indigo-500/20">
-              <div className="w-full h-full bg-[#090a0f] rounded-[11px] flex items-center justify-center font-['Space_Grotesk'] font-bold text-sm text-indigo-400">
-                NX
-              </div>
+            <div className="w-8 h-8 bg-[#E53935] border-2 border-[#111111] flex items-center justify-center font-['Space_Grotesk'] font-black text-sm text-white shadow-[2px_2px_0px_#111111]">
+              NX
             </div>
-            <span className="font-['Space_Grotesk'] font-bold text-lg tracking-wider text-white">
+            <span className="font-['Space_Grotesk'] font-black text-lg tracking-tight text-[#111111] uppercase">
               NEXIS
+            </span>
+            <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider bg-[#F4C430] text-[#111111] border border-[#111111]">
+              BAUHAUS EDITION
             </span>
           </div>
 
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
-            <a href="#agents" className="hover:text-white transition-colors">Agents</a>
-            <a href="#intelligence" className="hover:text-white transition-colors">Intelligence</a>
-            <a href="#resume-forge" className="hover:text-white transition-colors">Resume Forge</a>
-            <a href="#security" className="hover:text-white transition-colors">Verification</a>
+          <nav className="hidden md:flex items-center gap-8 text-xs font-mono font-bold uppercase tracking-wider text-[#111111]">
+            <a href="#agents" className="hover:text-[#E53935] transition-colors">Agents</a>
+            <a href="#intelligence" className="hover:text-[#E53935] transition-colors">Intelligence</a>
+            <a href="#resume-forge" className="hover:text-[#E53935] transition-colors">Resume Forge</a>
+            <a href="#security" className="hover:text-[#E53935] transition-colors">Verification</a>
           </nav>
 
           <div className="flex items-center gap-3">
             <button
               onClick={onGoLogin}
-              className="text-xs font-semibold text-zinc-300 hover:text-white px-3 py-2 rounded-xl hover:bg-zinc-800/60 transition-colors"
+              className="text-xs font-mono font-bold uppercase tracking-wider text-[#111111] hover:bg-[#EFE7D8] px-3.5 py-2 border-2 border-transparent hover:border-[#111111] transition-all cursor-pointer"
             >
               Sign In
             </button>
-            <Button
-              variant="glow"
-              size="sm"
+            <button
               onClick={onEnterApp}
-              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#E53935] hover:bg-[#D32F2F] text-white text-xs font-mono font-bold uppercase tracking-wider border-2 border-[#111111] shadow-[3px_3px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#111111] transition-all cursor-pointer"
             >
-              Launch Workspace
-            </Button>
+              <span>Launch Workspace</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative z-10 pt-24 pb-20 px-6 max-w-7xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-mono mb-8 animate-pulse">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>AUTONOMOUS CAREER ORCHESTRATION PLATFORM</span>
+      <section className="relative z-10 pt-20 pb-20 px-6 max-w-7xl mx-auto text-center">
+        {/* Decorative Geometric Shapes */}
+        <div className="hidden lg:block absolute top-12 left-10 pointer-events-none">
+          <GeometricAccent shape="circle" color="red" size={56} />
+        </div>
+        <div className="hidden lg:block absolute top-28 right-12 pointer-events-none">
+          <GeometricAccent shape="triangle" color="yellow" size={64} />
+        </div>
+        <div className="hidden lg:block absolute bottom-32 left-1/4 pointer-events-none">
+          <GeometricAccent shape="quarterCircle" color="blue" size={50} />
         </div>
 
-        <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold font-['Space_Grotesk'] tracking-tight max-w-5xl mx-auto leading-[1.08] text-white">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white border-2 border-[#111111] text-[#111111] text-xs font-mono font-bold uppercase tracking-wider mb-8 shadow-[3px_3px_0px_#111111]">
+          <span className="w-2 h-2 bg-[#E53935] border border-[#111111]" />
+          <span>[00] // AUTONOMOUS CAREER ORCHESTRATION PLATFORM</span>
+        </div>
+
+        <h1 className="text-4xl sm:text-6xl md:text-7xl font-black font-['Space_Grotesk'] tracking-tight max-w-5xl mx-auto leading-[1.05] text-[#111111] uppercase">
           Your career, <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-cyan-300">
+          <span className="bg-[#E53935] text-white px-3 py-1 inline-block mt-2 border-2 border-[#111111] shadow-[4px_4px_0px_#111111]">
             orchestrated by living AI.
           </span>
         </h1>
 
-        <p className="mt-6 text-base sm:text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal">
+        <p className="mt-6 text-base sm:text-lg text-[#555555] font-mono max-w-2xl mx-auto leading-relaxed font-normal">
           NEXIS deploys a collaborative workforce of 3D autonomous agents that analyze your skill telemetry, forge high-ATS resumes, and navigate your trajectory with empirical precision.
         </p>
 
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button
-            variant="glow"
-            size="lg"
+          <button
             onClick={onEnterApp}
-            rightIcon={<ArrowRight className="w-4 h-4" />}
-            className="w-full sm:w-auto text-sm px-8 py-3.5 shadow-xl shadow-indigo-600/30"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#E53935] hover:bg-[#D32F2F] text-white text-xs font-mono font-bold uppercase tracking-wider border-2 border-[#111111] shadow-[4px_4px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#111111] transition-all cursor-pointer"
           >
-            Enter 3D Command Center
-          </Button>
-          <Button
-            variant="secondary"
-            size="lg"
+            <span style={{ color: '#FFFFFF' }}>Enter 3D Command Center</span>
+            <ArrowRight className="w-4 h-4 text-[#F4C430]" />
+          </button>
+          <button
             onClick={onGoLogin}
-            className="w-full sm:w-auto text-sm px-8 py-3.5"
+            className="w-full sm:w-auto px-8 py-3.5 bg-white hover:bg-[#EFE7D8] text-[#111111] text-xs font-mono font-bold uppercase tracking-wider border-2 border-[#111111] shadow-[4px_4px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#111111] transition-all cursor-pointer"
           >
             Authenticate with Phone / OTP
-          </Button>
+          </button>
         </div>
 
         {/* Hero Interactive Terminal & 3D Preview Box */}
-        <div className="mt-16 relative rounded-3xl p-1 bg-gradient-to-b from-zinc-700/40 to-zinc-900/40 border border-zinc-700/50 shadow-2xl shadow-indigo-950/40">
-          <div className="rounded-[22px] bg-[#0c0d14] p-4 sm:p-6 overflow-hidden">
-            {/* Terminal Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-rose-500/80" />
-                <span className="w-3 h-3 rounded-full bg-amber-500/80" />
-                <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                <span className="ml-3 text-xs font-mono text-zinc-400">nexis://runtime/agents-mesh</span>
+        <div className="mt-16 relative bg-white border-4 border-[#111111] p-4 sm:p-6 shadow-[8px_8px_0px_#111111] text-left">
+          {/* Terminal Header */}
+          <div className="flex items-center justify-between pb-4 border-b-2 border-[#111111]">
+            <div className="flex items-center gap-2">
+              <span className="w-3.5 h-3.5 bg-[#E53935] border border-[#111111]" />
+              <span className="w-3.5 h-3.5 bg-[#F4C430] border border-[#111111]" />
+              <span className="w-3.5 h-3.5 bg-[#2457A6] border border-[#111111]" />
+              <span className="ml-3 text-xs font-mono font-bold text-[#111111]">nexis://runtime/agents-mesh</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 bg-[#2457A6] text-white border border-[#111111]">
+                ORCHESTRATOR ONLINE
+              </span>
+            </div>
+          </div>
+
+          {/* Simulated Live Telemetry Feed */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 text-left">
+            <div className="p-4 bg-[#F5F0E6] border-2 border-[#111111] shadow-[3px_3px_0px_#111111]">
+              <div className="flex items-center gap-2 text-[#E53935] mb-2 font-mono font-bold text-xs uppercase">
+                <Bot className="w-4 h-4" />
+                <span>DIRECTOR PIPELINE</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="mint" size="sm" pulseDot>
-                  ORCHESTRATOR ONLINE
-                </Badge>
+              <p className="text-xs font-mono font-bold text-[#111111]">Target Role: Full-Stack Architect</p>
+              <div className="mt-3 w-full bg-white border border-[#111111] h-3">
+                <div className="bg-[#E53935] h-full w-4/5" />
               </div>
+              <span className="text-[10px] text-[#555555] font-mono mt-1.5 block font-bold">82% Match Alignment</span>
             </div>
 
-            {/* Simulated Live Telemetry Feed */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 text-left">
-              <Card variant="glass" padding="sm" className="border-indigo-500/30">
-                <div className="flex items-center gap-2 text-indigo-400 mb-2">
-                  <Bot className="w-4 h-4" />
-                  <span className="text-xs font-bold font-mono">DIRECTOR PIPELINE</span>
-                </div>
-                <p className="text-xs text-zinc-300">Target Role: Senior Full-Stack Architect</p>
-                <div className="mt-3 w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-indigo-500 h-full w-4/5 animate-pulse" />
-                </div>
-                <span className="text-[10px] text-zinc-500 font-mono mt-1.5 block">82% Match Alignment</span>
-              </Card>
+            <div className="p-4 bg-[#F5F0E6] border-2 border-[#111111] shadow-[3px_3px_0px_#111111]">
+              <div className="flex items-center gap-2 text-[#2457A6] mb-2 font-mono font-bold text-xs uppercase">
+                <Target className="w-4 h-4" />
+                <span>SKILL RADAR</span>
+              </div>
+              <p className="text-xs font-mono font-bold text-[#111111]">3 Critical Gaps: Kubernetes, Golang, CI/CD</p>
+              <span className="text-[10px] text-[#2457A6] font-mono mt-3 inline-block font-bold">→ 2 Learning Paths Synced</span>
+            </div>
 
-              <Card variant="glass" padding="sm" className="border-cyan-500/30">
-                <div className="flex items-center gap-2 text-cyan-400 mb-2">
-                  <Target className="w-4 h-4" />
-                  <span className="text-xs font-bold font-mono">SKILL RADAR</span>
-                </div>
-                <p className="text-xs text-zinc-300">Identified 3 high-impact gaps: Kubernetes, Golang, CI/CD</p>
-                <span className="text-[10px] text-cyan-400 font-mono mt-3 inline-block">→ 2 Learning Paths Synced</span>
-              </Card>
-
-              <Card variant="glass" padding="sm" className="border-emerald-500/30">
-                <div className="flex items-center gap-2 text-emerald-400 mb-2">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span className="text-xs font-bold font-mono">ATS VERIFICATION</span>
-                </div>
-                <p className="text-xs text-zinc-300">ATS Score: 94/100 across 18 Fortune 500 criteria</p>
-                <span className="text-[10px] text-emerald-400 font-mono mt-3 inline-block">✓ Verifiable Hash Generated</span>
-              </Card>
+            <div className="p-4 bg-[#F5F0E6] border-2 border-[#111111] shadow-[3px_3px_0px_#111111]">
+              <div className="flex items-center gap-2 text-[#111111] mb-2 font-mono font-bold text-xs uppercase">
+                <ShieldCheck className="w-4 h-4 text-[#2457A6]" />
+                <span>ATS VERIFICATION</span>
+              </div>
+              <p className="text-xs font-mono font-bold text-[#111111]">ATS Score: 94/100 across 18 criteria</p>
+              <span className="text-[10px] text-[#111111] font-mono mt-3 inline-block font-bold">✓ Verifiable Hash Generated</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* Agents Mesh Section */}
-      <section id="agents" className="relative z-10 py-20 px-6 max-w-7xl mx-auto">
+      <section id="agents" className="relative z-10 py-20 px-6 max-w-7xl mx-auto border-t-2 border-[#111111]">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <Badge variant="indigo" size="sm" className="mb-3 font-mono">
-            COLLABORATIVE AGENT MESH
-          </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold font-['Space_Grotesk'] text-white">
+          <div className="inline-block px-3 py-1 bg-[#F4C430] border-2 border-[#111111] text-[#111111] text-xs font-mono font-bold uppercase tracking-wider mb-3 shadow-[2px_2px_0px_#111111]">
+            [01] // COLLABORATIVE AGENT MESH
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-black font-['Space_Grotesk'] text-[#111111] uppercase tracking-tight">
             Six specialized AI workers. <br />
             One cohesive career force.
           </h2>
-          <p className="mt-3 text-sm text-zinc-400">
+          <p className="mt-3 text-xs font-mono text-[#555555]">
             Each agent lives in your 3D workspace, executing distinct aspects of your job search, resume tailoring, and skill verification.
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {agents.map((agent) => (
-            <Card
+            <div
               key={agent.name}
-              variant="glass"
-              hoverable
-              padding="md"
-              className="border border-zinc-800/80 hover:border-indigo-500/40 relative group"
+              className="bg-white border-2 border-[#111111] p-6 shadow-[4px_4px_0px_#111111] hover:shadow-[6px_6px_0px_#111111] hover:-translate-y-1 transition-all"
             >
               <div className="flex items-center justify-between mb-4">
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md"
-                  style={{ backgroundColor: `${agent.color}20`, color: agent.color, border: `1px solid ${agent.color}40` }}
+                  className="w-10 h-10 border-2 border-[#111111] flex items-center justify-center text-white font-bold text-sm shadow-[2px_2px_0px_#111111]"
+                  style={{ backgroundColor: agent.color }}
                 >
-                  <Bot className="w-5 h-5" />
+                  <Bot className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-800/80 text-zinc-400 border border-zinc-700/60">
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-[#F5F0E6] text-[#111111] border border-[#111111]">
                   {agent.badge}
                 </span>
               </div>
 
-              <h3 className="text-base font-bold text-zinc-100 font-['Space_Grotesk'] group-hover:text-indigo-300 transition-colors">
+              <h3 className="text-base font-black text-[#111111] font-['Space_Grotesk'] uppercase tracking-tight">
                 {agent.name}
               </h3>
-              <p className="text-xs font-medium text-indigo-400 mt-0.5">{agent.role}</p>
-              <p className="text-xs text-zinc-400 mt-2.5 leading-relaxed">{agent.desc}</p>
-            </Card>
+              <p className="text-xs font-mono font-bold text-[#E53935] mt-0.5">{agent.role}</p>
+              <p className="text-xs font-mono text-[#555555] mt-2.5 leading-relaxed">{agent.desc}</p>
+            </div>
           ))}
         </div>
       </section>
 
       {/* Resume Forge Showcase */}
-      <section id="resume-forge" className="relative z-10 py-20 px-6 bg-zinc-950/40 border-y border-zinc-800/80">
+      <section id="resume-forge" className="relative z-10 py-20 px-6 bg-[#EFE7D8] border-t-2 border-b-2 border-[#111111]">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
-            <Badge variant="amber" size="sm" className="mb-3 font-mono">
-              ATS DEEP FORGE
-            </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold font-['Space_Grotesk'] text-white leading-tight">
+            <div className="inline-block px-3 py-1 bg-[#2457A6] text-white border-2 border-[#111111] text-xs font-mono font-bold uppercase tracking-wider mb-3 shadow-[2px_2px_0px_#111111]">
+              [02] // ATS DEEP FORGE
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black font-['Space_Grotesk'] text-[#111111] uppercase leading-tight">
               Transform passive resumes into high-impact accomplishment portfolios.
             </h2>
-            <p className="mt-4 text-sm text-zinc-400 leading-relaxed">
+            <p className="mt-4 text-xs font-mono text-[#555555] leading-relaxed">
               Our Nexus Writer and ATS scanners inspect syntax, quantified metric impacts, and keyword density in real-time, tailoring your resume for every opportunity with zero hallucinations.
             </p>
 
@@ -281,33 +274,37 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onGoLogin 
                 'Cryptographically verifiable Career Passport credentials',
                 'Automatic PDF export optimized for Taleo, Workday, and Lever',
               ].map((feature) => (
-                <li key={feature} className="flex items-center gap-3 text-xs text-zinc-300">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <li key={feature} className="flex items-center gap-3 text-xs font-mono font-medium text-[#111111]">
+                  <CheckCircle2 className="w-4 h-4 text-[#2457A6] shrink-0" />
                   <span>{feature}</span>
                 </li>
               ))}
             </ul>
 
             <div className="mt-8">
-              <Button variant="glow" onClick={onEnterApp} rightIcon={<ChevronRight className="w-4 h-4" />}>
-                Try Resume Forge Now
-              </Button>
+              <button
+                onClick={onEnterApp}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#E53935] hover:bg-[#D32F2F] text-white text-xs font-mono font-bold uppercase tracking-wider border-2 border-[#111111] shadow-[3px_3px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#111111] transition-all cursor-pointer"
+              >
+                <span>Try Resume Forge Now</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
 
-          <div className="relative rounded-2xl bg-[#12131c] border border-zinc-800 p-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
-              <span className="text-xs font-mono text-zinc-400">RESUME_OPTIMIZATION_DIFF.MD</span>
-              <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+          <div className="relative bg-white border-2 border-[#111111] p-6 shadow-[6px_6px_0px_#111111]">
+            <div className="flex items-center justify-between pb-4 border-b-2 border-[#111111]">
+              <span className="text-xs font-mono font-bold text-[#111111]">RESUME_OPTIMIZATION_DIFF.MD</span>
+              <span className="text-xs font-mono font-bold text-white bg-[#2457A6] px-2 py-0.5 border border-[#111111]">
                 +38% ATS IMPROVEMENT
               </span>
             </div>
 
             <div className="mt-4 space-y-3 font-mono text-xs">
-              <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 line-through">
+              <div className="p-3 bg-[#E53935]/10 border-2 border-[#E53935] text-[#111111] line-through">
                 - Worked on backend server APIs and helped fix bugs in database queries.
               </div>
-              <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
+              <div className="p-3 bg-[#2457A6]/10 border-2 border-[#2457A6] text-[#111111] font-bold">
                 + Architected low-latency Node.js microservices reducing P99 query latency by 42% across 2.4M daily requests.
               </div>
             </div>
@@ -318,86 +315,84 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onGoLogin 
       {/* Security & Verification Pass */}
       <section id="security" className="relative z-10 py-20 px-6 max-w-7xl mx-auto text-center">
         <div className="max-w-2xl mx-auto">
-          <Badge variant="mint" size="sm" className="mb-3 font-mono">
-            EMPLOYER & GOVERNANCE READY
-          </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold font-['Space_Grotesk'] text-white">
+          <div className="inline-block px-3 py-1 bg-[#111111] text-white border-2 border-[#111111] text-xs font-mono font-bold uppercase tracking-wider mb-3 shadow-[2px_2px_0px_#E53935]">
+            [03] // EMPLOYER & GOVERNANCE READY
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-black font-['Space_Grotesk'] text-[#111111] uppercase tracking-tight">
             DPDP Compliant & Cryptographically Verifiable.
           </h2>
-          <p className="mt-3 text-sm text-zinc-400 leading-relaxed">
+          <p className="mt-3 text-xs font-mono text-[#555555] leading-relaxed">
             NEXIS protects candidate privacy with strict Digital Personal Data Protection compliance, audit logging, and shareable QR verification tokens for hiring managers.
           </p>
         </div>
 
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-          <Card variant="glass" padding="md">
-            <Lock className="w-6 h-6 text-indigo-400 mb-3" />
-            <h3 className="text-sm font-bold text-white mb-1 font-['Space_Grotesk']">
+          <div className="bg-white border-2 border-[#111111] p-6 shadow-[4px_4px_0px_#111111]">
+            <Lock className="w-6 h-6 text-[#E53935] mb-3" />
+            <h3 className="text-sm font-black font-['Space_Grotesk'] uppercase text-[#111111] mb-1">
               DPDP Consent Framework
             </h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">
+            <p className="text-xs font-mono text-[#555555] leading-relaxed">
               Granular candidate consent tracking with full data sovereignty and right-to-forget controls.
             </p>
-          </Card>
+          </div>
 
-          <Card variant="glass" padding="md">
-            <Globe className="w-6 h-6 text-cyan-400 mb-3" />
-            <h3 className="text-sm font-bold text-white mb-1 font-['Space_Grotesk']">
+          <div className="bg-white border-2 border-[#111111] p-6 shadow-[4px_4px_0px_#111111]">
+            <Globe className="w-6 h-6 text-[#2457A6] mb-3" />
+            <h3 className="text-sm font-black font-['Space_Grotesk'] uppercase text-[#111111] mb-1">
               Employer Verification Portals
             </h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">
+            <p className="text-xs font-mono text-[#555555] leading-relaxed">
               Public standalone verification routes (/verify/:token) allowing instant credential checks without sign-in.
             </p>
-          </Card>
+          </div>
 
-          <Card variant="glass" padding="md">
-            <Zap className="w-6 h-6 text-amber-400 mb-3" />
-            <h3 className="text-sm font-bold text-white mb-1 font-['Space_Grotesk']">
+          <div className="bg-white border-2 border-[#111111] p-6 shadow-[4px_4px_0px_#111111]">
+            <Zap className="w-6 h-6 text-[#F4C430] mb-3" />
+            <h3 className="text-sm font-black font-['Space_Grotesk'] uppercase text-[#111111] mb-1">
               Sub-second Telemetry
             </h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">
+            <p className="text-xs font-mono text-[#555555] leading-relaxed">
               High-throughput SSE event streaming keeping 3D simulation and browser states tightly synchronized.
             </p>
-          </Card>
+          </div>
         </div>
       </section>
 
       {/* Final Call to Action */}
-      <section className="relative z-10 py-24 px-6 text-center border-t border-zinc-800/80 bg-gradient-to-b from-transparent to-indigo-950/20">
+      <section className="relative z-10 py-24 px-6 text-center border-t-2 border-[#111111] bg-[#F4C430]">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl sm:text-5xl font-extrabold font-['Space_Grotesk'] text-white tracking-tight">
+          <h2 className="text-3xl sm:text-5xl font-black font-['Space_Grotesk'] text-[#111111] uppercase tracking-tight">
             Ready to deploy your AI career team?
           </h2>
-          <p className="mt-4 text-base text-zinc-400 max-w-xl mx-auto">
+          <p className="mt-4 text-xs font-mono font-bold text-[#111111] max-w-xl mx-auto">
             Experience the future of talent orchestration with real-time 3D agents, verified skill roadmaps, and intelligent market positioning.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button
-              variant="glow"
-              size="lg"
+            <button
               onClick={onEnterApp}
-              rightIcon={<ArrowRight className="w-4 h-4" />}
-              className="text-sm px-8 py-3.5 shadow-xl shadow-indigo-600/30"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#E53935] hover:bg-[#D32F2F] text-white text-xs font-mono font-bold uppercase tracking-wider border-2 border-[#111111] shadow-[4px_4px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#111111] transition-all cursor-pointer"
             >
-              Launch Free Workspace
-            </Button>
-            <Button
-              variant="secondary"
-              size="lg"
+              <span>Launch Free Workspace</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <button
               onClick={onGoLogin}
-              className="text-sm px-8 py-3.5"
+              className="w-full sm:w-auto px-8 py-3.5 bg-white hover:bg-[#EFE7D8] text-[#111111] text-xs font-mono font-bold uppercase tracking-wider border-2 border-[#111111] shadow-[4px_4px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#111111] transition-all cursor-pointer"
             >
               Sign In with Phone
-            </Button>
+            </button>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-zinc-800/60 py-8 px-6 text-center text-xs text-zinc-500">
-        <p>© 2026 NEXIS Career Orchestration Mesh. All rights reserved.</p>
+      <footer className="relative z-10 border-t-2 border-[#111111] bg-[#111111] py-8 px-6 text-center text-xs font-mono text-[#C8C0B4]">
+        <p>© 2026 NEXIS Career Orchestration Mesh. Bauhaus Editorial Edition. All rights reserved.</p>
       </footer>
     </div>
   );
 };
+
+export default LandingPage;

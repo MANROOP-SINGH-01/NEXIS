@@ -6,6 +6,7 @@ import {
 import { useCoreStore } from '../integration/store/coreStore';
 import { getAuthHeaders } from '../integration/store/authStore';
 import { isDemoMode } from '../demo/demoData';
+import { PageHeader } from './bauhaus/PageHeader';
 
 const DEMO_APPLICATIONS = [
   {
@@ -55,12 +56,12 @@ const DEMO_APPLICATIONS = [
 ];
 
 const COLUMNS = [
-  { id: 'SAVED', title: 'Saved', color: 'text-[#8B949E] bg-[#1A1B20] border-white/10' },
-  { id: 'APPLIED', title: 'Applied', color: 'text-[#FF5C1A] bg-[#FF5C1A]/10 border-[#FF5C1A]/20' },
-  { id: 'ASSESSMENT', title: 'Assessment', color: 'text-[#A78BFA] bg-[#A78BFA]/10 border-[#A78BFA]/20' },
-  { id: 'INTERVIEW', title: 'Interview', color: 'text-[#F59E0B] bg-[#F59E0B]/10 border-[#F59E0B]/20' },
-  { id: 'OFFER', title: 'Offer', color: 'text-[#22C55E] bg-[#22C55E]/10 border-[#22C55E]/20' },
-  { id: 'REJECTED', title: 'Rejected', color: 'text-[#EF4444] bg-[#EF4444]/10 border-[#EF4444]/20' }
+  { id: 'SAVED', title: 'Saved', color: 'text-[#111111] bg-[#EFE7D8] border-[#111111]' },
+  { id: 'APPLIED', title: 'Applied', color: 'text-white bg-[#2457A6] border-[#111111]' },
+  { id: 'ASSESSMENT', title: 'Assessment', color: 'text-[#111111] bg-[#F4C430] border-[#111111]' },
+  { id: 'INTERVIEW', title: 'Interview', color: 'text-white bg-[#E53935] border-[#111111]' },
+  { id: 'OFFER', title: 'Offer', color: 'text-white bg-[#111111] border-[#111111]' },
+  { id: 'REJECTED', title: 'Rejected', color: 'text-[#555555] bg-[#FFFFFF] border-[#888888]' }
 ];
 
 export const ApplicationTrackerView: React.FC = () => {
@@ -135,36 +136,28 @@ export const ApplicationTrackerView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto px-4 py-6 sm:p-8 flex flex-col gap-6 max-w-[1500px] w-full mx-auto custom-scrollbar bg-[#0A0B0E] text-[#EDEDED]">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-1">
-        <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[#121317] border border-white/8 flex items-center justify-center shrink-0 text-[#FF5C1A] shadow-xs">
-            <Briefcase size={20} />
-          </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#EDEDED] tracking-tight">
-              Application Pipeline Tracker
-            </h1>
-            <p className="text-xs sm:text-sm text-[#8B949E] font-normal">
-              Live progression Kanban across your active job applications
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={fetchApplications}
-          disabled={loading}
-          className="nx-btn-secondary !py-2 !px-4 !text-xs cursor-pointer border-white/10 bg-[#121317] text-[#EDEDED] hover:bg-[#1A1B20]"
-        >
-          <RefreshCw size={13} className={loading ? 'animate-spin text-[#FF5C1A]' : ''} />
-          <span>Refresh Board</span>
-        </button>
-      </div>
+    <div className="flex-1 h-full overflow-y-auto px-4 py-6 sm:p-8 flex flex-col gap-6 max-w-[1500px] w-full mx-auto custom-scrollbar bg-[#F5F0E6] text-[#111111]">
+      {/* Bauhaus PageHeader */}
+      <PageHeader
+        sectionNumber="08"
+        code="TRACKER"
+        title="APPLICATION PIPELINE TRACKER"
+        subtitle="LIVE PROGRESSION KANBAN ACROSS YOUR ACTIVE JOB APPLICATIONS"
+        action={
+          <button
+            onClick={fetchApplications}
+            disabled={loading}
+            className="px-4 py-2 text-xs font-mono font-bold uppercase bg-[#FFFFFF] border-2 border-[#111111] shadow-[2px_2px_0px_#111111] hover:bg-[#EFE7D8] transition-all cursor-pointer flex items-center gap-2"
+          >
+            <RefreshCw size={13} className={loading ? 'animate-spin text-[#E53935]' : ''} />
+            <span>Refresh Board</span>
+          </button>
+        }
+      />
 
       {error && (
-        <div className="p-3.5 bg-[#EF4444]/10 text-[#EF4444] text-xs rounded-2xl border border-[#EF4444]/20 flex items-center gap-2">
-          <AlertCircle size={15} className="text-[#EF4444] shrink-0" />
+        <div className="p-3.5 bg-[#FDEDEC] text-[#E53935] text-xs font-mono font-bold border-2 border-[#E53935] shadow-[2px_2px_0px_#111111] flex items-center gap-2">
+          <AlertCircle size={15} className="text-[#E53935] shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -176,56 +169,56 @@ export const ApplicationTrackerView: React.FC = () => {
           return (
             <div key={col.id} className="min-w-[280px] w-[280px] flex flex-col gap-3 snap-center">
               {/* Column Header */}
-              <div className="flex items-center justify-between px-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#8B949E] font-mono">
+              <div className="flex items-center justify-between px-1 pb-1 border-b-2 border-[#111111]">
+                <span className="text-xs font-mono font-black uppercase tracking-wider text-[#111111]">
                   {col.title}
                 </span>
-                <span className={`text-[11px] font-bold font-mono px-2.5 py-0.5 rounded-full border ${col.color}`}>
+                <span className={`text-[10px] font-mono font-black px-2 py-0.5 border-2 ${col.color} shadow-[1px_1px_0px_#111111]`}>
                   {colApps.length}
                 </span>
               </div>
 
               {/* Column Dropzone / Container */}
-              <div className="flex-1 bg-[#121317] border border-white/8 rounded-2xl p-3 flex flex-col gap-2.5 min-h-[420px]">
+              <div className="flex-1 bg-[#FFFFFF] border-2 border-[#111111] shadow-[4px_4px_0px_#111111] p-3 flex flex-col gap-2.5 min-h-[420px]">
                 {colApps.map(app => (
                   <div
                     key={app.id}
-                    className="bg-[#1A1B20] p-4 rounded-xl border border-white/8 shadow-[0_2px_8px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 hover:border-white/16 hover:shadow-[0_6px_16px_rgba(0,0,0,0.5)] transition-all duration-200 relative group"
+                    className="bg-[#FDFBF7] p-4 border-2 border-[#111111] shadow-[2px_2px_0px_#111111] hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#111111] transition-all duration-200 relative group"
                   >
                     {updating === app.id && (
-                      <div className="absolute inset-0 bg-[#121317]/80 backdrop-blur-xs z-10 flex items-center justify-center rounded-xl">
-                        <Loader2 className="animate-spin text-[#FF5C1A]" size={20} />
+                      <div className="absolute inset-0 bg-[#FFFFFF]/90 z-10 flex items-center justify-center">
+                        <Loader2 className="animate-spin text-[#E53935]" size={20} />
                       </div>
                     )}
                     
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <h4 className="font-bold text-[#EDEDED] text-sm leading-snug">
+                      <h4 className="font-mono font-black text-[#111111] text-xs leading-snug">
                         {app.jobTitle || app.role || 'Senior Engineer'}
                       </h4>
                       {(app.fitScore || app.alignmentScore) && (
-                        <span className="text-[11px] font-bold font-mono px-2 py-0.5 rounded-full bg-[#FF5C1A]/10 border border-[#FF5C1A]/20 text-[#FF5C1A] shrink-0">
+                        <span className="text-[10px] font-mono font-black px-1.5 py-0.5 bg-[#F4C430] border border-[#111111] text-[#111111] shrink-0 shadow-[1px_1px_0px_#111111]">
                           {app.fitScore || app.alignmentScore}%
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-[#8B949E] font-medium mb-2 truncate">
+                    <p className="text-[11px] font-mono text-[#555555] font-bold uppercase mb-2 truncate">
                       {app.companyName || app.company || 'Partner Org'}
                     </p>
                     {app.notes && (
-                      <p className="text-[11px] text-[#A1A1AA] leading-relaxed mb-3 line-clamp-2 bg-[#0A0B0E] p-2.5 rounded-lg border border-white/6 font-mono text-[10.5px]">
+                      <p className="text-[10.5px] text-[#555555] leading-relaxed mb-3 line-clamp-2 bg-[#F5F0E6] p-2 border border-[#111111] font-mono">
                         {app.notes}
                       </p>
                     )}
                     
-                    <div className="flex items-center gap-2 pt-2 border-t border-white/8">
-                      <span className="text-[10px] uppercase font-bold text-[#71717A] flex-1 font-mono tracking-wider">Stage:</span>
+                    <div className="flex items-center gap-2 pt-2 border-t border-[#EFE7D8]">
+                      <span className="text-[10px] uppercase font-mono font-bold text-[#777777] flex-1 tracking-wider">Stage:</span>
                       <select
-                        className="text-xs bg-[#0A0B0E] border border-white/12 text-[#EDEDED] font-semibold rounded-lg px-2.5 py-1 outline-none cursor-pointer hover:border-[#FF5C1A] transition-colors focus:border-[#FF5C1A]"
+                        className="text-xs bg-[#FFFFFF] border-2 border-[#111111] text-[#111111] font-mono font-bold px-2 py-1 outline-none cursor-pointer hover:border-[#E53935] transition-colors"
                         value={app.status}
                         onChange={(e) => updateStatus(app.id, e.target.value)}
                       >
                         {COLUMNS.map(c => (
-                          <option key={c.id} value={c.id} className="bg-[#121317] text-[#EDEDED]">{c.title}</option>
+                          <option key={c.id} value={c.id} className="bg-[#FFFFFF] text-[#111111] font-mono">{c.title}</option>
                         ))}
                       </select>
                     </div>
@@ -233,9 +226,9 @@ export const ApplicationTrackerView: React.FC = () => {
                 ))}
                 
                 {colApps.length === 0 && (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center p-6 border border-dashed border-white/10 rounded-xl">
-                    <Briefcase size={20} className="text-[#52525B] mb-2" />
-                    <p className="text-xs text-[#71717A] font-medium">No items in {col.title}</p>
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-[#CCCCCC] bg-[#F5F0E6]">
+                    <Briefcase size={20} className="text-[#888888] mb-2" />
+                    <p className="text-xs font-mono text-[#888888] font-bold uppercase">Empty: {col.title}</p>
                   </div>
                 )}
               </div>

@@ -12,6 +12,16 @@ export interface MetricCardProps {
   accentColor?: 'indigo' | 'cyan' | 'mint' | 'amber' | 'coral' | 'purple';
 }
 
+// Bauhaus color mapping from old neon palette
+const ACCENT_MAP: Record<string, string> = {
+  indigo: '#2457A6',
+  cyan: '#173F7A',
+  mint: '#2E7D32',
+  amber: '#F4C430',
+  coral: '#E53935',
+  purple: '#173F7A',
+};
+
 export const MetricCard: React.FC<MetricCardProps> = ({
   label,
   value,
@@ -21,49 +31,58 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   subtitle,
   accentColor = 'indigo',
 }) => {
-  const accentGlow = {
-    indigo: 'hover:border-indigo-500/40 hover:shadow-indigo-500/10',
-    cyan: 'hover:border-cyan-500/40 hover:shadow-cyan-500/10',
-    mint: 'hover:border-emerald-500/40 hover:shadow-emerald-500/10',
-    amber: 'hover:border-amber-500/40 hover:shadow-amber-500/10',
-    coral: 'hover:border-rose-500/40 hover:shadow-rose-500/10',
-    purple: 'hover:border-purple-500/40 hover:shadow-purple-500/10',
-  };
-
-  const iconBg = {
-    indigo: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-    cyan: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-    mint: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    amber: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    coral: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-    purple: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  };
+  const accent = ACCENT_MAP[accentColor] || '#2457A6';
 
   return (
     <Card
       variant="default"
       hoverable
       padding="md"
-      className={`border border-zinc-800 transition-all duration-300 ${accentGlow[accentColor]}`}
     >
       <div className="flex items-start justify-between">
-        <span className="text-xs font-medium text-zinc-400">{label}</span>
+        <span
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: '10px',
+            fontWeight: 600,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase' as const,
+            color: '#7A7A7A',
+          }}
+        >
+          {label}
+        </span>
         {icon && (
-          <div className={`p-2 rounded-xl border ${iconBg[accentColor]}`}>
+          <div
+            className="p-2 flex items-center justify-center"
+            style={{
+              backgroundColor: `${accent}10`,
+              color: accent,
+              border: `1px solid ${accent}30`,
+            }}
+          >
             {icon}
           </div>
         )}
       </div>
 
       <div className="mt-3 flex items-baseline gap-2">
-        <span className="text-2xl font-bold tracking-tight text-white font-['Space_Grotesk']">
+        <span
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: '28px',
+            fontWeight: 700,
+            letterSpacing: '-0.03em',
+            lineHeight: 1,
+            color: '#111111',
+          }}
+        >
           {value}
         </span>
         {change && (
           <span
-            className={`inline-flex items-center text-xs font-semibold ${
-              isPositive ? 'text-emerald-400' : 'text-rose-400'
-            }`}
+            className="inline-flex items-center text-xs font-semibold"
+            style={{ color: isPositive ? '#2E7D32' : '#E53935' }}
           >
             {isPositive ? (
               <ArrowUpRight className="w-3.5 h-3.5 mr-0.5" />
@@ -75,7 +94,21 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         )}
       </div>
 
-      {subtitle && <p className="mt-1 text-xs text-zinc-500">{subtitle}</p>}
+      {subtitle && (
+        <p
+          className="mt-1.5"
+          style={{ fontSize: '12px', color: '#7A7A7A', fontFamily: "'Inter', sans-serif" }}
+        >
+          {subtitle}
+        </p>
+      )}
+
+      {/* Geometric accent line */}
+      <div
+        className="mt-4"
+        style={{ width: '24px', height: '2px', backgroundColor: accent }}
+        aria-hidden="true"
+      />
     </Card>
   );
 };

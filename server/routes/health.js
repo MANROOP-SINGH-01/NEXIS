@@ -16,7 +16,7 @@ router.get('/health', async (_req, res) => {
   let dbStatus = 'unavailable'
   try {
     // 1500ms timeout so remote pooler latency does not block health probe
-    const countPromise = prisma.skill.count()
+    const countPromise = prisma.skill.count().catch(() => null)
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500))
     const count = await Promise.race([countPromise, timeoutPromise])
     if (typeof count === 'number') {
