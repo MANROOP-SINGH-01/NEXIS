@@ -94,3 +94,6 @@ export function requireConsent(purpose) {
     });
   };
 }
+
+export const enforceConsent = requireConsent;
+

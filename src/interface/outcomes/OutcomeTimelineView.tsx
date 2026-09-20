@@ -17,6 +17,7 @@ import {
 import { Button } from '../primitives/Button';
 import { Card } from '../primitives/Card';
 import { Badge } from '../primitives/Badge';
+import EvidenceBadge from '../primitives/EvidenceBadge';
 
 interface OutcomeEvent {
   id: string;
@@ -324,12 +325,12 @@ export const OutcomeTimelineView: React.FC<OutcomeTimelineViewProps> = ({ traine
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <Badge variant={isVerified ? 'mint' : 'amber'} size="sm">
-                          {ev.verificationStatus}
-                        </Badge>
-                        <span className="text-[11px] font-mono text-zinc-400">
-                          {(ev.confidenceScore * 100).toFixed(0)}% Confidence
-                        </span>
+                        <EvidenceBadge
+                          score={Math.round(ev.confidenceScore * 100)}
+                          levelCode={ev.verificationStatus}
+                          isDisputed={ev.verificationStatus === 'CONFLICTING'}
+                          size="sm"
+                        />
                       </div>
                     </div>
 
