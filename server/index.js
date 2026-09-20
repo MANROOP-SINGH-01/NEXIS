@@ -65,6 +65,9 @@ import applicationsRoutes from './routes/applications.js'
 import evidenceRoutes from './routes/evidence.js'
 import passportRoutes from './routes/passport.js'
 import telegramRoutes from './routes/telegram.js'
+import followupsRoutes from './routes/followups.js'
+import skillsRoutes from './routes/skills.js'
+import { FEATURE_FLAGS } from './utils/featureFlags.js'
 
 import { seedAdminUser } from './lib/seedAdminUser.js'
 import { startEmbeddedFreeLlm } from './services/embeddedFreeLlm.js'
@@ -125,6 +128,15 @@ app.use('/api/applications', applicationsRoutes)
 app.use('/api/evidence', evidenceRoutes)
 app.use('/api/passport', passportRoutes)
 app.use('/api', telegramRoutes)
+app.use('/api/followups', followupsRoutes)
+app.use('/api/skills', skillsRoutes)
+app.use('/api/outcomes', outcomeRoutes)
+app.use('/api/consent', consentRoutes)
+
+// Feature Flags query endpoint
+app.get('/api/feature-flags', (req, res) => {
+  res.json(FEATURE_FLAGS)
+})
 
 // Direct root redirect for provider view links
 app.get('/provider-view/:token', (req, res) => {

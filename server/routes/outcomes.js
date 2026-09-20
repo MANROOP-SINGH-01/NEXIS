@@ -16,6 +16,17 @@ import { requireAdmin } from '../utils/adminAuth.js'
 const router = Router()
 
 /**
+ * GET /ping or /api/outcomes/ping — Namespace verification probe
+ */
+router.get(['/ping', '/outcomes/ping'], (req, res) => {
+  res.json({
+    namespace: '/api/outcomes',
+    status: 'ready',
+    timestamp: new Date().toISOString(),
+  })
+})
+
+/**
  * Dual-path identity resolver:
  * 1. User session token (phone+password login)
  * 2. GitHub OAuth token (legacy path)

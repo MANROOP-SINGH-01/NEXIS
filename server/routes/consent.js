@@ -17,6 +17,18 @@ import resilienceStore from '../lib/resilienceStore.js'
 const router = Router()
 
 /**
+ * GET /ping or /api/consent/ping — Namespace verification probe
+ */
+router.get(['/ping', '/consent/ping'], (req, res) => {
+  res.json({
+    namespace: '/api/consent',
+    status: 'ready',
+    dpdpPhasing: 'Phase-2 Compliant (Nov 2026 Target)',
+    timestamp: new Date().toISOString(),
+  })
+})
+
+/**
  * Dual-path identity resolver:
  * 1. Try resilienceStore session token
  * 2. Try User session token (newer phone+password auth)
