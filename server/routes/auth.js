@@ -23,6 +23,9 @@ router.post('/auth/register', async (req, res) => {
 
   const cleanPhone = normalizePhone(phone);
   const cleanEmail = email ? String(email).trim().toLowerCase() : null;
+  const assignedRole = (req.body.role && ['SUPER_ADMIN', 'ADMIN', 'STATE_ADMIN', 'DISTRICT_OFFICER', 'PROVIDER', 'EMPLOYER'].includes(String(req.body.role).toUpperCase()))
+    ? String(req.body.role).toUpperCase()
+    : 'CANDIDATE';
 
   try {
     const existing = await prisma.user.findFirst({
@@ -45,7 +48,7 @@ router.post('/auth/register', async (req, res) => {
         phone: cleanPhone,
         email: cleanEmail,
         passwordHash,
-        role: 'CANDIDATE',
+        role: assignedRole,
         candidateProfile: {
           create: {
             name: String(name).trim(),
@@ -120,7 +123,7 @@ router.post('/auth/register', async (req, res) => {
       phone: cleanPhone,
       email: cleanEmail,
       passwordHash,
-      role: 'CANDIDATE',
+      role: assignedRole,
       candidateProfile: {
         id: profileId,
         userId,
