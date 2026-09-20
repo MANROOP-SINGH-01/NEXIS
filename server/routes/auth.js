@@ -75,6 +75,14 @@ router.post('/auth/register', async (req, res) => {
         phoneNumber: cleanPhone,
       },
     });
+    resilienceStore.sessions.set(token, {
+      token,
+      userId: user.id,
+      expiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000),
+      revokedAt: null,
+      createdAt: new Date(),
+      lastUsedAt: new Date(),
+    });
 
     // Audit event
     await prisma.auditEvent.create({
@@ -190,6 +198,30 @@ router.post('/auth/login', async (req, res) => {
     }
 
     const { token } = await createSession(user.id);
+
+    // Mirror to resilience store
+    resilienceStore.addUser({
+      id: user.id,
+      phone: user.phone,
+      email: user.email,
+      passwordHash: user.passwordHash,
+      role: user.role,
+      candidateProfile: user.candidateProfile,
+      trainee: {
+        id: user.traineeId || `trainee_${user.id}`,
+        userId: user.id,
+        name: user.candidateProfile?.name || 'Candidate',
+        phoneNumber: user.phone,
+      },
+    });
+    resilienceStore.sessions.set(token, {
+      token,
+      userId: user.id,
+      expiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000),
+      revokedAt: null,
+      createdAt: new Date(),
+      lastUsedAt: new Date(),
+    });
 
     await prisma.user.update({
       where: { id: user.id },

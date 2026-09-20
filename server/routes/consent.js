@@ -77,22 +77,45 @@ async function resolveCallerTrainee(req) {
     try {
       const user = await validateSession(token)
       if (user) {
+        let trainee = null
         if (user.traineeId) {
-          const trainee = await prisma.trainee.findUnique({ where: { id: user.traineeId } })
+          trainee = await withDbTimeout(prisma.trainee.findUnique({ where: { id: user.traineeId } }), 600).catch(() => null)
           if (trainee) return { trainee, user, token, source: 'user-session' }
         }
 
-        let trainee = await prisma.trainee.findFirst({ where: { userId: user.id } })
+        trainee = await withDbTimeout(prisma.trainee.findUnique({ where: { phoneNumber: user.phone } }), 600).catch(() => null)
         if (!trainee) {
-          trainee = await prisma.trainee.create({
-            data: {
-              name: user.candidateProfile?.name || 'User',
-              phoneNumber: user.phone,
-              user: { connect: { id: user.id } },
-            },
-          })
+          trainee = await withDbTimeout(
+            prisma.trainee.create({
+              data: {
+                name: user.candidateProfile?.name || 'User',
+                phoneNumber: user.phone,
+              },
+            }),
+            600
+          ).catch(() => null)
+
+          if (trainee) {
+            await withDbTimeout(
+              prisma.user.update({
+                where: { id: user.id },
+                data: { traineeId: trainee.id },
+              }),
+              600
+            ).catch(() => {})
+          }
         }
-        return { trainee, user, token, source: 'user-session-created' }
+
+        if (!trainee) {
+          trainee = {
+            id: `trainee_${user.id}`,
+            userId: user.id,
+            name: user.candidateProfile?.name || 'User',
+            phoneNumber: user.phone,
+            preferredLanguage: 'en',
+          }
+        }
+        return { trainee, user, token, source: 'user-session' }
       }
     } catch (err) {
       console.warn('[resolveCallerTrainee] validateSession error:', err.message)
@@ -154,39 +177,51 @@ router.post(['/grant', '/consent/grant'], async (req, res) => {
     // 1. Database upsert (guarded with timeout)
     let consentRecord = null
     try {
-      if (prisma.consent && typeof prisma.consent.upsert === 'function') {
-        consentRecord = await withDbTimeout(
-          prisma.consent.upsert({
+      if (prisma.consent && typeof prisma.consent.findFirst === 'function') {
+        const existing = await withDbTimeout(
+          prisma.consent.findFirst({
             where: {
-              traineeId_purpose: {
-                traineeId: trainee.id,
-                purpose: cleanPurpose,
-              },
-            },
-            update: {
-              granted: true,
-              grantedAt: new Date(),
-              revokedAt: null,
-              noticeVersion,
-              ipAddress: String(clientIp),
-              userAgent: String(userAgent),
-            },
-            create: {
               traineeId: trainee.id,
               purpose: cleanPurpose,
-              granted: true,
-              grantedAt: new Date(),
-              revokedAt: null,
-              noticeVersion,
-              ipAddress: String(clientIp),
-              userAgent: String(userAgent),
             },
           }),
-          800
-        )
+          600
+        ).catch(() => null)
+
+        if (existing) {
+          consentRecord = await withDbTimeout(
+            prisma.consent.update({
+              where: { id: existing.id },
+              data: {
+                granted: true,
+                grantedAt: new Date(),
+                revokedAt: null,
+                version: noticeVersion,
+                ipAddress: String(clientIp),
+                userAgent: String(userAgent),
+              },
+            }),
+            600
+          ).catch(() => null)
+        } else {
+          consentRecord = await withDbTimeout(
+            prisma.consent.create({
+              data: {
+                traineeId: trainee.id,
+                purpose: cleanPurpose,
+                granted: true,
+                grantedAt: new Date(),
+                version: noticeVersion,
+                ipAddress: String(clientIp),
+                userAgent: String(userAgent),
+              },
+            }),
+            600
+          ).catch(() => null)
+        }
       }
     } catch (dbErr) {
-      console.warn('[consent/grant] Remote DB upsert failed, mirroring in resilienceStore:', dbErr.message)
+      console.warn('[consent/grant] Remote DB write failed, mirroring in resilienceStore:', dbErr.message)
     }
 
     // 2. Resilience Store update
@@ -207,15 +242,13 @@ router.post(['/grant', '/consent/grant'], async (req, res) => {
               actorId: user?.id || trainee.id,
               actorRole: user?.role || 'TRAINEE',
               action: 'CONSENT_GRANTED',
-              targetEntity: 'Consent',
+              targetType: 'Consent',
               targetId: consentRecord?.id || resilienceConsent?.id,
-              ipAddress: String(clientIp),
-              userAgent: String(userAgent),
-              metadata: { purpose: cleanPurpose, noticeVersion },
+              details: JSON.stringify({ purpose: cleanPurpose, noticeVersion, clientIp, userAgent }),
             },
           }),
           500
-        )
+        ).catch(() => null)
       }
     } catch (logErr) {
       console.warn('[consent/grant] AuditLog write warning:', logErr.message)
@@ -304,15 +337,13 @@ router.post(['/withdraw', '/consent/withdraw', '/consent/:id/withdraw'], async (
               actorId: user?.id || trainee.id,
               actorRole: user?.role || 'TRAINEE',
               action: 'CONSENT_REVOKED',
-              targetEntity: 'Consent',
+              targetType: 'Consent',
               targetId: revokedRecord?.id,
-              ipAddress: String(clientIp),
-              userAgent: String(userAgent),
-              metadata: { purpose: cleanPurpose, reason, revokedAt: new Date().toISOString() },
+              details: JSON.stringify({ purpose: cleanPurpose, reason, revokedAt: new Date().toISOString() }),
             },
           }),
           500
-        )
+        ).catch(() => null)
       }
     } catch (logErr) {
       console.warn('[consent/withdraw] AuditLog write warning:', logErr.message)
