@@ -265,7 +265,7 @@ const Workspace: React.FC = () => {
         )}
 
         {isAnalyticsDashboardOpen && (
-          <div className="fixed inset-0 z-[100] flex flex-col bg-[#090A0F] animate-in fade-in duration-150">
+          <div className="fixed inset-0 z-[120] flex flex-col bg-[#090A0F] animate-in fade-in duration-150">
             <AnalyticsDashboard />
           </div>
         )}

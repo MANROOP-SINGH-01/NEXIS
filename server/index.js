@@ -69,6 +69,7 @@ import followupsRoutes from './routes/followups.js'
 import skillsRoutes from './routes/skills.js'
 import verificationRoutes from './routes/verification.js'
 import interventionsRoutes from './routes/interventions.js'
+import analyticsOutcomesRoutes from './routes/analyticsOutcomes.js'
 import { FEATURE_FLAGS } from './utils/featureFlags.js'
 
 import { seedAdminUser } from './lib/seedAdminUser.js'
@@ -136,6 +137,7 @@ app.use('/api/outcomes', outcomeRoutes)
 app.use('/api/consent', consentRoutes)
 app.use('/api/verification', verificationRoutes)
 app.use('/api/interventions', interventionsRoutes)
+app.use('/api/analytics', analyticsOutcomesRoutes)
 
 // Feature Flags query endpoint
 app.get('/api/feature-flags', (req, res) => {

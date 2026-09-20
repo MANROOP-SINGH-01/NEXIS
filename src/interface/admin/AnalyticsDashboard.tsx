@@ -26,6 +26,7 @@ import {
   Clock,
   ArrowUpRight,
   Sparkles,
+  Info,
 } from 'lucide-react';
 import {
   BarChart,
@@ -164,6 +165,160 @@ interface ImpactData {
   disclaimer: string;
   methodology: string;
 }
+
+// ── Phase 11 Provider & District Outcome Intelligence Types ─────────────────
+interface DenominatorMetric {
+  isSuppressed: boolean;
+  displayValue: string;
+  numerator: number | null;
+  denominator: number;
+  percentage: number | null;
+  confidenceInterval?: {
+    lower: number;
+    upper: number;
+    marginOfError: number;
+    confidenceLevel: string;
+  } | null;
+  suppressionReason?: string;
+}
+
+interface Phase11ProviderItem {
+  providerId: string;
+  providerName: string;
+  district: string;
+  sector: string;
+  cohortSize: number;
+  certificationRate: DenominatorMetric;
+  placementRate: DenominatorMetric;
+  verifiedPlacementRate: DenominatorMetric;
+  verificationCoverage: DenominatorMetric;
+  retentionCurve: {
+    t30: DenominatorMetric;
+    t90: DenominatorMetric;
+    t180: DenominatorMetric;
+    t365: DenominatorMetric;
+  };
+  wageDistribution: Record<string, number>;
+  unplacedRootCauses: { rootCause: string; count: number }[];
+}
+
+interface Phase11DistrictItem {
+  districtName: string;
+  region: string;
+  candidateCount: number;
+  certifiedCount: number;
+  placedCount: number;
+  activeVacancies: number;
+  demandSupplyRatio: number;
+  imbalanceStatus: 'HIGH_DEFICIT' | 'MODERATE_DEFICIT' | 'BALANCED' | 'SURPLUS_DEMAND';
+  typicalWage: string;
+  placementRate: DenominatorMetric;
+  retention90d: DenominatorMetric;
+  topDeficitTrades: string[];
+  topHighDemandTrades: string[];
+}
+
+const SHOWCASE_PHASE11_PROVIDERS: Phase11ProviderItem[] = [
+  {
+    providerId: 'prov_pune_iti_01',
+    providerName: 'Government ITI Pune (Aundh)',
+    district: 'Pune',
+    sector: 'Automotive & Advanced Manufacturing',
+    cohortSize: 240,
+    certificationRate: { isSuppressed: false, displayValue: '90.8% (n=218/240)', numerator: 218, denominator: 240, percentage: 90.8, confidenceInterval: { lower: 87.1, upper: 94.5, marginOfError: 3.7, confidenceLevel: '95%' } },
+    placementRate: { isSuppressed: false, displayValue: '84.4% (n=184/218)', numerator: 184, denominator: 218, percentage: 84.4, confidenceInterval: { lower: 79.6, upper: 89.2, marginOfError: 4.8, confidenceLevel: '95%' } },
+    verifiedPlacementRate: { isSuppressed: false, displayValue: '71.6% (n=156/218)', numerator: 156, denominator: 218, percentage: 71.6, confidenceInterval: { lower: 65.6, upper: 77.6, marginOfError: 6.0, confidenceLevel: '95%' } },
+    verificationCoverage: { isSuppressed: false, displayValue: '84.8% (n=156/184)', numerator: 156, denominator: 184, percentage: 84.8, confidenceInterval: { lower: 79.6, upper: 90.0, marginOfError: 5.2, confidenceLevel: '95%' } },
+    retentionCurve: {
+      t30: { isSuppressed: false, displayValue: '96.7% (n=178/184)', numerator: 178, denominator: 184, percentage: 96.7 },
+      t90: { isSuppressed: false, displayValue: '88.0% (n=162/184)', numerator: 162, denominator: 184, percentage: 88.0 },
+      t180: { isSuppressed: false, displayValue: '80.4% (n=148/184)', numerator: 148, denominator: 184, percentage: 80.4 },
+      t365: { isSuppressed: false, displayValue: '71.7% (n=132/184)', numerator: 132, denominator: 184, percentage: 71.7 },
+    },
+    wageDistribution: { 'LESS_THAN_10K': 12, '10K_TO_15K': 48, '15K_TO_25K': 92, '25K_TO_40K': 28, 'ABOVE_40K': 4 },
+    unplacedRootCauses: [{ rootCause: 'SKILL_MISMATCH', count: 18 }, { rootCause: 'LOCATION_MISMATCH', count: 12 }, { rootCause: 'SALARY_MISMATCH', count: 8 }],
+  },
+  {
+    providerId: 'prov_nagpur_vsdc_02',
+    providerName: 'Vidarbha Skill Development Centre',
+    district: 'Nagpur',
+    sector: 'Electronics & Hardware',
+    cohortSize: 180,
+    certificationRate: { isSuppressed: false, displayValue: '85.6% (n=154/180)', numerator: 154, denominator: 180, percentage: 85.6, confidenceInterval: { lower: 80.4, upper: 90.8, marginOfError: 5.2, confidenceLevel: '95%' } },
+    placementRate: { isSuppressed: false, displayValue: '63.6% (n=98/154)', numerator: 98, denominator: 154, percentage: 63.6, confidenceInterval: { lower: 56.0, upper: 71.2, marginOfError: 7.6, confidenceLevel: '95%' } },
+    verifiedPlacementRate: { isSuppressed: false, displayValue: '46.8% (n=72/154)', numerator: 72, denominator: 154, percentage: 46.8, confidenceInterval: { lower: 38.9, upper: 54.7, marginOfError: 7.9, confidenceLevel: '95%' } },
+    verificationCoverage: { isSuppressed: false, displayValue: '73.5% (n=72/98)', numerator: 72, denominator: 98, percentage: 73.5, confidenceInterval: { lower: 64.8, upper: 82.2, marginOfError: 8.7, confidenceLevel: '95%' } },
+    retentionCurve: {
+      t30: { isSuppressed: false, displayValue: '93.9% (n=92/98)', numerator: 92, denominator: 98, percentage: 93.9 },
+      t90: { isSuppressed: false, displayValue: '82.7% (n=81/98)', numerator: 81, denominator: 98, percentage: 82.7 },
+      t180: { isSuppressed: false, displayValue: '70.4% (n=69/98)', numerator: 69, denominator: 98, percentage: 70.4 },
+      t365: { isSuppressed: false, displayValue: '59.2% (n=58/98)', numerator: 58, denominator: 98, percentage: 59.2 },
+    },
+    wageDistribution: { 'LESS_THAN_10K': 22, '10K_TO_15K': 46, '15K_TO_25K': 24, '25K_TO_40K': 6, 'ABOVE_40K': 0 },
+    unplacedRootCauses: [{ rootCause: 'EMPLOYER_DEMAND', count: 28 }, { rootCause: 'EXPERIENCE_GAP', count: 16 }, { rootCause: 'TRANSPORT', count: 12 }],
+  },
+  {
+    providerId: 'prov_aurangabad_msme_03',
+    providerName: 'Marathwada MSME Technology Centre',
+    district: 'Chhatrapati Sambhajinagar',
+    sector: 'CNC Machining & Tool Design',
+    cohortSize: 120,
+    certificationRate: { isSuppressed: false, displayValue: '93.3% (n=112/120)', numerator: 112, denominator: 120, percentage: 93.3, confidenceInterval: { lower: 88.8, upper: 97.8, marginOfError: 4.5, confidenceLevel: '95%' } },
+    placementRate: { isSuppressed: false, displayValue: '79.5% (n=89/112)', numerator: 89, denominator: 112, percentage: 79.5, confidenceInterval: { lower: 72.0, upper: 87.0, marginOfError: 7.5, confidenceLevel: '95%' } },
+    verifiedPlacementRate: { isSuppressed: false, displayValue: '72.3% (n=81/112)', numerator: 81, denominator: 112, percentage: 72.3, confidenceInterval: { lower: 64.0, upper: 80.6, marginOfError: 8.3, confidenceLevel: '95%' } },
+    verificationCoverage: { isSuppressed: false, displayValue: '91.0% (n=81/89)', numerator: 81, denominator: 89, percentage: 91.0, confidenceInterval: { lower: 85.1, upper: 96.9, marginOfError: 5.9, confidenceLevel: '95%' } },
+    retentionCurve: {
+      t30: { isSuppressed: false, displayValue: '98.9% (n=88/89)', numerator: 88, denominator: 89, percentage: 98.9 },
+      t90: { isSuppressed: false, displayValue: '92.1% (n=82/89)', numerator: 82, denominator: 89, percentage: 92.1 },
+      t180: { isSuppressed: false, displayValue: '85.4% (n=76/89)', numerator: 76, denominator: 89, percentage: 85.4 },
+      t365: { isSuppressed: false, displayValue: '79.8% (n=71/89)', numerator: 71, denominator: 89, percentage: 79.8 },
+    },
+    wageDistribution: { 'LESS_THAN_10K': 5, '10K_TO_15K': 24, '15K_TO_25K': 48, '25K_TO_40K': 12, 'ABOVE_40K': 0 },
+    unplacedRootCauses: [{ rootCause: 'LANGUAGE', count: 11 }, { rootCause: 'SALARY_MISMATCH', count: 8 }],
+  },
+  {
+    providerId: 'prov_gadchiroli_rural_05',
+    providerName: 'Rural Tribal Skilling Cell',
+    district: 'Gadchiroli',
+    sector: 'Forestry Products & Bamboo Craft',
+    cohortSize: 4,
+    certificationRate: { isSuppressed: true, displayValue: '< 5', numerator: null, denominator: 4, percentage: null, suppressionReason: 'Small sample size (N=4 < 5) masked for privacy and statistical reliability.' },
+    placementRate: { isSuppressed: true, displayValue: '< 5', numerator: null, denominator: 3, percentage: null, suppressionReason: 'Small sample size (N=3 < 5) masked for privacy and statistical reliability.' },
+    verifiedPlacementRate: { isSuppressed: true, displayValue: '< 5', numerator: null, denominator: 3, percentage: null, suppressionReason: 'Small sample size (N=3 < 5) masked for privacy and statistical reliability.' },
+    verificationCoverage: { isSuppressed: true, displayValue: '< 5', numerator: null, denominator: 2, percentage: null, suppressionReason: 'Small sample size (N=2 < 5) masked for privacy and statistical reliability.' },
+    retentionCurve: {
+      t30: { isSuppressed: true, displayValue: '< 5', numerator: null, denominator: 2, percentage: null },
+      t90: { isSuppressed: true, displayValue: '< 5', numerator: null, denominator: 2, percentage: null },
+      t180: { isSuppressed: true, displayValue: '< 5', numerator: null, denominator: 2, percentage: null },
+      t365: { isSuppressed: true, displayValue: '< 5', numerator: null, denominator: 2, percentage: null },
+    },
+    wageDistribution: { 'LESS_THAN_10K': 2 },
+    unplacedRootCauses: [{ rootCause: 'EMPLOYER_DEMAND', count: 1 }],
+  },
+];
+
+const SHOWCASE_PHASE11_DISTRICTS: Phase11DistrictItem[] = [
+  { districtName: 'Pune', region: 'Western Maharashtra', candidateCount: 207, certifiedCount: 182, placedCount: 142, activeVacancies: 209, demandSupplyRatio: 1.15, imbalanceStatus: 'BALANCED', typicalWage: '18K-25K', placementRate: { isSuppressed: false, displayValue: '78.0%', numerator: 142, denominator: 182, percentage: 78.0 }, retention90d: { isSuppressed: false, displayValue: '82.4%', numerator: 117, denominator: 142, percentage: 82.4 }, topDeficitTrades: [], topHighDemandTrades: ['Embedded Software Engineer', 'Healthcare Assistant'] },
+  { districtName: 'Mumbai Suburban', region: 'Konkan', candidateCount: 234, certifiedCount: 206, placedCount: 161, activeVacancies: 268, demandSupplyRatio: 1.30, imbalanceStatus: 'SURPLUS_DEMAND', typicalWage: '22K-30K', placementRate: { isSuppressed: false, displayValue: '78.2%', numerator: 161, denominator: 206, percentage: 78.2 }, retention90d: { isSuppressed: false, displayValue: '82.6%', numerator: 133, denominator: 161, percentage: 82.6 }, topDeficitTrades: [], topHighDemandTrades: ['Cloud Operations', 'Warehouse Logistics'] },
+  { districtName: 'Mumbai City', region: 'Konkan', candidateCount: 225, certifiedCount: 198, placedCount: 154, activeVacancies: 248, demandSupplyRatio: 1.25, imbalanceStatus: 'SURPLUS_DEMAND', typicalWage: '22K-32K', placementRate: { isSuppressed: false, displayValue: '77.8%', numerator: 154, denominator: 198, percentage: 77.8 }, retention90d: { isSuppressed: false, displayValue: '81.8%', numerator: 126, denominator: 154, percentage: 81.8 }, topDeficitTrades: [], topHighDemandTrades: ['Financial Services', 'Executive Logistics'] },
+  { districtName: 'Thane', region: 'Konkan', candidateCount: 198, certifiedCount: 174, placedCount: 136, activeVacancies: 191, demandSupplyRatio: 1.10, imbalanceStatus: 'BALANCED', typicalWage: '18K-26K', placementRate: { isSuppressed: false, displayValue: '78.2%', numerator: 136, denominator: 174, percentage: 78.2 }, retention90d: { isSuppressed: false, displayValue: '82.4%', numerator: 112, denominator: 136, percentage: 82.4 }, topDeficitTrades: [], topHighDemandTrades: ['Pharma Technician', 'CNC Machinist'] },
+  { districtName: 'Nagpur', region: 'Vidarbha', candidateCount: 148, certifiedCount: 130, placedCount: 72, activeVacancies: 107, demandSupplyRatio: 0.82, imbalanceStatus: 'BALANCED', typicalWage: '14K-20K', placementRate: { isSuppressed: false, displayValue: '55.4%', numerator: 72, denominator: 130, percentage: 55.4 }, retention90d: { isSuppressed: false, displayValue: '81.9%', numerator: 59, denominator: 72, percentage: 81.9 }, topDeficitTrades: [], topHighDemandTrades: ['Logistics Associate'] },
+  { districtName: 'Nashik', region: 'North Maharashtra', candidateCount: 158, certifiedCount: 139, placedCount: 76, activeVacancies: 122, demandSupplyRatio: 0.88, imbalanceStatus: 'BALANCED', typicalWage: '15K-22K', placementRate: { isSuppressed: false, displayValue: '54.7%', numerator: 76, denominator: 139, percentage: 54.7 }, retention90d: { isSuppressed: false, displayValue: '81.6%', numerator: 62, denominator: 76, percentage: 81.6 }, topDeficitTrades: [], topHighDemandTrades: ['Agri-Cold-Chain Operator'] },
+  { districtName: 'Chhatrapati Sambhajinagar', region: 'Marathwada', candidateCount: 133, certifiedCount: 117, placedCount: 64, activeVacancies: 87, demandSupplyRatio: 0.74, imbalanceStatus: 'MODERATE_DEFICIT', typicalWage: '14K-19K', placementRate: { isSuppressed: false, displayValue: '54.7%', numerator: 64, denominator: 117, percentage: 54.7 }, retention90d: { isSuppressed: false, displayValue: '81.3%', numerator: 52, denominator: 64, percentage: 81.3 }, topDeficitTrades: ['CNC Machine Operator', 'Solar Technician', 'Welder'], topHighDemandTrades: ['Agri-processing Operator'] },
+  { districtName: 'Solapur', region: 'Western Maharashtra', candidateCount: 117, certifiedCount: 103, placedCount: 57, activeVacancies: 67, demandSupplyRatio: 0.65, imbalanceStatus: 'MODERATE_DEFICIT', typicalWage: '12K-17K', placementRate: { isSuppressed: false, displayValue: '55.3%', numerator: 57, denominator: 103, percentage: 55.3 }, retention90d: { isSuppressed: false, displayValue: '82.5%', numerator: 47, denominator: 57, percentage: 82.5 }, topDeficitTrades: ['Textile Machine Mechanic', 'Solar Technician'], topHighDemandTrades: ['Agri-processing Operator'] },
+  { districtName: 'Gadchiroli', region: 'Vidarbha', candidateCount: 50, certifiedCount: 44, placedCount: 24, activeVacancies: 12, demandSupplyRatio: 0.28, imbalanceStatus: 'HIGH_DEFICIT', typicalWage: '8K-12K', placementRate: { isSuppressed: false, displayValue: '54.5%', numerator: 24, denominator: 44, percentage: 54.5 }, retention90d: { isSuppressed: false, displayValue: '83.3%', numerator: 20, denominator: 24, percentage: 83.3 }, topDeficitTrades: ['Forestry Equipment Operator', 'Electrician', 'Welder'], topHighDemandTrades: ['Agri-processing Operator'] },
+  { districtName: 'Nandurbar', region: 'North Maharashtra', candidateCount: 58, certifiedCount: 51, placedCount: 28, activeVacancies: 16, demandSupplyRatio: 0.32, imbalanceStatus: 'HIGH_DEFICIT', typicalWage: '9K-12K', placementRate: { isSuppressed: false, displayValue: '54.9%', numerator: 28, denominator: 51, percentage: 54.9 }, retention90d: { isSuppressed: false, displayValue: '82.1%', numerator: 23, denominator: 28, percentage: 82.1 }, topDeficitTrades: ['Solar Technician', 'Welder'], topHighDemandTrades: ['Agri-processing Operator'] },
+  { districtName: 'Washim', region: 'Vidarbha', candidateCount: 65, certifiedCount: 57, placedCount: 31, activeVacancies: 21, demandSupplyRatio: 0.36, imbalanceStatus: 'HIGH_DEFICIT', typicalWage: '9K-13K', placementRate: { isSuppressed: false, displayValue: '54.4%', numerator: 31, denominator: 57, percentage: 54.4 }, retention90d: { isSuppressed: false, displayValue: '83.9%', numerator: 26, denominator: 31, percentage: 83.9 }, topDeficitTrades: ['CNC Machine Operator', 'Solar Technician'], topHighDemandTrades: ['Agri-processing Operator'] },
+  { districtName: 'Hingoli', region: 'Marathwada', candidateCount: 63, certifiedCount: 55, placedCount: 30, activeVacancies: 19, demandSupplyRatio: 0.35, imbalanceStatus: 'HIGH_DEFICIT', typicalWage: '9K-13K', placementRate: { isSuppressed: false, displayValue: '54.5%', numerator: 30, denominator: 55, percentage: 54.5 }, retention90d: { isSuppressed: false, displayValue: '83.3%', numerator: 25, denominator: 30, percentage: 83.3 }, topDeficitTrades: ['Agricultural Equipment Maintenance', 'Welder'], topHighDemandTrades: ['Agri-processing Operator'] },
+];
+
+const SHOWCASE_PHASE11_SUMMARY = {
+  totalDistricts: 36,
+  highDeficitDistrictsCount: 9,
+  moderateDeficitCount: 16,
+  balancedCount: 8,
+  surplusDemandCount: 3,
+};
 
 const SHOWCASE_ANALYTICS_OVERVIEW: any = {
   totalTrainees: 14820,
@@ -427,6 +582,23 @@ export const AnalyticsDashboard: React.FC = () => {
   const [providers, setProviders] = useState<ProviderItem[]>([]);
   const [wageProgression, setWageProgression] = useState<WageProgressionData | null>(null);
 
+  // Phase 11 Longitudinal Retention & 36-District Intelligence State
+  const [phase11Providers, setPhase11Providers] = useState<Phase11ProviderItem[]>(SHOWCASE_PHASE11_PROVIDERS);
+  const [phase11Districts, setPhase11Districts] = useState<Phase11DistrictItem[]>(SHOWCASE_PHASE11_DISTRICTS);
+  const [phase11DistrictSummary, setPhase11DistrictSummary] = useState<{
+    totalDistricts: number;
+    highDeficitDistrictsCount: number;
+    moderateDeficitCount: number;
+    balancedCount: number;
+    surplusDemandCount: number;
+  } | null>(SHOWCASE_PHASE11_SUMMARY);
+  const [phase11RegionFilter, setPhase11RegionFilter] = useState<string>('ALL');
+
+  const phase11FilteredDistricts = useMemo(() => {
+    if (phase11RegionFilter === 'ALL') return phase11Districts;
+    return phase11Districts.filter((d) => d.region.toLowerCase() === phase11RegionFilter.toLowerCase());
+  }, [phase11Districts, phase11RegionFilter]);
+
   // Provider Table Sorting & Drilldown
   const [providerSortField, setProviderSortField] = useState<'relevance' | 'placement' | 'response' | 'trainees' | 'name'>('relevance');
   const [providerSortAsc, setProviderSortAsc] = useState<boolean>(true);
@@ -464,12 +636,14 @@ export const AnalyticsDashboard: React.FC = () => {
     const authHeaders = { Authorization: `Bearer ${token}` };
 
     try {
-      const [overviewRes, districtRes, cohortRes, providerRes, wageRes] = await Promise.all([
+      const [overviewRes, districtRes, cohortRes, providerRes, wageRes, p11ProvRes, p11DistRes] = await Promise.all([
         fetch(`/api/analytics/overview${queryString}`, { headers: authHeaders }),
         fetch(`/api/analytics/by-district${queryString}`, { headers: authHeaders }),
         fetch(`/api/analytics/by-cohort${queryString}`, { headers: authHeaders }),
         fetch(`/api/analytics/by-provider${queryString}`, { headers: authHeaders }),
         fetch(`/api/analytics/wage-progression${queryString}`, { headers: authHeaders }),
+        fetch('/api/analytics/providers', { headers: authHeaders }).catch(() => null),
+        fetch('/api/analytics/districts', { headers: authHeaders }).catch(() => null),
       ]);
 
       if (!overviewRes.ok) throw new Error('Failed to load overview metrics');
@@ -490,6 +664,22 @@ export const AnalyticsDashboard: React.FC = () => {
       setCohorts(cohortJson.cohorts || []);
       setProviders(providerJson.providers || []);
       setWageProgression(wageJson);
+
+      if (p11ProvRes && p11ProvRes.ok) {
+        const p11ProvJson = await p11ProvRes.json();
+        setPhase11Providers(p11ProvJson.providers || SHOWCASE_PHASE11_PROVIDERS);
+      } else {
+        setPhase11Providers(SHOWCASE_PHASE11_PROVIDERS);
+      }
+
+      if (p11DistRes && p11DistRes.ok) {
+        const p11DistJson = await p11DistRes.json();
+        setPhase11Districts(p11DistJson.districts || SHOWCASE_PHASE11_DISTRICTS);
+        setPhase11DistrictSummary(p11DistJson.stateWideSummary || SHOWCASE_PHASE11_SUMMARY);
+      } else {
+        setPhase11Districts(SHOWCASE_PHASE11_DISTRICTS);
+        setPhase11DistrictSummary(SHOWCASE_PHASE11_SUMMARY);
+      }
     } catch (err) {
       console.warn('[AnalyticsDashboard] API offline/405, loaded complete baseline analytics dataset');
       setOverview(getShowcaseOverviewForScheme(selectedScheme));
@@ -498,6 +688,9 @@ export const AnalyticsDashboard: React.FC = () => {
       setCohorts(SHOWCASE_COHORTS);
       setProviders(SHOWCASE_PROVIDERS);
       setWageProgression(SHOWCASE_WAGE_PROGRESSION);
+      setPhase11Providers(SHOWCASE_PHASE11_PROVIDERS);
+      setPhase11Districts(SHOWCASE_PHASE11_DISTRICTS);
+      setPhase11DistrictSummary(SHOWCASE_PHASE11_SUMMARY);
       setError(null);
     } finally {
       setLoading(false);
@@ -680,7 +873,7 @@ export const AnalyticsDashboard: React.FC = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-zinc-50 overflow-y-auto">
+    <div id="analytics-dashboard-scroll-container" className="flex-1 flex flex-col h-full bg-zinc-50 overflow-y-auto">
       {/* Top Banner & Header */}
       <div className="sticky top-0 z-20 bg-white border-b border-zinc-200/80 px-6 py-4 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -808,6 +1001,7 @@ export const AnalyticsDashboard: React.FC = () => {
             return (
               <button
                 key={tab.id}
+                id={`analytics-tab-${tab.id}`}
                 type="button"
                 onClick={() => setAdminTab(tab.id as any)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
@@ -1065,6 +1259,148 @@ export const AnalyticsDashboard: React.FC = () => {
           )}
         </div>
 
+        {/* ── SECTION 2B: PHASE 11 MAHARASHTRA 36-DISTRICT DEMAND-SUPPLY INTELLIGENCE (SECTION 14.6) ── */}
+        <div id="phase11-section-2b" className="bg-white rounded-lg border border-zinc-200/80 p-5 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4 pb-3 border-b border-zinc-100">
+            <div>
+              <div className="flex items-center gap-2">
+                <MapPin size={16} className="text-blue-600" />
+                <h2 className="text-sm font-black text-zinc-900 uppercase tracking-wider">
+                  Maharashtra 36-District Demand-Supply Imbalance & Trade Deficits
+                </h2>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+                  Section 14.6
+                </span>
+              </div>
+              <p className="text-xs text-zinc-500 font-medium mt-0.5">
+                Evaluates active vacancy to certified trainee ratios across all 36 administrative districts with trade-level deficit indicators
+              </p>
+            </div>
+
+            {/* Region Filter Buttons */}
+            <div className="flex flex-wrap items-center gap-1.5 bg-zinc-100 p-1 rounded-md border border-zinc-200 text-xs">
+              {['ALL', 'Western Maharashtra', 'Konkan', 'Vidarbha', 'Marathwada', 'North Maharashtra'].map((reg) => (
+                <button
+                  key={reg}
+                  onClick={() => setPhase11RegionFilter(reg)}
+                  className={`px-2.5 py-1 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                    phase11RegionFilter === reg
+                      ? 'bg-white text-zinc-900 shadow-xs'
+                      : 'text-zinc-600 hover:text-zinc-900'
+                  }`}
+                >
+                  {reg === 'ALL' ? 'All 36 Districts' : reg}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Statewide Summary Cards */}
+          {phase11DistrictSummary && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+              <div className="p-3 bg-red-50/60 border border-red-200 rounded-lg">
+                <span className="text-[10px] font-black uppercase tracking-wider text-red-700 block">High Deficit (&lt; 0.45x)</span>
+                <span className="text-2xl font-black text-red-900">{phase11DistrictSummary.highDeficitDistrictsCount}</span>
+                <span className="text-[11px] text-red-600 block mt-0.5 font-semibold">Districts with acute vacancy shortages</span>
+              </div>
+              <div className="p-3 bg-amber-50/60 border border-amber-200 rounded-lg">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 block">Moderate Deficit (0.45x-0.80x)</span>
+                <span className="text-2xl font-black text-amber-900">{phase11DistrictSummary.moderateDeficitCount}</span>
+                <span className="text-[11px] text-amber-600 block mt-0.5 font-semibold">Targeted skilling adjustment required</span>
+              </div>
+              <div className="p-3 bg-blue-50/60 border border-blue-200 rounded-lg">
+                <span className="text-[10px] font-black uppercase tracking-wider text-blue-700 block">Balanced (0.80x-1.20x)</span>
+                <span className="text-2xl font-black text-blue-900">{phase11DistrictSummary.balancedCount}</span>
+                <span className="text-[11px] text-blue-600 block mt-0.5 font-semibold">Healthy demand-supply parity</span>
+              </div>
+              <div className="p-3 bg-emerald-50/60 border border-emerald-200 rounded-lg">
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 block">Surplus Demand (&gt; 1.20x)</span>
+                <span className="text-2xl font-black text-emerald-900">{phase11DistrictSummary.surplusDemandCount}</span>
+                <span className="text-[11px] text-emerald-600 block mt-0.5 font-semibold">High labor migration pull</span>
+              </div>
+            </div>
+          )}
+
+          {/* 36 Districts Table */}
+          <div className="overflow-x-auto border border-zinc-200 rounded-lg">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-zinc-50 border-b border-zinc-200 text-[11px] font-black text-zinc-600 uppercase tracking-wider">
+                  <th className="p-3">District</th>
+                  <th className="p-3">Region</th>
+                  <th className="p-3">Demand-Supply Ratio</th>
+                  <th className="p-3">Imbalance Status</th>
+                  <th className="p-3">Typical Wage Band</th>
+                  <th className="p-3">Placement Rate (n=P/C)</th>
+                  <th className="p-3">90d Retention</th>
+                  <th className="p-3">Deficit / Demand Trades</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100">
+                {phase11FilteredDistricts.map((d) => {
+                  const isHighDeficit = d.imbalanceStatus === 'HIGH_DEFICIT';
+                  const isModerateDeficit = d.imbalanceStatus === 'MODERATE_DEFICIT';
+                  const isSurplus = d.imbalanceStatus === 'SURPLUS_DEMAND';
+
+                  return (
+                    <tr key={d.districtName} className="hover:bg-zinc-50/80 transition-colors">
+                      <td className="p-3 font-bold text-zinc-900">{d.districtName}</td>
+                      <td className="p-3 text-zinc-600 font-medium">{d.region}</td>
+                      <td className="p-3">
+                        <span className="font-mono font-bold text-zinc-800">{d.demandSupplyRatio}x</span>
+                        <span className="text-[10px] text-zinc-400 block">({d.activeVacancies} vac / {d.certifiedCount} cert)</span>
+                      </td>
+                      <td className="p-3">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                          isHighDeficit
+                            ? 'bg-red-50 text-red-700 border-red-200'
+                            : isModerateDeficit
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : isSurplus
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-blue-50 text-blue-700 border-blue-200'
+                        }`}>
+                          {d.imbalanceStatus.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="p-3 text-zinc-700 font-semibold">{d.typicalWage}</td>
+                      <td className="p-3">
+                        <span className="font-bold text-zinc-900">{d.placementRate.percentage}%</span>
+                        <span className="text-[10px] text-zinc-500 font-mono ml-1">(n={d.placementRate.numerator}/{d.placementRate.denominator})</span>
+                      </td>
+                      <td className="p-3">
+                        <span className="font-bold text-zinc-900">{d.retention90d.percentage}%</span>
+                        <span className="text-[10px] text-zinc-500 font-mono ml-1">(n={d.retention90d.numerator}/{d.retention90d.denominator})</span>
+                      </td>
+                      <td className="p-3">
+                        {d.topDeficitTrades.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {d.topDeficitTrades.map((t) => (
+                              <span key={t} className="px-1.5 py-0.5 bg-red-50 text-red-700 rounded text-[10px] font-bold border border-red-200">
+                                Deficit: {t}
+                              </span>
+                            ))}
+                          </div>
+                        ) : d.topHighDemandTrades.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {d.topHighDemandTrades.map((t) => (
+                              <span key={t} className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-bold border border-emerald-200">
+                                Demand: {t}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-zinc-400 text-[10px] italic">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         </>)}
 
         {adminTab === 'providers' && (<>
@@ -1227,7 +1563,7 @@ export const AnalyticsDashboard: React.FC = () => {
                         <td className="p-3.5 font-bold text-zinc-900">
                           <div>{provider.providerName}</div>
                           <div className="text-[10px] text-zinc-400 font-medium mt-0.5">
-                            {provider.enrolledCourses.join(', ')}
+                            {(provider.enrolledCourses || []).join(', ') || 'General Technical Courses'}
                           </div>
                         </td>
                         <td className="p-3.5 text-zinc-700">{provider.totalTrainees} candidates</td>
@@ -1364,6 +1700,154 @@ export const AnalyticsDashboard: React.FC = () => {
                         </tr>
                       )}
                     </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── SECTION 4B: PHASE 11 LONGITUDINAL RETENTION CURVES & DENOMINATOR TRANSPARENCY (SECTION 20) ── */}
+        <div id="phase11-section-4b" className="bg-white rounded-lg border border-zinc-200/80 p-5 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4 pb-3 border-b border-zinc-100">
+            <div>
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={16} className="text-emerald-600" />
+                <h2 className="text-sm font-black text-zinc-900 uppercase tracking-wider">
+                  Phase 11: Longitudinal Retention Curves & Denominator Transparency
+                </h2>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  Section 20
+                </span>
+              </div>
+              <p className="text-xs text-zinc-500 font-medium mt-0.5">
+                Every cohort retention estimate is grounded in explicit sample size N, 95% Wilson/Wald confidence intervals, and small-cell privacy masking
+              </p>
+            </div>
+            <div className="text-[11px] bg-indigo-50 text-indigo-900 border border-indigo-200 px-3 py-1.5 rounded-md font-bold flex items-center gap-1.5">
+              <Info size={13} className="text-indigo-600 shrink-0" />
+              <span>Anti-Overranking Mandate: Evaluated on coverage-adjusted retention rather than raw unadjusted leaderboards</span>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto border border-zinc-200 rounded-lg">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-zinc-50 border-b border-zinc-200 text-[11px] font-black text-zinc-600 uppercase tracking-wider">
+                  <th className="p-3.5">Provider & Sector</th>
+                  <th className="p-3.5">Cohort N</th>
+                  <th className="p-3.5">Certification Rate</th>
+                  <th className="p-3.5">Placement Rate</th>
+                  <th className="p-3.5">Verified Placement Rate</th>
+                  <th className="p-3.5">Verification Coverage</th>
+                  <th className="p-3.5">Retention Curve (T30 → T90 → T180 → T365)</th>
+                  <th className="p-3.5">Top Non-Placement Causes</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100">
+                {phase11Providers.map((p) => {
+                  return (
+                    <tr key={p.providerId} className="hover:bg-zinc-50/80 transition-colors">
+                      <td className="p-3.5">
+                        <span className="font-bold text-zinc-900 block">{p.providerName}</span>
+                        <span className="text-[11px] text-zinc-500 font-medium">{p.district} • {p.sector}</span>
+                      </td>
+                      <td className="p-3.5">
+                        <span className="font-mono font-bold text-zinc-800 text-sm">{p.cohortSize}</span>
+                      </td>
+                      <td className="p-3.5">
+                        {p.certificationRate.isSuppressed ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded bg-zinc-100 text-zinc-600 border border-zinc-300 font-mono text-[11px] font-bold" title={p.certificationRate.suppressionReason}>
+                            &lt; 5 (Masked)
+                          </span>
+                        ) : (
+                          <div>
+                            <span className="font-bold text-zinc-900">{p.certificationRate.percentage}%</span>
+                            <span className="text-[10px] text-zinc-500 font-mono ml-1">(n={p.certificationRate.numerator}/{p.certificationRate.denominator})</span>
+                            {p.certificationRate.confidenceInterval && (
+                              <span className="text-[10px] text-zinc-400 block">95% CI: [{p.certificationRate.confidenceInterval.lower}%, {p.certificationRate.confidenceInterval.upper}%]</span>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-3.5">
+                        {p.placementRate.isSuppressed ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded bg-zinc-100 text-zinc-600 border border-zinc-300 font-mono text-[11px] font-bold" title={p.placementRate.suppressionReason}>
+                            &lt; 5 (Masked)
+                          </span>
+                        ) : (
+                          <div>
+                            <span className="font-bold text-emerald-700">{p.placementRate.percentage}%</span>
+                            <span className="text-[10px] text-zinc-500 font-mono ml-1">(n={p.placementRate.numerator}/{p.placementRate.denominator})</span>
+                            {p.placementRate.confidenceInterval && (
+                              <span className="text-[10px] text-zinc-400 block">95% CI: [{p.placementRate.confidenceInterval.lower}%, {p.placementRate.confidenceInterval.upper}%]</span>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-3.5">
+                        {p.verifiedPlacementRate.isSuppressed ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded bg-zinc-100 text-zinc-600 border border-zinc-300 font-mono text-[11px] font-bold" title={p.verifiedPlacementRate.suppressionReason}>
+                            &lt; 5 (Masked)
+                          </span>
+                        ) : (
+                          <div>
+                            <span className="font-bold text-blue-700">{p.verifiedPlacementRate.percentage}%</span>
+                            <span className="text-[10px] text-zinc-500 font-mono ml-1">(n={p.verifiedPlacementRate.numerator}/{p.verifiedPlacementRate.denominator})</span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-3.5">
+                        {p.verificationCoverage.isSuppressed ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded bg-zinc-100 text-zinc-600 border border-zinc-300 font-mono text-[11px] font-bold" title={p.verificationCoverage.suppressionReason}>
+                            &lt; 5 (Masked)
+                          </span>
+                        ) : (
+                          <div>
+                            <span className="font-bold text-zinc-800">{p.verificationCoverage.percentage}%</span>
+                            <span className="text-[10px] text-zinc-500 font-mono ml-1">(n={p.verificationCoverage.numerator}/{p.verificationCoverage.denominator})</span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-3.5">
+                        {p.retentionCurve.t30.isSuppressed ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded bg-zinc-100 text-zinc-600 border border-zinc-300 font-mono text-[11px] font-bold">
+                            &lt; 5 (Masked)
+                          </span>
+                        ) : (
+                          <div className="flex items-center gap-1.5 font-mono text-[11px]">
+                            <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-800 rounded font-bold" title={`T30: n=${p.retentionCurve.t30.numerator}/${p.retentionCurve.t30.denominator}`}>
+                              T30: {p.retentionCurve.t30.percentage}%
+                            </span>
+                            <span className="text-zinc-300">→</span>
+                            <span className="px-1.5 py-0.5 bg-blue-50 text-blue-800 rounded font-bold" title={`T90: n=${p.retentionCurve.t90.numerator}/${p.retentionCurve.t90.denominator}`}>
+                              T90: {p.retentionCurve.t90.percentage}%
+                            </span>
+                            <span className="text-zinc-300">→</span>
+                            <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-800 rounded font-bold" title={`T180: n=${p.retentionCurve.t180.numerator}/${p.retentionCurve.t180.denominator}`}>
+                              T180: {p.retentionCurve.t180.percentage}%
+                            </span>
+                            <span className="text-zinc-300">→</span>
+                            <span className="px-1.5 py-0.5 bg-purple-50 text-purple-800 rounded font-bold" title={`T365: n=${p.retentionCurve.t365.numerator}/${p.retentionCurve.t365.denominator}`}>
+                              T365: {p.retentionCurve.t365.percentage}%
+                            </span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-3.5">
+                        {p.unplacedRootCauses && p.unplacedRootCauses.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {p.unplacedRootCauses.map((rc) => (
+                              <span key={rc.rootCause} className="px-1.5 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded text-[10px] font-bold">
+                                {rc.rootCause}: {rc.count}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-zinc-400 italic text-[10px]">None reported</span>
+                        )}
+                      </td>
+                    </tr>
                   );
                 })}
               </tbody>
