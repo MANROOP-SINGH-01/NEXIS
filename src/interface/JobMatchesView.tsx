@@ -3,7 +3,7 @@ import {
   Target, ExternalLink, Loader2, Sparkles, Briefcase, MapPin,
   Building, Activity, AlertTriangle, ShieldCheck, CheckCircle2,
   Clock, Flame, Check, BookmarkPlus, ArrowUpRight, Repeat,
-  ShieldAlert, Users, Copy, CheckCheck, X, Search
+  ShieldAlert, Users, Copy, CheckCheck, X, Search, Sliders, Info
 } from 'lucide-react';
 import { useUiStore } from '../integration/store/uiStore';
 import { useCoreStore } from '../integration/store/coreStore';
@@ -12,6 +12,7 @@ import { DiscoveredJob, JobBucket, NetworkContact } from '../types';
 import { generateWarmOutreachMessage } from '../services/networkMatchingService';
 import { isDemoMode, DEMO_JOBS } from '../demo/demoData';
 import { SectionNumber } from './bauhaus/SectionNumber';
+import AdzunaAttributionBadge from './primitives/AdzunaAttributionBadge';
 
 export const JobMatchesView: React.FC = () => {
   const { skillProfile, jobMatchesCurrent, jobMatchesReachable, setJobMatches, setActiveSidebarTab } = useUiStore();
@@ -28,6 +29,10 @@ export const JobMatchesView: React.FC = () => {
   const [trackedJobIds, setTrackedJobIds] = useState<Set<string>>(new Set());
   const [trackingJobId, setTrackingJobId] = useState<string | null>(null);
   const [trackFeedback, setTrackFeedback] = useState<string | null>(null);
+
+  // 6-Factor Deterministic Matching Weights (Section 18.2: M = 0.40S + 0.20E + 0.15L + 0.10Q + 0.10R + 0.05P)
+  const [showWeightsConfig, setShowWeightsConfig] = useState<boolean>(false);
+  const [weights, setWeights] = useState({ S: 0.40, E: 0.20, L: 0.15, Q: 0.10, R: 0.10, P: 0.05 });
 
   const currentJobs = mode === 'current' ? jobMatchesCurrent : jobMatchesReachable;
   const targetRole = currentResume.targetJD.trim().split('\n')[0]?.slice(0, 120) || userCareerProfile.targetRole || 'Full Stack Engineer';
@@ -69,6 +74,7 @@ export const JobMatchesView: React.FC = () => {
             serperKey: runtimeKeys.sarvam,
             mode,
             skillProfile,
+            weights,
           }),
         });
 
@@ -186,37 +192,126 @@ export const JobMatchesView: React.FC = () => {
           </p>
         </div>
 
-        {/* Bauhaus Segmented Mode Toggle */}
-        <div
-          className="inline-flex items-center gap-0 self-start lg:self-auto"
-          style={{ border: '2px solid #111111' }}
-        >
-          <button
-            onClick={() => setMode('current')}
-            className="py-2 px-4 text-xs font-bold uppercase tracking-wider cursor-pointer transition-all"
-            style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              backgroundColor: mode === 'current' ? '#111111' : '#FFFFFF',
-              color: mode === 'current' ? '#F5F0E6' : '#111111',
-              borderRight: '1px solid #111111',
-            }}
+        {/* Bauhaus Segmented Mode Toggle & Official Adzuna Attribution Badge */}
+        <div className="flex flex-wrap items-center gap-3 self-start lg:self-auto">
+          <AdzunaAttributionBadge country="in" />
+
+          <div
+            className="inline-flex items-center gap-0"
+            style={{ border: '2px solid #111111' }}
           >
-            Current Fit
-          </button>
+            <button
+              onClick={() => setMode('current')}
+              className="py-2 px-4 text-xs font-bold uppercase tracking-wider cursor-pointer transition-all"
+              style={{
+                fontFamily: "'Space Grotesk', sans-serif",
+                backgroundColor: mode === 'current' ? '#111111' : '#FFFFFF',
+                color: mode === 'current' ? '#F5F0E6' : '#111111',
+                borderRight: '1px solid #111111',
+              }}
+            >
+              Current Fit
+            </button>
+            <button
+              onClick={() => setMode('reachable')}
+              className="py-2 px-4 text-xs font-bold uppercase tracking-wider cursor-pointer transition-all flex items-center gap-1.5"
+              style={{
+                fontFamily: "'Space Grotesk', sans-serif",
+                backgroundColor: mode === 'reachable' ? '#111111' : '#FFFFFF',
+                color: mode === 'reachable' ? '#F5F0E6' : '#111111',
+              }}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#F4C430]" />
+              <span>Reachable (Stretch)</span>
+            </button>
+          </div>
+
           <button
-            onClick={() => setMode('reachable')}
-            className="py-2 px-4 text-xs font-bold uppercase tracking-wider cursor-pointer transition-all flex items-center gap-1.5"
-            style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              backgroundColor: mode === 'reachable' ? '#111111' : '#FFFFFF',
-              color: mode === 'reachable' ? '#F5F0E6' : '#111111',
-            }}
+            onClick={() => setShowWeightsConfig(!showWeightsConfig)}
+            className="py-2 px-3 text-xs font-mono font-bold uppercase border-2 border-[#111111] bg-[#FFFFFF] hover:bg-[#F5F0E6] flex items-center gap-1.5 shadow-[2px_2px_0px_#111111]"
+            title="Configure 6-factor matching formula weights"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#F4C430]" />
-            <span>Reachable (Stretch)</span>
+            <Sliders size={13} className="text-[#2457A6]" />
+            <span>Weights ({weights.S * 100}S / {weights.E * 100}E)</span>
           </button>
         </div>
       </div>
+
+      {/* Section 4.2 Adzuna Licensing Notice Banner */}
+      <div className="p-3 bg-[#EBF3FC] border-2 border-[#2457A6] shadow-[2px_2px_0px_#111111] flex items-start gap-2.5 text-xs font-mono text-[#1E40AF]">
+        <Info size={16} className="text-[#2457A6] shrink-0 mt-0.5" />
+        <div>
+          <span className="font-black uppercase tracking-wider mr-2">[ADZUNA INDIA OFFICIAL PARTNER API]:</span>
+          All jobs retrieved as structured, clickable postings. In-memory TTL cached with rate-limit protection. Free-tier trial active for SIH26135 evaluation; enterprise/government deployment requires confirming commercial licensing terms per Section 4.2.
+        </div>
+      </div>
+
+      {/* Configurable 6-Factor Weights Panel (Section 18.2) */}
+      {showWeightsConfig && (
+        <div className="p-4 bg-[#FFFFFF] border-2 border-[#111111] shadow-[3px_3px_0px_#111111] space-y-3 font-mono text-xs">
+          <div className="flex items-center justify-between pb-2 border-b border-[#111111]">
+            <span className="font-black uppercase text-[#111111]">
+              Deterministic 6-Factor Match Model: M = 0.40S + 0.20E + 0.15L + 0.10Q + 0.10R + 0.05P
+            </span>
+            <button
+              onClick={() => setWeights({ S: 0.40, E: 0.20, L: 0.15, Q: 0.10, R: 0.10, P: 0.05 })}
+              className="text-[10px] text-[#2457A6] underline font-bold"
+            >
+              Reset to Defaults
+            </button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+            <div>
+              <label className="text-[10px] text-[#555555] font-bold block">S (Skills): {(weights.S * 100).toFixed(0)}%</label>
+              <input
+                type="range" min="0.10" max="0.70" step="0.05" value={weights.S}
+                onChange={(e) => setWeights({ ...weights, S: parseFloat(e.target.value) })}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-[#555555] font-bold block">E (Experience): {(weights.E * 100).toFixed(0)}%</label>
+              <input
+                type="range" min="0.05" max="0.40" step="0.05" value={weights.E}
+                onChange={(e) => setWeights({ ...weights, E: parseFloat(e.target.value) })}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-[#555555] font-bold block">L (Location): {(weights.L * 100).toFixed(0)}%</label>
+              <input
+                type="range" min="0.05" max="0.30" step="0.05" value={weights.L}
+                onChange={(e) => setWeights({ ...weights, L: parseFloat(e.target.value) })}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-[#555555] font-bold block">Q (Quals): {(weights.Q * 100).toFixed(0)}%</label>
+              <input
+                type="range" min="0.05" max="0.25" step="0.05" value={weights.Q}
+                onChange={(e) => setWeights({ ...weights, Q: parseFloat(e.target.value) })}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-[#555555] font-bold block">R (Role Rel): {(weights.R * 100).toFixed(0)}%</label>
+              <input
+                type="range" min="0.05" max="0.25" step="0.05" value={weights.R}
+                onChange={(e) => setWeights({ ...weights, R: parseFloat(e.target.value) })}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-[#555555] font-bold block">P (Preference): {(weights.P * 100).toFixed(0)}%</label>
+              <input
+                type="range" min="0.01" max="0.15" step="0.01" value={weights.P}
+                onChange={(e) => setWeights({ ...weights, P: parseFloat(e.target.value) })}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {trackFeedback && (
         <div
@@ -667,15 +762,12 @@ export const JobMatchesView: React.FC = () => {
                     href={job.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="py-2 px-3 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1"
+                    className="py-2 px-3 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1 bg-[#2457A6] hover:bg-[#1E40AF] text-white border border-[#111111] shadow-[2px_2px_0px_#111111]"
                     style={{
                       fontFamily: "'Space Grotesk', sans-serif",
-                      backgroundColor: '#111111',
-                      color: '#F5F0E6',
-                      border: '1px solid #111111',
                     }}
                   >
-                    <span>Apply</span>
+                    <span>Apply on Adzuna</span>
                     <ArrowUpRight size={13} />
                   </a>
                 </div>

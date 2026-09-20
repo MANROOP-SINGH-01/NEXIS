@@ -258,3 +258,159 @@ export function calculateMultiSignalMatch({
     bucket,
   };
 }
+
+/**
+ * ─── PHASE 7: ADZUNA 6-FACTOR DETERMINISTIC MATCHING FORMULA (SECTION 18.2) ──
+ * Formula: M = 0.40S + 0.20E + 0.15L + 0.10Q + 0.10R + 0.05P
+ * Where:
+ *   S = required-skill coverage
+ *   E = experience evidence
+ *   L = location compatibility
+ *   Q = qualification / certification match
+ *   R = role relevance to training
+ *   P = preference compatibility
+ *
+ * Configurable weights shown explicitly to the user, never hidden.
+ */
+export const DEFAULT_ADZUNA_WEIGHTS = {
+  S: 0.40,
+  E: 0.20,
+  L: 0.15,
+  Q: 0.10,
+  R: 0.10,
+  P: 0.05,
+};
+
+export function calculateAdzunaSixFactorMatch({
+  job = {},
+  candidate = {},
+  weights = DEFAULT_ADZUNA_WEIGHTS,
+}) {
+  const activeWeights = {
+    S: typeof weights?.S === 'number' ? weights.S : DEFAULT_ADZUNA_WEIGHTS.S,
+    E: typeof weights?.E === 'number' ? weights.E : DEFAULT_ADZUNA_WEIGHTS.E,
+    L: typeof weights?.L === 'number' ? weights.L : DEFAULT_ADZUNA_WEIGHTS.L,
+    Q: typeof weights?.Q === 'number' ? weights.Q : DEFAULT_ADZUNA_WEIGHTS.Q,
+    R: typeof weights?.R === 'number' ? weights.R : DEFAULT_ADZUNA_WEIGHTS.R,
+    P: typeof weights?.P === 'number' ? weights.P : DEFAULT_ADZUNA_WEIGHTS.P,
+  };
+
+  const jobTitle = String(job.title || job.job_title || '').toLowerCase();
+  const jobDesc = String(job.description || job.nexus_match_reason || '').toLowerCase();
+  const jobLocation = String(job.location?.display_name || job.location || '').toLowerCase();
+
+  const candidateSkills = Array.isArray(candidate.skills) ? candidate.skills : [];
+  const candidateExp = typeof candidate.experienceYears === 'number' ? candidate.experienceYears : 2;
+  const candidateLocation = String(candidate.location || '').toLowerCase();
+  const targetRole = String(candidate.targetRole || 'Software Engineer').toLowerCase();
+  const education = String(candidate.education || '').toLowerCase();
+
+  // 1. S: Skill Coverage (0 - 100)
+  let matchedSkills = 0;
+  const totalSkills = Math.max(1, candidateSkills.length);
+  for (const sk of candidateSkills) {
+    const sName = typeof sk === 'string' ? sk.toLowerCase() : String(sk?.name || sk?.skill || '').toLowerCase();
+    if (sName && (jobDesc.includes(sName) || jobTitle.includes(sName))) {
+      matchedSkills++;
+    }
+  }
+  const S = Math.min(100, Math.max(15, Math.round((matchedSkills / totalSkills) * 100 + (matchedSkills > 0 ? 20 : 0))));
+
+  // 2. E: Experience Evidence (0 - 100)
+  let E = 75;
+  const isSenior = jobTitle.includes('senior') || jobTitle.includes('lead') || jobTitle.includes('principal');
+  const isJunior = jobTitle.includes('junior') || jobTitle.includes('entry') || jobTitle.includes('trainee');
+  if (isSenior) {
+    E = candidateExp >= 5 ? 95 : candidateExp >= 3 ? 70 : 45;
+  } else if (isJunior) {
+    E = candidateExp <= 3 ? 95 : 80;
+  } else {
+    E = candidateExp >= 2 ? 85 : 65;
+  }
+
+  // 3. L: Location Compatibility (0 - 100)
+  let L = 70;
+  if (jobLocation.includes('remote') || candidateLocation.includes('remote') || jobDesc.includes('work from home')) {
+    L = 98;
+  } else if (candidateLocation && jobLocation) {
+    if (jobLocation.includes(candidateLocation) || candidateLocation.includes(jobLocation)) {
+      L = 95;
+    } else if (
+      (jobLocation.includes('maharashtra') && candidateLocation.includes('maharashtra')) ||
+      (jobLocation.includes('pune') && candidateLocation.includes('pune')) ||
+      (jobLocation.includes('mumbai') && candidateLocation.includes('mumbai'))
+    ) {
+      L = 90;
+    } else if (jobLocation.includes('india') && candidateLocation.includes('india')) {
+      L = 80;
+    } else {
+      L = 40;
+    }
+  }
+
+  // 4. Q: Qualification / Certification Match (0 - 100)
+  let Q = 70;
+  if (education.includes('b.tech') || education.includes('b.e.') || education.includes('m.tech') || education.includes('computer science')) {
+    Q = 90;
+  } else if (education.includes('diploma') || education.includes('nsqf') || education.includes('polytechnic') || education.includes('iti')) {
+    Q = 85;
+  } else if (candidate.certifications && candidate.certifications.length > 0) {
+    Q = 80;
+  }
+
+  // 5. R: Role Relevance to Training (0 - 100)
+  let R = 50;
+  const targetWords = targetRole.split(/\s+/).filter((w) => w.length > 2);
+  const titleWords = jobTitle.split(/\s+/).filter((w) => w.length > 2);
+  const common = targetWords.filter((w) => titleWords.includes(w));
+  if (common.length >= 2) {
+    R = 95;
+  } else if (common.length === 1) {
+    R = 80;
+  } else if (jobTitle.includes('developer') || jobTitle.includes('engineer') || jobTitle.includes('technician')) {
+    R = 65;
+  }
+
+  // 6. P: Preference Compatibility (0 - 100)
+  let P = 80;
+  if (candidate.mode === 'reachable') {
+    P = 90; // candidate actively seeking growth
+  }
+
+  // Deterministic 6-Factor Weighted Calculation
+  const rawMatch =
+    activeWeights.S * S +
+    activeWeights.E * E +
+    activeWeights.L * L +
+    activeWeights.Q * Q +
+    activeWeights.R * R +
+    activeWeights.P * P;
+
+  const matchScore = Math.min(100, Math.max(0, Math.round(rawMatch)));
+
+  let bucket = 'IGNORE';
+  if (matchScore >= 75) bucket = 'APPLY_NOW';
+  else if (matchScore >= 55) bucket = 'LEARN_THEN_APPLY';
+  else if (matchScore >= 35) bucket = 'STRETCH';
+
+  return {
+    matchScore,
+    bucket,
+    breakdown: {
+      S, // Skill Coverage
+      E, // Experience Evidence
+      L, // Location Compatibility
+      Q, // Qualification Match
+      R, // Role Relevance
+      P, // Preference Compatibility
+    },
+    weights: activeWeights,
+    formula: 'M = 0.40S + 0.20E + 0.15L + 0.10Q + 0.10R + 0.05P',
+    details: {
+      matchedSkillsCount: matchedSkills,
+      totalCandidateSkills: totalSkills,
+      isSeniorRole: isSenior,
+      isRemote: L >= 95,
+    },
+  };
+}
