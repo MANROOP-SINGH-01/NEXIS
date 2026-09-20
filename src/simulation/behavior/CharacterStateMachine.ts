@@ -31,18 +31,18 @@ export const STATE_MAP: Record<CharacterStateKey, CharacterStateDef> = {
   grabbed:      { animation: AnimationName.SAD,         expression: 'surprised', loop: true,  interruptible: true },
   grabbed_head: { animation: AnimationName.SAD,         expression: 'sad',       loop: true,  interruptible: true },
   grabbed_arm:  { animation: AnimationName.WAVE,        expression: 'surprised', loop: true,  interruptible: true },
-  grabbed_leg:  { animation: AnimationName.WAVE,        expression: 'dizzy',     loop: true,  interruptible: true },
+  grabbed_leg:  { animation: AnimationName.WAVE,        expression: 'sick',     loop: true,  interruptible: true },
   grabbed_body: { animation: AnimationName.SAD,         expression: 'surprised', loop: true,  interruptible: true },
-  airborne:     { animation: AnimationName.WAVE,        expression: 'dizzy',     loop: true,  interruptible: true },
-  impact:       { animation: AnimationName.SAD,         expression: 'dizzy',     loop: false, durationOverride: 0.4, nextState: 'recover_scratch', interruptible: true },
+  airborne:     { animation: AnimationName.WAVE,        expression: 'sick',     loop: true,  interruptible: true },
+  impact:       { animation: AnimationName.SAD,         expression: 'sick',     loop: false, durationOverride: 0.4, nextState: 'recover_scratch', interruptible: true },
   recovering:   { animation: AnimationName.LOOK_AROUND, expression: 'surprised', loop: false, durationOverride: 1.2, nextState: 'idle', interruptible: true },
   recover_scratch:      { animation: AnimationName.PICK,        expression: 'surprised', loop: false, durationOverride: 0.8, nextState: 'recover_head_scratch', interruptible: true },
-  recover_head_scratch: { animation: AnimationName.LOOK_AROUND, expression: 'dizzy',     loop: false, durationOverride: 1.5, nextState: 'idle',                 interruptible: true },
+  recover_head_scratch: { animation: AnimationName.LOOK_AROUND, expression: 'sick',     loop: false, durationOverride: 1.5, nextState: 'idle',                 interruptible: true },
   recover_cheer:        { animation: AnimationName.PICK,        expression: 'happy',     loop: false, durationOverride: 0.8, nextState: 'recover_celebrate',    interruptible: true },
   recover_celebrate:    { animation: AnimationName.HAPPY,       expression: 'happy',     loop: false, durationOverride: 1.2, nextState: 'idle',                 interruptible: true },
   recover_fist_shake:   { animation: AnimationName.PICK,        expression: 'neutral',   loop: false, durationOverride: 0.8, nextState: 'recover_grumpy',       interruptible: true },
   recover_grumpy:       { animation: AnimationName.WAVE,        expression: 'neutral',   loop: false, durationOverride: 1.1, nextState: 'idle',                 interruptible: true },
-  recover_dazed:        { animation: AnimationName.LOOK_AROUND, expression: 'dizzy',     loop: false, durationOverride: 1.0, nextState: 'idle',                 interruptible: true },
+  recover_dazed:        { animation: AnimationName.LOOK_AROUND, expression: 'sick',     loop: false, durationOverride: 1.0, nextState: 'idle',                 interruptible: true },
 };
 
 // ── STATE MACHINE ────────────────────────────────────────────

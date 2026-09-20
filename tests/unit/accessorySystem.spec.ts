@@ -75,7 +75,7 @@ test.describe('Accessory System & Thug Life Sunglasses Tests', () => {
     expect(uniqueAgentColors.size).toBe(6);
 
     // 2. User color is distinct from all 6 agent colors
-    expect(uniqueAgentColors.has(USER_COLOR)).toBe(false);
+    expect((uniqueAgentColors as Set<string>).has(USER_COLOR)).toBe(false);
 
     // 3. Characters returned by getAllCharacters have 7 unique colors
     const characters = getAllCharacters(AGENTIC_SETS[0]);
