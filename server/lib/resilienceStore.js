@@ -31,6 +31,11 @@ class ResilienceStore {
     this.interventions = new Map(); // traineeId -> Array<Intervention>
     this.agentFindings = []; // Array<AgentFinding>
 
+    // Additive Phase 6 Collections: Skills, Occupations, and Trainee Evidence
+    this.skills = new Map(); // skillId -> Skill
+    this.occupations = new Map(); // occupationId -> Occupation
+    this.traineeSkillEvidence = new Map(); // traineeId -> Array<TraineeSkillEvidence>
+
     this.initDefaultSeed();
   }
 
@@ -488,6 +493,60 @@ class ResilienceStore {
       }
     }
     return null;
+  }
+
+  // ── Additive Phase 6: Skill Intelligence & Evidence Ledger ───────────────
+
+  addTraineeSkillEvidence(traineeId, evidence) {
+    if (!traineeId || !evidence) return null;
+    if (!this.traineeSkillEvidence.has(traineeId)) {
+      this.traineeSkillEvidence.set(traineeId, []);
+    }
+    const fullEvidence = {
+      id: evidence.id || `ske_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      traineeId,
+      skillId: evidence.skillId,
+      evidenceClass: evidence.evidenceClass || 'RESUME_MENTION',
+      strength: evidence.strength || 'MEDIUM_LOW',
+      sourceSpan: evidence.sourceSpan || null,
+      confidence: typeof evidence.confidence === 'number' ? evidence.confidence : 0.5,
+      verifiedAt: evidence.verifiedAt ? new Date(evidence.verifiedAt) : new Date(),
+      createdAt: new Date(),
+    };
+    this.traineeSkillEvidence.get(traineeId).unshift(fullEvidence);
+    return fullEvidence;
+  }
+
+  getTraineeSkillEvidence(traineeId) {
+    return this.traineeSkillEvidence.get(traineeId) || [];
+  }
+
+  addSkill(skill) {
+    if (!skill || !skill.id) return null;
+    this.skills.set(skill.id, skill);
+    return skill;
+  }
+
+  getSkill(id) {
+    return this.skills.get(id) || null;
+  }
+
+  listSkills() {
+    return Array.from(this.skills.values());
+  }
+
+  addOccupation(occupation) {
+    if (!occupation || !occupation.id) return null;
+    this.occupations.set(occupation.id, occupation);
+    return occupation;
+  }
+
+  getOccupation(id) {
+    return this.occupations.get(id) || null;
+  }
+
+  listOccupations() {
+    return Array.from(this.occupations.values());
   }
 }
 

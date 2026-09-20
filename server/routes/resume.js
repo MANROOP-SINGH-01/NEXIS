@@ -28,6 +28,7 @@ import {
   legacyStructuredToResumeDocument,
   normalizeTextToResumeDocument,
 } from '../services/documentNormalizer.js'
+import { computeSkillGaps } from '../services/skillEngine.js'
 
 const router = Router()
 
@@ -358,6 +359,10 @@ router.post('/resume/tailor', requireAuth, aiLimiter, async (req, res) => {
     console.warn('[resume/tailor] AI model error, activating local truth-preserving optimizer fallback:', err.message)
     try {
       const fallbackStructured = normalizeStructuredResume(null, resume, jd)
+      const groundedSkillAnalysis = computeSkillGaps({
+        traineeId: req.user?.trainee?.id || req.user?.id || null,
+        resumeText: resume,
+      })
       const fallbackAnalysis = {
         atsCompatibility: 85,
         dimensions: {
@@ -368,15 +373,20 @@ router.post('/resume/tailor', requireAuth, aiLimiter, async (req, res) => {
           seniorityFit: 85,
         },
         overallScore: 85,
-        skillGaps: [
-          { skill: 'Core Engineering', status: 'verified' }
-        ],
+        skillGaps: groundedSkillAnalysis.gaps.map((g) => ({
+          skill: g.name,
+          status: 'gap',
+          priority: g.priority,
+          evidenceClass: g.strongestEvidence?.evidenceClass || 'RESUME_MENTION',
+          statedDenominator: g.statedDenominator,
+          reason: g.reason,
+        })),
         interviewReadiness: { technicalDeepDive: 80, behavioralQuestions: 85, systemDesign: 75 },
       }
       const fallbackStrategist = {
-        priorities: ['System Architecture', 'Production Reliability'],
-        gaps: [],
-        strengths: ['Core Engineering', 'Problem Solving'],
+        priorities: groundedSkillAnalysis.gaps.slice(0, 2).map((g) => g.name).concat(['Production Reliability']),
+        gaps: groundedSkillAnalysis.gaps.map((g) => g.name),
+        strengths: groundedSkillAnalysis.matches.map((m) => m.name).concat(['Problem Solving']),
       }
       const fallbackSkillProfile = normalizeSkillProfile(null)
       const tailoredResumeText = structuredToResumeText(fallbackStructured)
@@ -390,6 +400,7 @@ router.post('/resume/tailor', requireAuth, aiLimiter, async (req, res) => {
         analysis: fallbackAnalysis,
         strategist: fallbackStrategist,
         skillProfile: fallbackSkillProfile,
+        skillIntelligence: groundedSkillAnalysis,
         modelUsed: 'local-truth-engine',
         structurer: 'resume-maker-structured-pdf',
         warning: 'Optimized using local truth-preserving engine (AI provider offline failover).',
