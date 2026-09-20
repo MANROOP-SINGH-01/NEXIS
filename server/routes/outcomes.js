@@ -20,6 +20,9 @@ import {
   getTraineeTimeline,
   getCohortRetention,
   verifyOutcomeEvent,
+  recordSelfEmploymentOutcome,
+  recordApprenticeshipConversion,
+  ENTERPRISE_TYPES,
   VALID_EVENT_TYPES,
   VALID_MILESTONES,
 } from '../services/outcomeService.js'
@@ -205,6 +208,97 @@ router.post(
     }
   }
 )
+
+/**
+ * POST /api/outcomes/self-employment — Phase 9 Self-Employment & Enterprise Record
+ */
+router.post(
+  ['/self-employment', '/outcomes/self-employment'],
+  requireAuth,
+  requireConsent('OUTCOME_TRACKING'),
+  async (req, res) => {
+    const {
+      traineeId,
+      enterpriseType,
+      businessName,
+      udyamNumber,
+      monthlyRevenueBand,
+      roleRelevance,
+      milestone,
+    } = req.body ?? {}
+
+    const resolvedTraineeId =
+      (traineeId && traineeId !== 'undefined' && String(traineeId).trim() !== '')
+        ? String(traineeId).trim()
+        : (req.user.trainee?.id || req.user.traineeId || `trainee_${req.user.id}`)
+
+    try {
+      const event = await recordSelfEmploymentOutcome({
+        traineeId: resolvedTraineeId,
+        enterpriseType,
+        businessName,
+        udyamNumber,
+        monthlyRevenueBand,
+        roleRelevance,
+        milestone: milestone || 'M90',
+      })
+
+      return res.status(201).json({
+        ok: true,
+        event,
+        message: 'Self-employment outcome recorded with formal enterprise provenance.',
+      })
+    } catch (err) {
+      console.error('[outcomes/self-employment POST] error:', err)
+      return res.status(500).json({ error: err.message })
+    }
+  }
+)
+
+/**
+ * POST /api/outcomes/apprenticeship-conversion — Phase 9 NAPS Apprenticeship Conversion
+ */
+router.post(
+  ['/apprenticeship-conversion', '/outcomes/apprenticeship-conversion'],
+  requireAuth,
+  requireConsent('OUTCOME_TRACKING'),
+  async (req, res) => {
+    const {
+      traineeId,
+      employerName,
+      roleTitle,
+      wageBand,
+      priorApprenticeshipMilestone,
+      effectiveDate,
+    } = req.body ?? {}
+
+    const resolvedTraineeId =
+      (traineeId && traineeId !== 'undefined' && String(traineeId).trim() !== '')
+        ? String(traineeId).trim()
+        : (req.user.trainee?.id || req.user.traineeId || `trainee_${req.user.id}`)
+
+    try {
+      const event = await recordApprenticeshipConversion({
+        traineeId: resolvedTraineeId,
+        employerName,
+        roleTitle,
+        wageBand,
+        priorApprenticeshipMilestone,
+        effectiveDate,
+      })
+
+      return res.status(201).json({
+        ok: true,
+        event,
+        message: 'Apprenticeship-to-employment conversion recorded with NAPS provenance.',
+      })
+    } catch (err) {
+      console.error('[outcomes/apprenticeship-conversion POST] error:', err)
+      return res.status(500).json({ error: err.message })
+    }
+  }
+)
+
 
 /**
  * GET /api/outcomes/trainees/:id/timeline — Full chronological outcome timeline

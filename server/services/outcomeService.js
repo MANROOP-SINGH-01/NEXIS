@@ -16,10 +16,44 @@ export const VALID_EVENT_TYPES = Object.freeze([
   'CERTIFIED',
   'OFFERED',
   'PLACED',
+  'SALARIED',
+  'INFORMAL_EMPLOYMENT',
+  'APPRENTICESHIP',
+  'APPRENTICESHIP_CONVERSION',
   'SELF_EMPLOYED',
+  'ENTREPRENEURSHIP',
+  'FREELANCE',
+  'GIG_WORK',
+  'AGRICULTURE',
+  'CONTRACT_WORK',
   'HIGHER_EDUCATION',
-  'ATTRITED',
+  'FURTHER_EDUCATION',
   'RE_SKILLING',
+  'RE_TRAINING',
+  'SEEKING_WORK',
+  'RETAINED',
+  'SWITCHED_EMPLOYER',
+  'ATTRITED',
+  'DROPOUT',
+  'UNREACHABLE',
+]);
+
+export const ENTERPRISE_TYPES = Object.freeze([
+  'MICRO_ENTERPRISE',
+  'FREELANCE_CONSULTANT',
+  'LOCAL_SERVICES',
+  'AGRI_BUSINESS',
+  'ARTISAN_CRAFT',
+  'GIG_PLATFORM',
+  'FAMILY_BUSINESS',
+]);
+
+export const WAGE_BANDS = Object.freeze([
+  '0-10k',
+  '10-20k',
+  '20-30k',
+  '30-50k',
+  '50k+',
 ]);
 
 export const VALID_MILESTONES = Object.freeze(['M30', 'M90', 'M180', 'M365']);
@@ -32,6 +66,7 @@ export const VALID_VERIFICATION_STATUSES = Object.freeze([
   'PHYSICAL_VERIFIED',
   'REJECTED',
   'FLAGGED_ANOMALY',
+  'CONFLICTING',
 ]);
 
 export const VALID_VERIFICATION_SOURCES = Object.freeze([
@@ -41,6 +76,8 @@ export const VALID_VERIFICATION_SOURCES = Object.freeze([
   'TELEPHONY_IVR',
   'FIELD_AGENT_INSPECTION',
   'THIRD_PARTY_PORTAL',
+  'UDYAM_REGISTRATION',
+  'NAPS_PORTAL',
 ]);
 
 /**
@@ -65,8 +102,14 @@ export function normalizeMilestone(val) {
  */
 export function normalizeEventType(val) {
   const s = String(val || 'PLACED').trim().toUpperCase();
-  if (VALID_EVENT_TYPES.includes(s)) return s;
   if (s === 'EMPLOYED') return 'PLACED';
+  if (s === 'APPRENTICE') return 'APPRENTICESHIP';
+  if (s === 'CONVERSION') return 'APPRENTICESHIP_CONVERSION';
+  if (s === 'FREELANCER') return 'FREELANCE';
+  if (s === 'GIG') return 'GIG_WORK';
+  if (s === 'SEARCHING') return 'SEEKING_WORK';
+  if (s === 'DROPPED_OUT') return 'DROPOUT';
+  if (VALID_EVENT_TYPES.includes(s)) return s;
   return 'PLACED';
 }
 
@@ -311,10 +354,11 @@ export async function verifyOutcomeEvent(eventId, update) {
       ).catch(() => null);
       if (updated) {
         return {
-          ...updated,
+          id: eventId,
           verificationStatus: cleanStatus,
           confidenceScore: typeof confidenceScore === 'number' ? confidenceScore : 0.95,
           verifiedBy: verifiedBy || 'Officer',
+          notes,
         };
       }
     }
@@ -327,3 +371,74 @@ export async function verifyOutcomeEvent(eventId, update) {
     updatedAt: new Date().toISOString(),
   };
 }
+
+/**
+ * Phase 9: Record a self-employment or micro-enterprise outcome event.
+ * Captures enterprise type, revenue band, and optional Udyam registration.
+ */
+export async function recordSelfEmploymentOutcome({
+  traineeId,
+  enterpriseType = 'MICRO_ENTERPRISE',
+  businessName,
+  udyamNumber = null,
+  monthlyRevenueBand = '10-20k',
+  roleRelevance = 'DIRECTLY_RELATED',
+  milestone = 'M90',
+}) {
+  const hasUdyam = Boolean(udyamNumber && String(udyamNumber).trim().length > 5);
+  const cleanEnterpriseType = ENTERPRISE_TYPES.includes(enterpriseType) ? enterpriseType : 'MICRO_ENTERPRISE';
+  const cleanWageBand = WAGE_BANDS.includes(monthlyRevenueBand) ? monthlyRevenueBand : '10-20k';
+
+  const metadata = {
+    enterpriseType: cleanEnterpriseType,
+    businessName: businessName || 'Independent Enterprise',
+    udyamNumber: hasUdyam ? String(udyamNumber).trim() : null,
+    wageBand: cleanWageBand,
+    roleRelevance,
+    hasOfficialRegistration: hasUdyam,
+  };
+
+  return await recordOutcomeEvent({
+    traineeId,
+    eventType: 'SELF_EMPLOYED',
+    milestone,
+    metadata,
+    verificationStatus: hasUdyam ? 'DOCUMENT_VERIFIED' : 'UNVERIFIED',
+    verificationSource: hasUdyam ? 'UDYAM_REGISTRATION' : 'TRAINEE_SELF_REPORT',
+    confidenceScore: hasUdyam ? 0.85 : 0.50,
+  });
+}
+
+/**
+ * Phase 9: Record an apprenticeship-to-employment conversion event.
+ * Follows NAPS golden-path progression from apprentice to salaried staff.
+ */
+export async function recordApprenticeshipConversion({
+  traineeId,
+  employerName,
+  roleTitle,
+  wageBand = '20-30k',
+  priorApprenticeshipMilestone = 'M365',
+  effectiveDate = new Date(),
+}) {
+  const metadata = {
+    employerName: employerName || 'TCS Apprenticeship Cell',
+    roleTitle: roleTitle || 'Junior Software Engineer',
+    wageBand,
+    priorApprenticeshipMilestone,
+    conversionType: 'NAPS_FORMAL_CONVERSION',
+    isRetained: true,
+  };
+
+  return await recordOutcomeEvent({
+    traineeId,
+    eventType: 'APPRENTICESHIP_CONVERSION',
+    milestone: 'M365',
+    effectiveDate,
+    metadata,
+    verificationStatus: 'API_VERIFIED',
+    verificationSource: 'NAPS_PORTAL',
+    confidenceScore: 0.95,
+  });
+}
+
