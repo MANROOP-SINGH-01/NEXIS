@@ -23,7 +23,7 @@ import {
 } from '../../server/services/followupService.js';
 import resilienceStore from '../../server/lib/resilienceStore.js';
 
-test.describe('Phase 5: Follow-Up Orchestration & Escalation Unit Suite', () => {
+test.describe.serial('Phase 5: Follow-Up Orchestration & Escalation Unit Suite', () => {
   const testTraineeId = `trainee_followup_test_${Date.now()}`;
 
   test.beforeAll(() => {

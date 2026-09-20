@@ -10,7 +10,8 @@ import {
   FREELLMAPI_MODEL_GENERAL, 
   FREELLMAPI_MODEL_RESUME, 
   FREELLMAPI_MODEL_ATS, 
-  FREELLMAPI_MODEL_INTERVIEW 
+  FREELLMAPI_MODEL_INTERVIEW,
+  FAST_INTERVIEW_MODELS
 } from '../config.js';
 
 // Map task types to FreeLLMAPI models
@@ -33,12 +34,17 @@ function getModelForTask(task) {
 
 // Map task types to legacy fallbacks if FreeLLMAPI is unavailable
 async function legacyFallbackChat(task, payload) {
-  const { messages, systemInstruction, jsonMode, timeout, fallbackKeys } = payload;
+  const { messages, systemInstruction, jsonMode, timeout, fallbackKeys, modelCandidates } = payload;
   const geminiKey = fallbackKeys?.gemini;
+  const candidates = modelCandidates || (
+    (task === 'INTERVIEW_GENERATION' || task === 'INTERVIEW_EVALUATION')
+      ? FAST_INTERVIEW_MODELS
+      : undefined
+  );
   
   // Collapse messages into a single prompt for legacy Gemini API
   const prompt = messages.map(m => `${m.role}: ${m.content}`).join('\n');
-  return await callGeminiText({ apiKey: geminiKey, prompt, systemInstruction, jsonMode, timeout });
+  return await callGeminiText({ apiKey: geminiKey, prompt, systemInstruction, jsonMode, timeout, modelCandidates: candidates });
 }
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -46,7 +52,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 /**
  * Core chat routing function with retries
  */
-export async function chat({ task = 'GENERAL_CHAT', messages, systemInstruction, jsonMode = false, attempts = 3, timeout, fallbackKeys }) {
+export async function chat({ task = 'GENERAL_CHAT', messages, systemInstruction, jsonMode = false, attempts = 3, timeout, fallbackKeys, modelCandidates }) {
   const model = getModelForTask(task);
   let lastError = null;
 
@@ -58,11 +64,11 @@ export async function chat({ task = 'GENERAL_CHAT', messages, systemInstruction,
           return result;
         } catch (freeLlmErr) {
           console.warn(`[aiRouter] FreeLLMAPI error (${freeLlmErr.message}), falling back to Gemini...`);
-          const result = await legacyFallbackChat(task, { messages, systemInstruction, jsonMode, timeout, fallbackKeys });
+          const result = await legacyFallbackChat(task, { messages, systemInstruction, jsonMode, timeout, fallbackKeys, modelCandidates });
           return result;
         }
       } else {
-        const result = await legacyFallbackChat(task, { messages, systemInstruction, jsonMode, timeout, fallbackKeys });
+        const result = await legacyFallbackChat(task, { messages, systemInstruction, jsonMode, timeout, fallbackKeys, modelCandidates });
         return result;
       }
     } catch (error) {
@@ -99,7 +105,7 @@ export async function generate({ task = 'GENERAL_CHAT', prompt, systemInstructio
 /**
  * Structured output wrapper with strict JSON parsing and optional schema validation
  */
-export async function structuredOutput({ task, prompt, messages, systemInstruction, schemaValidator, attempts = 3, timeout, fallbackKeys }) {
+export async function structuredOutput({ task, prompt, messages, systemInstruction, schemaValidator, attempts = 3, timeout, fallbackKeys, modelCandidates }) {
   const msgs = messages || [{ role: 'user', content: prompt }];
   let lastError = null;
 
@@ -112,7 +118,8 @@ export async function structuredOutput({ task, prompt, messages, systemInstructi
         jsonMode: true,
         attempts: 1, // We handle retries here for parsing
         timeout,
-        fallbackKeys
+        fallbackKeys,
+        modelCandidates
       });
 
       // Attempt to parse JSON. Sometimes LLMs wrap JSON in markdown blocks
