@@ -19,6 +19,9 @@ import {
   FileCode2,
   ExternalLink,
   ChevronRight,
+  RotateCcw,
+  Sparkles,
+  Database,
 } from 'lucide-react';
 import { useUiStore } from '../../integration/store/uiStore';
 import { useRouter } from '../../router';
@@ -123,6 +126,17 @@ export const WorkQueueNavigator: React.FC<WorkQueueNavigatorProps> = ({ isOpen, 
       accentColor: '#111111',
       badge: 'Section 22.4',
     },
+    {
+      id: 'data-quality',
+      tab: 'dashboard',
+      code: 'Q-08',
+      title: 'Data Quality & Anomaly Radar',
+      description: 'Section 20 anomaly detection for chronological violations, batch fabrication, and stale checkpoints.',
+      icon: Database,
+      accentColor: '#4F46E5',
+      badge: 'Phase 18 Quality',
+      isModalTrigger: true,
+    },
   ];
 
   const { navigate } = useRouter();
@@ -133,6 +147,8 @@ export const WorkQueueNavigator: React.FC<WorkQueueNavigatorProps> = ({ isOpen, 
       setDedupReviewOpen(true);
     } else if (item.id === 'analytics') {
       setAnalyticsDashboardOpen(true);
+    } else if (item.id === 'data-quality') {
+      navigate('/data-quality');
     } else {
       setActiveSidebarTab(item.tab);
       const tabToPathMap: Record<ActiveSidebarTab, string> = {

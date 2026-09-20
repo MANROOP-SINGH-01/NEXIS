@@ -39,6 +39,7 @@ import { SceneManager } from './simulation/SceneManager';
 import { CareerHealthDashboard } from './interface/CareerHealthDashboard';
 import { DedupReviewPanel } from './interface/admin/DedupReviewPanel';
 import { AnalyticsDashboard } from './interface/admin/AnalyticsDashboard';
+import { DataQualityConsole } from './interface/admin/DataQualityConsole';
 import { AgentActivityHUD } from './interface/AgentActivityHUD';
 import EmployerVerificationPage from './interface/employer/EmployerVerificationPage';
 import ProviderViewPage from './interface/provider/ProviderViewPage';
@@ -319,6 +320,11 @@ const MainRouter: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  // 2c. Data Quality & Anomaly Detection Console (/data-quality, /admin/data-quality)
+  if (pathname === '/data-quality' || pathname === '/admin/data-quality') {
+    return <DataQualityConsole />;
   }
 
   // 3. Login & Authentication (/login, /register)

@@ -73,6 +73,7 @@ import analyticsOutcomesRoutes from './routes/analyticsOutcomes.js'
 import specialistAgentsRoutes from './routes/specialistAgents.js'
 import roleViewsRoutes from './routes/roleViews.js'
 import dedupRoutes from './routes/dedup.js'
+import dataQualityRoutes from './routes/dataQuality.js'
 import { FEATURE_FLAGS } from './utils/featureFlags.js'
 
 import { seedAdminUser } from './lib/seedAdminUser.js'
@@ -144,6 +145,7 @@ app.use('/api/analytics', analyticsOutcomesRoutes)
 app.use('/api/specialist-agents', specialistAgentsRoutes)
 app.use('/api/role-views', roleViewsRoutes)
 app.use('/api', dedupRoutes)
+app.use('/api', dataQualityRoutes)
 
 // Feature Flags query endpoint
 app.get('/api/feature-flags', (req, res) => {
