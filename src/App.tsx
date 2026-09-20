@@ -112,11 +112,14 @@ const Workspace: React.FC = () => {
     };
 
     const cleanPath = pathname.replace(/\/$/, '') || '/';
+    if (cleanPath === '/dedup' || cleanPath === '/admin/dedup') {
+      setDedupReviewOpen(true);
+    }
     const matchedTab = pathToTab[cleanPath];
     if (matchedTab && matchedTab !== activeSidebarTab) {
       setActiveSidebarTab(matchedTab);
     }
-  }, [pathname, activeSidebarTab, setActiveSidebarTab]);
+  }, [pathname, activeSidebarTab, setActiveSidebarTab, setDedupReviewOpen]);
 
   const {
     loading: isTraineeLoading,
@@ -248,7 +251,7 @@ const Workspace: React.FC = () => {
 
         {/* Admin Panels */}
         {isDedupReviewOpen && (
-          <div className="fixed inset-0 z-[100] flex flex-col bg-[#090A0F] text-zinc-100">
+          <div className="fixed inset-0 z-[125] flex flex-col bg-[#090A0F] text-zinc-100">
             <div className="flex items-center justify-between p-4 border-b border-white/10 bg-[#12131C]">
               <h2 className="text-lg font-display font-bold text-white">Admin: Trainee Deduplication</h2>
               <button 
@@ -296,6 +299,26 @@ const MainRouter: React.FC = () => {
   if (pathname.startsWith('/provider/')) {
     const token = pathname.replace(/^\/provider\/?/, '').split('/')[0];
     return <ProviderViewPage token={token} />;
+  }
+
+  // 2b. Trainee Deduplication Review Portal (/dedup, /admin/dedup)
+  if (pathname === '/dedup' || pathname === '/admin/dedup') {
+    return (
+      <div className="fixed inset-0 z-[125] flex flex-col bg-[#090A0F] text-zinc-100">
+        <div className="flex items-center justify-between p-4 border-b border-white/10 bg-[#12131C]">
+          <h2 className="text-lg font-display font-bold text-white">Admin: Trainee Deduplication</h2>
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+        <div className="flex-1 overflow-auto p-4">
+          <DedupReviewPanel />
+        </div>
+      </div>
+    );
   }
 
   // 3. Login & Authentication (/login, /register)

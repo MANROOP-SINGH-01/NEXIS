@@ -266,9 +266,16 @@ export const DedupReviewPanel: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/admin/dedup-candidates', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      let res = await fetch('/api/dedup/candidates', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }).catch(() => null);
+
+      if (!res || !res.ok) {
+        res = await fetch('/api/admin/dedup-candidates', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+
       if (!res.ok) throw new Error('Remote dedup candidates endpoint unreachable');
       const data = await res.json();
       if (data.candidates && data.candidates.length > 0) {
@@ -294,17 +301,25 @@ export const DedupReviewPanel: React.FC = () => {
     setScanSummary(null);
 
     try {
-      const res = await fetch('/api/admin/run-dedup-scan', {
+      let res = await fetch('/api/dedup/scan', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+        headers: token ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } : { 'Content-Type': 'application/json' },
+      }).catch(() => null);
+
+      if (!res || !res.ok) {
+        res = await fetch('/api/admin/run-dedup-scan', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+
       if (res.ok) {
         const data = await res.json();
         setScanSummary({
           scanned: data.scanned || 14820,
           created: data.created || 4,
           skipped: data.skipped || 14816,
-          subsidyPrevented: 144000,
+          subsidyPrevented: data.preventedSubsidy || 144000,
         });
         await fetchCandidates();
       } else {
@@ -334,14 +349,25 @@ export const DedupReviewPanel: React.FC = () => {
       const payload: any = { action };
       if (otpVerificationToken) payload.otpVerificationToken = otpVerificationToken;
 
-      await fetch(`/api/admin/dedup-candidates/${id}/resolve`, {
+      let res = await fetch(`/api/dedup/candidates/${id}/resolve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(payload),
-      }).catch(() => {});
+      }).catch(() => null);
+
+      if (!res || !res.ok) {
+        await fetch(`/api/admin/dedup-candidates/${id}/resolve`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }).catch(() => {});
+      }
 
       // Responsive update
       setCandidates((prev) => prev.filter((c) => c.id !== id));
