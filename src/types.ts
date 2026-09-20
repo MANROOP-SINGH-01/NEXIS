@@ -390,7 +390,20 @@ export interface ExpressionConfig {
 
 // ── Trainee Identity, Consent & Outcomes ─────────────────────
 
-export type ConsentScope = 'JOB_SEARCH_DATA' | 'EMPLOYER_SHARING' | 'ANALYTICS' | 'GOVT_CROSS_CHECK';
+export type LegacyConsentScope = 'JOB_SEARCH_DATA' | 'EMPLOYER_SHARING' | 'ANALYTICS' | 'GOVT_CROSS_CHECK';
+
+export type DpdpConsentPurpose =
+  | 'OUTCOME_TRACKING'
+  | 'LONGITUDINAL_SURVEY'
+  | 'EMPLOYER_VERIFICATION'
+  | 'WAGE_ANALYSIS'
+  | 'CAREER_RECOMMENDATIONS'
+  | 'SMS_NOTIFICATIONS'
+  | 'WHATSAPP_NOTIFICATIONS'
+  | 'ANONYMIZED_RESEARCH'
+  | 'THIRD_PARTY_SHARING';
+
+export type ConsentScope = LegacyConsentScope | DpdpConsentPurpose;
 
 export interface ConsentItem {
   granted: boolean;

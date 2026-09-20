@@ -6,7 +6,8 @@
  *   - User indexing by ID, phone number (E.164 normalized), and email.
  *   - Secure session lifecycle (creation, validation, expiration, revocation).
  *   - DPDP Act Right-to-be-Forgotten: complete atomic purge of user, profile, sessions, and consent.
- *   - Consent audit trail and current-state aggregation per scope.
+ *   - Granular DPDP Act 2023 8-purpose consent tracking with instantaneous revocation.
+ *   - Longitudinal outcome events, employer records, and audit logs.
  */
 
 import crypto from 'crypto';
@@ -17,8 +18,18 @@ class ResilienceStore {
     this.phoneIndex = new Map(); // normalizedPhone -> userId
     this.emailIndex = new Map(); // lowerEmail -> userId
     this.sessions = new Map(); // token -> Session
-    this.consentRecords = new Map(); // traineeId -> Array<ConsentRecord>
+    this.consentRecords = new Map(); // traineeId -> Array<ConsentRecord> (legacy audit log)
+    this.dpdpConsents = new Map(); // traineeId -> Map<purpose, DpdpConsent>
     this.auditEvents = []; // Array<AuditEvent>
+    this.auditLogs = []; // Array<AuditLog>
+
+    // Additive Phase 4+ Collections
+    this.outcomeEvents = new Map(); // traineeId -> Array<OutcomeEvent>
+    this.employers = new Map(); // employerId -> Employer
+    this.employmentRecords = new Map(); // traineeId -> Array<EmploymentRecord>
+    this.followUpAttempts = new Map(); // traineeId -> Array<FollowUpAttempt>
+    this.interventions = new Map(); // traineeId -> Array<Intervention>
+    this.agentFindings = []; // Array<AgentFinding>
 
     this.initDefaultSeed();
   }
@@ -53,6 +64,20 @@ class ResilienceStore {
     };
 
     this.addUser(demoUser);
+
+    // Seed default DPDP consents for demo user
+    const defaultPurposes = [
+      'OUTCOME_TRACKING',
+      'LONGITUDINAL_SURVEY',
+      'EMPLOYER_VERIFICATION',
+      'WAGE_ANALYSIS',
+      'CAREER_RECOMMENDATIONS',
+      'SMS_NOTIFICATIONS',
+      'ANONYMIZED_RESEARCH',
+    ];
+    for (const purpose of defaultPurposes) {
+      this.grantConsent('trainee_demo', purpose, 'v2.0', '127.0.0.1', 'NEXIS Seed Agent');
+    }
   }
 
   addUser(user) {
@@ -69,6 +94,9 @@ class ResilienceStore {
       // Ensure trainee mapping
       if (!this.consentRecords.has(user.trainee.id)) {
         this.consentRecords.set(user.trainee.id, []);
+      }
+      if (!this.dpdpConsents.has(user.trainee.id)) {
+        this.dpdpConsents.set(user.trainee.id, new Map());
       }
     }
   }
@@ -161,18 +189,118 @@ class ResilienceStore {
     if (user.email) this.emailIndex.delete(user.email.toLowerCase());
     if (user.trainee?.id) {
       this.consentRecords.delete(user.trainee.id);
+      this.dpdpConsents.delete(user.trainee.id);
+      this.outcomeEvents.delete(user.trainee.id);
+      this.employmentRecords.delete(user.trainee.id);
+      this.followUpAttempts.delete(user.trainee.id);
+      this.interventions.delete(user.trainee.id);
     }
 
-    // Revoke all sessions for this user immediately
+    // Revoke and purge all sessions for this user immediately
     for (const [token, session] of this.sessions.entries()) {
       if (session.userId === userId) {
         session.revokedAt = new Date();
-        this.sessions.delete(token); // completely purge session
+        this.sessions.delete(token);
       }
     }
 
     this.users.delete(userId);
     return true;
+  }
+
+  // ── Granular DPDP Act 2023 Consent Implementation ───────────────────────
+
+  grantConsent(traineeId, purpose, version = 'v2.0', ipAddress = null, userAgent = null) {
+    if (!traineeId || !purpose) return null;
+    if (!this.dpdpConsents.has(traineeId)) {
+      this.dpdpConsents.set(traineeId, new Map());
+    }
+
+    const consentObj = {
+      id: `dpdp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      traineeId,
+      purpose: String(purpose).trim(),
+      granted: true,
+      grantedAt: new Date(),
+      revokedAt: null,
+      noticeVersion: String(version || 'v2.0'),
+      ipAddress: ipAddress || '127.0.0.1',
+      userAgent: userAgent || 'NEXIS Client',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    this.dpdpConsents.get(traineeId).set(purpose, consentObj);
+
+    // Also update legacy append-only log for backward compatibility
+    this.recordConsent(traineeId, purpose, true, version);
+
+    // Record formal AuditLog
+    this.recordAuditLog({
+      action: 'CONSENT_GRANTED',
+      actorRole: 'TRAINEE',
+      targetEntity: 'Consent',
+      targetId: consentObj.id,
+      ipAddress,
+      userAgent,
+      payload: { traineeId, purpose, version },
+    });
+
+    return consentObj;
+  }
+
+  withdrawConsent(traineeId, purpose, ipAddress = null, userAgent = null) {
+    if (!traineeId || !purpose) return null;
+    if (!this.dpdpConsents.has(traineeId)) {
+      this.dpdpConsents.set(traineeId, new Map());
+    }
+
+    const purposeKey = String(purpose).trim();
+    let existing = this.dpdpConsents.get(traineeId).get(purposeKey);
+
+    const updated = {
+      id: existing?.id || `dpdp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      traineeId,
+      purpose: purposeKey,
+      granted: false,
+      grantedAt: existing?.grantedAt || null,
+      revokedAt: new Date(),
+      noticeVersion: existing?.noticeVersion || 'v2.0',
+      ipAddress: ipAddress || '127.0.0.1',
+      userAgent: userAgent || 'NEXIS Client',
+      updatedAt: new Date(),
+    };
+
+    this.dpdpConsents.get(traineeId).set(purposeKey, updated);
+
+    // Also update legacy append-only log
+    this.recordConsent(traineeId, purposeKey, false, updated.noticeVersion);
+
+    // Immediately log audit event
+    this.recordAuditLog({
+      action: 'CONSENT_REVOKED',
+      actorRole: 'TRAINEE',
+      targetEntity: 'Consent',
+      targetId: updated.id,
+      ipAddress,
+      userAgent,
+      payload: { traineeId, purpose: purposeKey, revokedAt: updated.revokedAt },
+    });
+
+    return updated;
+  }
+
+  hasConsent(traineeId, purpose) {
+    if (!traineeId || !purpose) return false;
+    const traineeMap = this.dpdpConsents.get(traineeId);
+    if (traineeMap && traineeMap.has(purpose)) {
+      const c = traineeMap.get(purpose);
+      return Boolean(c.granted && !c.revokedAt);
+    }
+
+    // Fall back to legacy check
+    const current = this.getCurrentConsent(traineeId);
+    return Boolean(current[purpose]?.granted && !current[purpose]?.revokedAt);
   }
 
   recordConsent(traineeId, scope, granted, version = 'v1.0') {
@@ -208,8 +336,10 @@ class ResilienceStore {
   }
 
   getCurrentConsent(traineeId) {
-    const records = this.consentRecords.get(traineeId) || [];
     const consentMap = {};
+
+    // 1. Gather from legacy records
+    const records = this.consentRecords.get(traineeId) || [];
     for (const r of records) {
       if (!consentMap[r.scope]) {
         consentMap[r.scope] = {
@@ -220,6 +350,20 @@ class ResilienceStore {
         };
       }
     }
+
+    // 2. Overlay granular DPDP consents (higher precedence)
+    const dpdpMap = this.dpdpConsents.get(traineeId);
+    if (dpdpMap) {
+      for (const [purpose, item] of dpdpMap.entries()) {
+        consentMap[purpose] = {
+          granted: item.granted,
+          grantedAt: item.grantedAt,
+          revokedAt: item.revokedAt,
+          version: item.noticeVersion,
+        };
+      }
+    }
+
     return consentMap;
   }
 
@@ -236,6 +380,53 @@ class ResilienceStore {
         return false;
       }
     });
+  }
+
+  recordAuditLog(entry) {
+    const log = {
+      id: `log_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      action: entry.action || 'MUTATION',
+      actorRole: entry.actorRole || 'SYSTEM',
+      targetEntity: entry.targetEntity || 'UNKNOWN',
+      targetId: entry.targetId || null,
+      ipAddress: entry.ipAddress || null,
+      userAgent: entry.userAgent || null,
+      payload: entry.payload || null,
+      timestamp: new Date(),
+    };
+    this.auditLogs.unshift(log);
+    return log;
+  }
+
+  getAuditLogs(limit = 100) {
+    return this.auditLogs.slice(0, limit);
+  }
+
+  // ── Additive Phase 4+ Methods: Outcomes & Evidence ───────────────────────
+
+  addOutcomeEvent(traineeId, event) {
+    if (!traineeId) return null;
+    if (!this.outcomeEvents.has(traineeId)) {
+      this.outcomeEvents.set(traineeId, []);
+    }
+    const fullEvent = {
+      id: event.id || `evt_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      traineeId,
+      eventType: event.eventType,
+      milestone: event.milestone || null,
+      effectiveDate: event.effectiveDate ? new Date(event.effectiveDate) : new Date(),
+      metadata: event.metadata || {},
+      verificationStatus: event.verificationStatus || 'PENDING',
+      verificationSource: event.verificationSource || 'TRAINEE_SELF_REPORT',
+      confidenceScore: event.confidenceScore ?? 0.85,
+      createdAt: new Date(),
+    };
+    this.outcomeEvents.get(traineeId).unshift(fullEvent);
+    return fullEvent;
+  }
+
+  getOutcomeTimeline(traineeId) {
+    return this.outcomeEvents.get(traineeId) || [];
   }
 }
 
