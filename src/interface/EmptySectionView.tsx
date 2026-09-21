@@ -5,7 +5,8 @@ import { Briefcase, FileText, GraduationCap, LayoutDashboard, MessageSquare, Tar
   Construction,
   Wrench,
   ShieldCheck,
-  LucideIcon
+  LucideIcon,
+  Bot,
 } from 'lucide-react';
 import { ActiveSidebarTab } from '../types';
 import { useUiStore } from '../integration/store/uiStore';
@@ -107,6 +108,12 @@ const SECTION_CONFIG: Record<
     description: 'Manage your AI models, DPDP privacy controls, user profile, and connected integrations.',
     icon: Wrench,
     badge: 'Preferences',
+  },
+  'agent-workspace': {
+    title: 'Agent Workspace (3D Simulation)',
+    description: 'Real-time 3D simulation of autonomous background agents analyzing opportunities and market data.',
+    icon: Bot,
+    badge: '3D Simulation',
   },
 };
 

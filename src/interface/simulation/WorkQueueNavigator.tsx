@@ -49,6 +49,7 @@ export const WorkQueueNavigator: React.FC<WorkQueueNavigatorProps> = ({ isOpen, 
     setActiveSidebarTab,
     setDedupReviewOpen,
     setAnalyticsDashboardOpen,
+    setAgentReviewQueueOpen,
   } = useUiStore();
 
   if (!isOpen) return null;
@@ -137,6 +138,17 @@ export const WorkQueueNavigator: React.FC<WorkQueueNavigatorProps> = ({ isOpen, 
       badge: 'Phase 18 Quality',
       isModalTrigger: true,
     },
+    {
+      id: 'agent-review-queue',
+      tab: 'dashboard',
+      code: 'Q-09',
+      title: 'Agent Review Queue (Section 15.5)',
+      description: 'Kanban board for officer approval/rejection of AI specialist findings and sensitive interventions.',
+      icon: Layers,
+      accentColor: '#D97706',
+      badge: 'Section 15.5 Kanban',
+      isModalTrigger: true,
+    },
   ];
 
   const { navigate } = useRouter();
@@ -147,6 +159,8 @@ export const WorkQueueNavigator: React.FC<WorkQueueNavigatorProps> = ({ isOpen, 
       setDedupReviewOpen(true);
     } else if (item.id === 'analytics') {
       setAnalyticsDashboardOpen(true);
+    } else if (item.id === 'agent-review-queue') {
+      setAgentReviewQueueOpen(true);
     } else if (item.id === 'data-quality') {
       navigate('/data-quality');
     } else {
@@ -167,6 +181,7 @@ export const WorkQueueNavigator: React.FC<WorkQueueNavigatorProps> = ({ isOpen, 
         'linkedin-integration': '/network',
         'system-logs': '/system-logs',
         'settings': '/settings',
+        'agent-workspace': '/workspace',
       };
       navigate(tabToPathMap[item.tab] || `/${item.tab}`);
     }

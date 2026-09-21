@@ -145,15 +145,21 @@ export function useTraineeProfile(): UseTraineeProfileResult {
             const activeGranted = Object.values(profileData.consent).filter((item: any) => item?.granted === true);
             setNeedsConsent(activeGranted.length === 0);
           }
+          const authUser = useAuthStore.getState().user;
+          const localCompleted = typeof window !== 'undefined' && localStorage.getItem('forge-onboarding-completed') === 'true';
+          const isCompleted = Boolean(authUser?.profile?.onboardingCompleted) || localCompleted;
           const isStub = Boolean(profileData.trainee?.phoneNumber?.startsWith('temp_'));
           const hasEnrolments = Array.isArray(profileData.enrolments) && profileData.enrolments.length > 0;
-          setNeedsProfile(isStub || !hasEnrolments);
+          setNeedsProfile(!isCompleted && (isStub || !hasEnrolments));
         } else if (localProfile) {
           setTraineeProfile(localProfile);
           setNeedsProfile(false);
         } else {
+          const authUser = useAuthStore.getState().user;
+          const localCompleted = typeof window !== 'undefined' && localStorage.getItem('forge-onboarding-completed') === 'true';
+          const isCompleted = Boolean(authUser?.profile?.onboardingCompleted) || localCompleted;
           setTraineeProfile(null);
-          setNeedsProfile(false);
+          setNeedsProfile(!isCompleted);
         }
       } catch (pErr) {
         if (localProfile) {

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Command, Briefcase, FileText, Target, GraduationCap, Bot, Sparkles, X, ArrowRight, ShieldCheck, Activity, Settings } from 'lucide-react';
+import { Search, Command, Briefcase, FileText, Target, GraduationCap, Bot, Sparkles, X, ArrowRight, ShieldCheck, Activity, Settings, Layers } from 'lucide-react';
 import { useUiStore } from '../../integration/store/uiStore';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { ActiveSidebarTab } from '../../types';
+import { useRouter, TAB_TO_PATH } from '../../router';
 
 interface CommandItem {
   id: string;
@@ -14,7 +15,8 @@ interface CommandItem {
 
 export const CommandBar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const [query, setQuery] = useState('');
-  const { setActiveSidebarTab, setBYOKOpen, setAnalyticsDashboardOpen } = useUiStore();
+  const { navigate } = useRouter();
+  const { setActiveSidebarTab, setBYOKOpen, setAnalyticsDashboardOpen, setAgentReviewQueueOpen } = useUiStore();
   const { setResumeForgeOpen, setNexusMirrorOpen } = useCoreStore();
 
   useEffect(() => {
@@ -35,6 +37,7 @@ export const CommandBar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
 
   const navigateTo = (tab: ActiveSidebarTab) => {
     setActiveSidebarTab(tab);
+    navigate(TAB_TO_PATH[tab] || '/dashboard');
     onClose();
   };
 
@@ -101,6 +104,16 @@ export const CommandBar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
       category: 'Governance',
       icon: <Settings className="w-4 h-4 text-[#555555]" />,
       action: () => navigateTo('settings'),
+    },
+    {
+      id: 'action-agent-review-queue',
+      title: 'Agent Review Queue (Section 15.5 Kanban)',
+      category: 'Governance',
+      icon: <Layers className="w-4 h-4 text-[#D97706]" />,
+      action: () => {
+        setAgentReviewQueueOpen(true);
+        onClose();
+      },
     },
     {
       id: 'action-resume-forge',

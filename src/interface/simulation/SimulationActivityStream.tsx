@@ -29,12 +29,90 @@ interface SimulationActivityStreamProps {
   onSelectFinding: (finding: Section15Finding) => void;
 }
 
+const DEFAULT_ACTIVITY_FINDINGS: Section15Finding[] = [
+  {
+    findingId: 'fnd_act_001',
+    agent: 'outcome-tracking',
+    agentRole: 'Longitudinal Trainee Journey Observer',
+    agentName: 'Outcome Tracking Agent',
+    timestamp: new Date().toISOString(),
+    traineeId: 'trn_pune_4401',
+    providerId: 'prv_tata_str_01',
+    district: 'Pune',
+    confidence: 94,
+    inferenceType: 'VERIFIED',
+    modelVersion: 'nexis-outcome-engine-v2.0',
+    findingType: 'EMPLOYMENT_TRANSITION_DETECTED',
+    summary: 'Candidate verified placed at Tata Motors Pune manufacturing unit via PFMS matching.',
+    inputSources: [
+      { sourceType: 'PFMS_DIRECT_BENEFIT', description: 'Monthly PF remittance verified', timestamp: '2026-03-01' }
+    ],
+    evidenceReferences: ['ev_pfms_pune_001'],
+    recommendedAction: {
+      actionType: 'CONFIRM_LONGITUDINAL_RETENTION',
+      description: 'Schedule T_90 retention follow-up checkpoint.',
+      requiresHumanApproval: true,
+    },
+    humanReviewStatus: 'PENDING',
+  },
+  {
+    findingId: 'fnd_act_002',
+    agent: 'follow-up',
+    agentRole: 'Multi-Channel Outreach Engine',
+    agentName: 'Follow-Up Agent',
+    timestamp: new Date().toISOString(),
+    traineeId: 'trn_nagpur_102',
+    providerId: 'prv_gov_iti_ngp',
+    district: 'Nagpur',
+    confidence: 88,
+    inferenceType: 'VERIFIED',
+    modelVersion: 'nexis-followup-v2.0',
+    findingType: 'CHECKPOINT_COMPLETED',
+    summary: 'T_90 post-placement response recorded via WhatsApp conversational channel.',
+    inputSources: [
+      { sourceType: 'WHATSAPP_INTERACTIVE_FLOW', description: 'Candidate confirmed active salary slip', timestamp: '2026-03-02' }
+    ],
+    evidenceReferences: ['ev_wa_msg_4492'],
+    recommendedAction: {
+      actionType: 'ADVANCE_TIMELINE',
+      description: 'Progress trainee status to T_180 follow-up window.',
+      requiresHumanApproval: false,
+    },
+    humanReviewStatus: 'APPROVED',
+  },
+  {
+    findingId: 'fnd_act_003',
+    agent: 'employment-verification',
+    agentRole: 'Employer & Evidence Ledger Verifier',
+    agentName: 'Employment Verification Agent',
+    timestamp: new Date().toISOString(),
+    traineeId: 'trn_nsk_501',
+    providerId: 'prv_nashik_poly',
+    district: 'Nashik',
+    confidence: 91,
+    inferenceType: 'VERIFIED',
+    modelVersion: 'nexis-verif-v2.0',
+    findingType: 'EMPLOYER_CONFIRMATION_RECORDED',
+    summary: 'Employer verified payroll listing and role title match NAPS framework.',
+    inputSources: [
+      { sourceType: 'EMPLOYER_PORTAL_TOKEN', description: 'One-click verification token confirmed', timestamp: '2026-03-03' }
+    ],
+    evidenceReferences: ['ev_emp_portal_881'],
+    recommendedAction: {
+      actionType: 'UPGRADE_EVIDENCE_LEVEL',
+      description: 'Upgrade employment record evidence tier to HIGH.',
+      requiresHumanApproval: true,
+    },
+    humanReviewStatus: 'PENDING',
+  }
+];
+
 export const SimulationActivityStream: React.FC<SimulationActivityStreamProps> = ({
   onSelectFinding,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [filter, setFilter] = useState<string>('ALL');
-  const [findings, setFindings] = useState<Section15Finding[]>([]);
+  const [findings, setFindings] = useState<Section15Finding[]>(DEFAULT_ACTIVITY_FINDINGS);
   const [loading, setLoading] = useState(false);
   const [lastLiveEventTime, setLastLiveEventTime] = useState<string>('Just now');
 
@@ -47,7 +125,7 @@ export const SimulationActivityStream: React.FC<SimulationActivityStreamProps> =
       });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data.findings)) {
+        if (Array.isArray(data.findings) && data.findings.length > 0) {
           setFindings(data.findings);
           setLastLiveEventTime('Updated');
         }
@@ -244,8 +322,13 @@ export const SimulationActivityStream: React.FC<SimulationActivityStreamProps> =
                       </span>
 
                       <button
-                        onClick={() => onSelectFinding(finding)}
-                        className="px-2 py-0.5 bg-[#111111] hover:bg-[#E53935] text-white font-bold uppercase tracking-wider flex items-center gap-1 transition-colors cursor-pointer"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log('[NEXIS-DEBUG] ActivityStream INSPECT clicked:', finding.findingId);
+                          onSelectFinding(finding);
+                        }}
+                        className="px-2 py-0.5 bg-[#111111] hover:bg-[#E53935] text-white font-bold uppercase tracking-wider flex items-center gap-1 transition-colors cursor-pointer relative z-30 pointer-events-auto"
                         title="Open Section 15.3 Evidence Dossier"
                       >
                         <span>INSPECT</span>

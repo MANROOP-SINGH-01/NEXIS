@@ -29,6 +29,7 @@ import {
   normalizeTextToResumeDocument,
 } from '../services/documentNormalizer.js'
 import { computeSkillGaps } from '../services/skillEngine.js'
+import { getUserDecryptedApiKey } from '../services/byokService.js'
 
 const router = Router()
 
@@ -180,8 +181,21 @@ router.post('/resume/tailor', requireAuth, aiLimiter, async (req, res) => {
   const traineeId = req.body?.traineeId
   const keys = req.body?.keys || {}
   const runtimeSarvamKey = String(keys.sarvam || DEFAULT_SARVAM_KEY || '').trim()
-  const runtimeGeminiKey = String(keys.gemini || GEMINI_API_KEY || '').trim()
+  
+  // BYOK resolution: 1. User's encrypted custom key -> 2. Client payload key -> 3. Server GEMINI_API_KEY
+  let userByokKey = null;
+  if (req.user?.id) {
+    userByokKey = await getUserDecryptedApiKey(req.user.id, 'GEMINI');
+  }
+  const runtimeGeminiKey = String(userByokKey || keys.gemini || GEMINI_API_KEY || '').trim()
   const structurerKey = String(keys.structurer || DEFAULT_RESUME_STRUCTURER_KEY).trim()
+
+  const locale = String(req.body?.locale || req.user?.candidateProfile?.preferredLocale || 'en').toLowerCase();
+  const localeRule = locale === 'hi'
+    ? '=== MANDATORY LANGUAGE: HINDI (हिंदी) ===\nOutput all descriptions, explanations, summaries, and suggestions in natural, grammatically correct HINDI (हिंदी). Preserve proper nouns, framework names, programming languages, and technical terms (e.g. React, Node.js, AWS, ATS, PostgreSQL, TypeScript) in English.'
+    : locale === 'mr'
+    ? '=== MANDATORY LANGUAGE: MARATHI (मराठी) ===\nOutput all descriptions, explanations, summaries, and suggestions in natural, grammatically correct MARATHI (मराठी). Preserve proper nouns, framework names, programming languages, and technical terms (e.g. React, Node.js, AWS, ATS, PostgreSQL, TypeScript) in English.'
+    : '=== MANDATORY LANGUAGE: ENGLISH ===\nOutput in clear, professional English.';
 
   if (!resume || !jd) {
     res.status(400).json({ error: 'Resume and JD are required.' })
@@ -199,6 +213,8 @@ router.post('/resume/tailor', requireAuth, aiLimiter, async (req, res) => {
   try {
     const singlePassPrompt = [
       'You are Nexus-Director & Nexus-Strategist. Build one complete, high-precision resume optimization and skill-gap analysis package.',
+      '',
+      localeRule,
       '',
       '=== CRITICAL ACCURACY & GROUNDING CONSTRAINTS ===',
       '1. You must ONLY use information explicitly present in the candidate\'s original resume.',

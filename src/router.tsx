@@ -1,4 +1,57 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { ActiveSidebarTab } from './types';
+
+export const TAB_TO_PATH: Record<ActiveSidebarTab, string> = {
+  'dashboard': '/dashboard',
+  'profile': '/profile',
+  'job-matches': '/jobs',
+  'skill-gaps': '/skills',
+  'recommended-programs': '/learning',
+  'interview-prep': '/interview',
+  'new-cv': '/resume',
+  'career-health': '/career-health',
+  'application-tracker': '/tracker',
+  'career-passport': '/passport',
+  'interventions': '/interventions',
+  'my-outcome': '/outcomes',
+  'linkedin-integration': '/network',
+  'system-logs': '/logs',
+  'settings': '/settings',
+  'agent-workspace': '/workspace',
+};
+
+export const PATH_TO_TAB: Record<string, ActiveSidebarTab> = {
+  '/dashboard': 'dashboard',
+  '/app': 'dashboard',
+  '/overview': 'dashboard',
+  '/profile': 'profile',
+  '/jobs': 'job-matches',
+  '/job-matches': 'job-matches',
+  '/skills': 'skill-gaps',
+  '/skill-gaps': 'skill-gaps',
+  '/learning': 'recommended-programs',
+  '/recommended-programs': 'recommended-programs',
+  '/interview': 'interview-prep',
+  '/interview-prep': 'interview-prep',
+  '/resume': 'new-cv',
+  '/new-cv': 'new-cv',
+  '/career-health': 'career-health',
+  '/tracker': 'application-tracker',
+  '/application-tracker': 'application-tracker',
+  '/passport': 'career-passport',
+  '/career-passport': 'career-passport',
+  '/outcomes': 'my-outcome',
+  '/my-outcome': 'my-outcome',
+  '/network': 'linkedin-integration',
+  '/linkedin-integration': 'linkedin-integration',
+  '/logs': 'system-logs',
+  '/system-logs': 'system-logs',
+  '/interventions': 'interventions',
+  '/settings': 'settings',
+  '/workspace': 'agent-workspace',
+  '/agent-workspace': 'agent-workspace',
+  '/simulation': 'agent-workspace',
+};
 
 export type RoutePath =
   | '/'

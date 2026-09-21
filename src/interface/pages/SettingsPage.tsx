@@ -17,11 +17,23 @@ export const SettingsPage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'general' | 'ai' | 'privacy' | 'integrations'>('general');
 
-  // AI config state
-  const [geminiKey, setGeminiKey] = useState<string>(runtimeKeys.gemini || llmConfig.apiKey || '');
+  // AI config state (AES-256-GCM encrypted BYOK)
+  const [geminiKey, setGeminiKey] = useState<string>('');
   const [showKey, setShowKey] = useState(false);
   const [selectedModel, setSelectedModel] = useState<string>(llmConfig.model || DEFAULT_MODELS.text);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const [isTestingAiKey, setIsTestingAiKey] = useState(false);
+  const [keyStatus, setKeyStatus] = useState<{
+    hasKey: boolean;
+    provider: string;
+    keyLastFour: string;
+    isActive: boolean;
+  }>({
+    hasKey: false,
+    provider: 'GEMINI',
+    keyLastFour: '',
+    isActive: false,
+  });
 
   // Profile fields state
   const [name, setName] = useState(traineeProfile?.trainee?.name || 'Priya Sharma');
@@ -46,7 +58,24 @@ export const SettingsPage: React.FC = () => {
   const [isConnectingTelegram, setIsConnectingTelegram] = useState(false);
   const [telegramNotice, setTelegramNotice] = useState<string | null>(null);
 
+  const loadKeyStatus = () => {
+    fetch('/api/ai/byok/status', { headers: getAuthHeaders() })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.success) {
+          setKeyStatus({
+            hasKey: Boolean(data.hasKey),
+            provider: data.provider || 'GEMINI',
+            keyLastFour: data.keyLastFour || '',
+            isActive: Boolean(data.isActive),
+          });
+        }
+      })
+      .catch(() => {});
+  };
+
   useEffect(() => {
+    loadKeyStatus();
     fetch('/api/telegram/status')
       .then((res) => res.json())
       .then((data) => {
@@ -111,18 +140,67 @@ export const SettingsPage: React.FC = () => {
     setTimeout(() => setSaveSuccess(null), 3500);
   };
 
-  const handleSaveAi = () => {
+  const handleSaveAi = async () => {
     const trimmed = geminiKey.trim();
-    setRuntimeKeys({ gemini: trimmed });
-    const config = {
-      apiKey: trimmed,
-      model: selectedModel,
-    };
-    setLlmConfig(config);
+    if (!trimmed) {
+      showNotification('Please enter a valid Gemini API key.');
+      return;
+    }
+
     try {
-      localStorage.setItem('byok-config', JSON.stringify(config));
-    } catch {}
-    showNotification('AI model & runtime keys updated successfully!');
+      const res = await fetch('/api/ai/byok/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({ apiKey: trimmed, provider: 'GEMINI' }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setGeminiKey('');
+        loadKeyStatus();
+        showNotification('Gemini API key validated and securely encrypted on server (AES-256-GCM)!');
+      } else {
+        showNotification(data.error || 'Failed to validate API key.');
+      }
+    } catch {
+      showNotification('Network error saving API key.');
+    }
+  };
+
+  const handleTestAi = async () => {
+    setIsTestingAiKey(true);
+    try {
+      const res = await fetch('/api/ai/byok/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showNotification(`Connected! ${data.message}`);
+      } else {
+        showNotification(data.message || data.error || 'Key test failed.');
+      }
+    } catch {
+      showNotification('Network error testing API key.');
+    } finally {
+      setIsTestingAiKey(false);
+    }
+  };
+
+  const handleRemoveAi = async () => {
+    try {
+      const res = await fetch('/api/ai/byok', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({ provider: 'GEMINI' }),
+      });
+      if (res.ok) {
+        setKeyStatus({ hasKey: false, provider: 'GEMINI', keyLastFour: '', isActive: false });
+        showNotification('Removed stored custom API key.');
+      }
+    } catch {
+      showNotification('Failed to remove API key.');
+    }
   };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -329,7 +407,7 @@ export const SettingsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Tab 2: AI & Intelligence */}
+      {/* Tab 2: AI & Intelligence (Server-Side AES-256-GCM BYOK) */}
       {activeTab === 'ai' && (
         <div className="space-y-6">
           <div className="bg-white border-2 border-[#111111] p-6 md:p-8 shadow-[4px_4px_0px_#111111]">
@@ -337,18 +415,60 @@ export const SettingsPage: React.FC = () => {
               <h2 className="text-lg font-black font-['Space_Grotesk'] text-[#111111] flex items-center gap-2 uppercase tracking-tight">
                 <Key size={18} className="text-[#E53935]" /> Bring Your Own Key (BYOK)
               </h2>
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#111111] bg-[#F4C430] border-2 border-[#111111] px-2.5 py-0.5 shadow-[2px_2px_0px_#111111]">
-                Zero Cloud Storage
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#111111] bg-[#2E7D32] text-white border border-[#111111] px-2.5 py-0.5 shadow-[2px_2px_0px_#111111]">
+                AES-256-GCM ENCRYPTED
               </span>
             </div>
             <p className="text-xs text-[#555555] font-mono mb-6 leading-relaxed max-w-2xl">
-              NEXIS provides embedded AI orchestration. You can optionally supply your own Google Gemini or Claude API key. Your key is kept strictly in browser local storage and never logged.
+              NEXIS provides embedded AI orchestration. You can optionally supply your personal Google Gemini API key. Your key is securely encrypted on the server with AES-256-GCM and never stored in plaintext or exposed to other users.
             </p>
+
+            {/* Current Key Status Card */}
+            {keyStatus.hasKey ? (
+              <div className="p-4 bg-[#F5F0E6] border-2 border-[#111111] shadow-[2px_2px_0px_#111111] max-w-xl mb-6 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold uppercase text-[#111111]">Active Gemini Key:</span>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase bg-[#2E7D32] text-white">
+                    <CheckCircle2 size={12} /> Connected & Active
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono text-[#555555]">Encrypted Storage:</span>
+                  <span className="font-mono text-xs font-bold text-[#111111] tracking-widest bg-white px-2 py-1 border border-[#111111]">
+                    ••••••••••••{keyStatus.keyLastFour}
+                  </span>
+                </div>
+                <div className="pt-2 flex items-center gap-2 border-t border-[#111111]/10">
+                  <button
+                    type="button"
+                    onClick={handleTestAi}
+                    disabled={isTestingAiKey}
+                    className="px-4 py-2 bg-[#111111] hover:bg-[#E53935] text-white border-2 border-[#111111] text-xs font-mono font-bold uppercase shadow-[2px_2px_0px_#111111] transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    {isTestingAiKey ? <RefreshCw size={13} className="animate-spin" /> : <Shield size={13} />}
+                    <span>{isTestingAiKey ? 'Testing Connection...' : 'Test Key Connection'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleRemoveAi}
+                    className="px-3 py-2 bg-white hover:bg-[#E53935] hover:text-white text-[#E53935] border-2 border-[#111111] text-xs font-mono font-bold uppercase shadow-[2px_2px_0px_#111111] transition-all cursor-pointer flex items-center gap-1"
+                  >
+                    <Trash2 size={13} />
+                    <span>Remove Key</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 bg-[#F5F0E6] border border-[#111111] text-xs font-mono text-[#555555] max-w-xl mb-6">
+                No custom API key configured. NEXIS will use standard default cluster capacity.
+              </div>
+            )}
 
             <div className="space-y-5 max-w-xl">
               <div>
                 <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#111111] mb-1.5">
-                  Gemini API Key
+                  {keyStatus.hasKey ? 'Replace Gemini API Key' : 'Enter Gemini API Key'}
                 </label>
                 <div className="relative">
                   <input
@@ -387,25 +507,11 @@ export const SettingsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleSaveAi}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#E53935] hover:bg-[#D32F2F] text-white font-mono font-bold text-xs uppercase tracking-wider border-2 border-[#111111] shadow-[3px_3px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#111111] transition-all cursor-pointer"
+                  disabled={!geminiKey.trim()}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#E53935] hover:bg-[#D32F2F] text-white font-mono font-bold text-xs uppercase tracking-wider border-2 border-[#111111] shadow-[3px_3px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#111111] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  <Save size={14} /> Update AI Key
+                  <Save size={14} /> Save & Encrypt Key
                 </button>
-                {geminiKey && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setGeminiKey('');
-                      setRuntimeKeys({ gemini: '' });
-                      setLlmConfig({ apiKey: '', model: DEFAULT_MODELS.text });
-                      localStorage.removeItem('byok-config');
-                      showNotification('Cleared stored custom API key.');
-                    }}
-                    className="px-4 py-2.5 text-xs font-mono font-bold text-[#E53935] hover:underline transition-colors cursor-pointer"
-                  >
-                    Clear Key
-                  </button>
-                )}
               </div>
             </div>
           </div>

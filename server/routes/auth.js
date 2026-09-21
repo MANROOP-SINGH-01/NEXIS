@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
 import { hashPassword, verifyPassword, createSession, revokeSession, revokeAllUserSessions } from '../services/authService.js';
+import { sendOtp, verifyOtp } from '../services/otpService.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 import { otpLimiter } from '../middleware/rateLimit.js';
 
@@ -9,9 +10,11 @@ const router = Router();
 import resilienceStore from '../lib/resilienceStore.js';
 
 // Helper: Normalize phone to E.164-like digits
-function normalizePhone(phone) {
+export function normalizePhone(phone) {
   const cleaned = String(phone || '').replace(/[^0-9+]/g, '');
-  return cleaned.startsWith('+') ? cleaned : `+91${cleaned.slice(-10)}`;
+  if (cleaned.startsWith('+')) return cleaned;
+  if (cleaned.length === 10) return `+91${cleaned}`;
+  return `+${cleaned}`;
 }
 
 // POST /api/auth/register
@@ -42,6 +45,7 @@ router.post('/auth/register', async (req, res) => {
     }
 
     const passwordHash = await hashPassword(password);
+    const targetRoleVal = req.body.targetRole ? JSON.stringify([String(req.body.targetRole).trim()]) : null;
 
     const user = await prisma.user.create({
       data: {
@@ -52,7 +56,10 @@ router.post('/auth/register', async (req, res) => {
         candidateProfile: {
           create: {
             name: String(name).trim(),
+            targetRoles: targetRoleVal,
             profileCompleteness: 35,
+            onboardingCompleted: false,
+            preferredLocale: 'en',
           }
         }
       },
@@ -325,35 +332,220 @@ router.post('/auth/logout-all', requireAuth, async (req, res) => {
   res.json({ success: true, message: 'Revoked all active sessions.' });
 });
 
-// ZERO-COST DEV OTP HANDLERS (Simulated & Local console output only)
-router.post('/auth/request-otp', otpLimiter, async (req, res) => {
-  const { phone } = req.body;
-  if (!phone) return res.status(400).json({ error: 'Phone number is required.' });
+// ── REAL PHONE + SMS OTP AUTHENTICATION ─────────────────────────────────────
+// POST /api/auth/phone/request-otp & /api/auth/request-otp
+const handleRequestOtp = async (req, res) => {
+  const { phone, phoneNumber } = req.body;
+  const rawPhone = phone || phoneNumber;
+  if (!rawPhone) return res.status(400).json({ error: 'Phone number is required.' });
 
-  const cleanPhone = normalizePhone(phone);
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+  const cleanPhone = normalizePhone(rawPhone);
 
-  // Hash OTP before persistence
-  const crypto = await import('crypto');
-  const hashedOtp = crypto.default.createHash('sha256').update(code).digest('hex');
-
-  await prisma.otpVerification.create({
-    data: {
+  try {
+    const result = await sendOtp(cleanPhone);
+    return res.json({
+      success: true,
       phoneNumber: cleanPhone,
-      hashedOtp,
-      expiresAt,
+      message: result.message || 'Verification code sent.',
+      devOtpCode: result.devOtpCode,
+    });
+  } catch (err) {
+    console.error('[auth/request-otp] Error:', err.message);
+    return res.status(500).json({ error: err.message || 'Failed to dispatch verification code.' });
+  }
+};
+
+router.post('/auth/phone/request-otp', otpLimiter, handleRequestOtp);
+router.post('/auth/request-otp', otpLimiter, handleRequestOtp);
+
+// POST /api/auth/phone/verify-otp & /api/auth/verify-otp
+const handleVerifyOtp = async (req, res) => {
+  const { phone, phoneNumber, code } = req.body;
+  const rawPhone = phone || phoneNumber;
+  if (!rawPhone || !code) {
+    return res.status(400).json({ error: 'Phone number and verification code are required.' });
+  }
+
+  const cleanPhone = normalizePhone(rawPhone);
+
+  try {
+    await verifyOtp(cleanPhone, String(code).trim());
+
+    // Find or create User
+    let user = null;
+    try {
+      user = await prisma.user.findUnique({
+        where: { phone: cleanPhone },
+        include: { candidateProfile: true },
+      });
+
+      const customName = req.body.name ? String(req.body.name).trim() : null;
+      const targetRoleVal = req.body.targetRole ? JSON.stringify([String(req.body.targetRole).trim()]) : null;
+
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            phone: cleanPhone,
+            role: 'CANDIDATE',
+            candidateProfile: {
+              create: {
+                name: customName || 'Candidate',
+                targetRoles: targetRoleVal,
+                profileCompleteness: customName ? 35 : 20,
+                onboardingCompleted: false,
+                preferredLocale: 'en',
+              },
+            },
+          },
+          include: { candidateProfile: true },
+        });
+      } else if (customName && user.candidateProfile && user.candidateProfile.name === 'Candidate') {
+        const updatedProfile = await prisma.candidateProfile.update({
+          where: { id: user.candidateProfile.id },
+          data: {
+            name: customName,
+            ...(targetRoleVal ? { targetRoles: targetRoleVal } : {})
+          }
+        });
+        user.candidateProfile = updatedProfile;
+      }
+    } catch (dbErr) {
+      console.warn('[auth/verify-otp] DB query failed, using resilience store:', dbErr.message);
+      let resUser = resilienceStore.findUserByIdentifier(cleanPhone);
+      if (!resUser) {
+        const userId = `usr_${Date.now()}`;
+        resUser = {
+          id: userId,
+          phone: cleanPhone,
+          role: 'CANDIDATE',
+          candidateProfile: {
+            id: `prf_${Date.now()}`,
+            userId,
+            name: 'Candidate',
+            profileCompleteness: 20,
+            onboardingCompleted: false,
+            preferredLocale: 'en',
+          },
+        };
+        resilienceStore.addUser(resUser);
+      }
+      user = resUser;
     }
-  });
 
-  // ZERO-COST REQUIREMENT: Output OTP locally in terminal, NEVER call paid SMS
-  console.log(`[ZERO-COST OTP] Verification code for ${cleanPhone}: ${code} (Valid for 10m)`);
+    // Issue session token
+    let token = '';
+    try {
+      const sessionResult = await createSession(user.id);
+      token = sessionResult.token;
+    } catch (sErr) {
+      token = resilienceStore.createSession(user.id).token;
+    }
 
-  res.json({
-    success: true,
-    message: 'OTP generated (local development mode). Check backend terminal.',
-    devCode: process.env.NODE_ENV !== 'production' ? code : undefined,
-  });
+    const needsOnboarding = !user.candidateProfile?.onboardingCompleted;
+
+    return res.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        phone: user.phone,
+        email: user.email,
+        role: user.role,
+        profile: user.candidateProfile,
+      },
+      needsOnboarding,
+    });
+  } catch (err) {
+    console.error('[auth/verify-otp] Verification failed:', err.message);
+    return res.status(400).json({ error: err.message || 'Invalid or expired verification code.' });
+  }
+};
+
+router.post('/auth/phone/verify-otp', handleVerifyOtp);
+router.post('/auth/verify-otp', handleVerifyOtp);
+
+// POST /api/auth/onboarding/complete — Save 4-step onboarding data
+router.post('/auth/onboarding/complete', requireAuth, async (req, res) => {
+  const {
+    name,
+    age,
+    currentCity,
+    currentCountry,
+    occupation,
+    employmentStatus,
+    educationLevel,
+    degree,
+    fieldOfStudy,
+    yearsOfExperience,
+    primarySkills,
+    secondarySkills,
+    desiredRole,
+    preferredLocations,
+    preferredWorkMode,
+    expectedSalary,
+  } = req.body;
+
+  try {
+    const allSkills = [
+      ...(Array.isArray(primarySkills) ? primarySkills : String(primarySkills || '').split(',')),
+      ...(Array.isArray(secondarySkills) ? secondarySkills : String(secondarySkills || '').split(',')),
+    ].map((s) => String(s).trim()).filter(Boolean);
+
+    const updatedProfile = await prisma.candidateProfile.upsert({
+      where: { userId: req.user.id },
+      create: {
+        userId: req.user.id,
+        name: name ? String(name).trim() : 'Candidate',
+        location: currentCity ? `${currentCity}, ${currentCountry || 'India'}` : undefined,
+        headline: desiredRole || occupation || undefined,
+        education: JSON.stringify({ level: educationLevel, degree, fieldOfStudy }),
+        experienceSummary: JSON.stringify({ occupation, employmentStatus, years: yearsOfExperience }),
+        targetRoles: JSON.stringify(desiredRole ? [desiredRole] : []),
+        preferredLocations: JSON.stringify(Array.isArray(preferredLocations) ? preferredLocations : [preferredLocations || 'Remote']),
+        preferredWorkMode: preferredWorkMode || 'HYBRID',
+        salaryPreference: expectedSalary ? String(expectedSalary) : undefined,
+        profileCompleteness: 85,
+        onboardingCompleted: true,
+      },
+      update: {
+        name: name ? String(name).trim() : undefined,
+        location: currentCity ? `${currentCity}, ${currentCountry || 'India'}` : undefined,
+        headline: desiredRole || occupation || undefined,
+        education: JSON.stringify({ level: educationLevel, degree, fieldOfStudy }),
+        experienceSummary: JSON.stringify({ occupation, employmentStatus, years: yearsOfExperience }),
+        targetRoles: JSON.stringify(desiredRole ? [desiredRole] : []),
+        preferredLocations: JSON.stringify(Array.isArray(preferredLocations) ? preferredLocations : [preferredLocations || 'Remote']),
+        preferredWorkMode: preferredWorkMode || 'HYBRID',
+        salaryPreference: expectedSalary ? String(expectedSalary) : undefined,
+        profileCompleteness: 85,
+        onboardingCompleted: true,
+      },
+    });
+
+    return res.json({
+      success: true,
+      message: 'Onboarding completed successfully.',
+      profile: updatedProfile,
+    });
+  } catch (err) {
+    console.warn('[auth/onboarding/complete] Remote DB unreachable, saving via resilience mode:', err.message);
+    const resUser = resilienceStore.findUserById(req.user.id);
+    if (resUser) {
+      if (!resUser.candidateProfile) {
+        resUser.candidateProfile = { id: `prf_${Date.now()}`, userId: req.user.id };
+      }
+      resUser.candidateProfile.name = name ? String(name).trim() : resUser.candidateProfile.name || 'Candidate';
+      resUser.candidateProfile.headline = desiredRole || occupation || resUser.candidateProfile.headline;
+      resUser.candidateProfile.profileCompleteness = 90;
+      resUser.candidateProfile.onboardingCompleted = true;
+      return res.json({
+        success: true,
+        message: 'Onboarding completed in local resilience mode.',
+        profile: resUser.candidateProfile,
+      });
+    }
+    return res.status(500).json({ error: err.message || 'Failed to save onboarding details.' });
+  }
 });
 
 export default router;

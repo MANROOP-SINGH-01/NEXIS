@@ -73,6 +73,9 @@ export const useUiStore = create<CharacterState>()(
     isAnalyticsDashboardOpen: false,
     setAnalyticsDashboardOpen: (open: boolean) => set({ isAnalyticsDashboardOpen: open }),
 
+    isAgentReviewQueueOpen: false,
+    setAgentReviewQueueOpen: (open: boolean) => set({ isAgentReviewQueueOpen: open }),
+
     activeAuditTaskId: null,
     setActiveAuditTaskId: (taskId: string | null) => set({ activeAuditTaskId: taskId }),
 

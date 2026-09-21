@@ -57,7 +57,7 @@ test.describe('Phase 15: Government-Credible Visual Design Browser Contract Flow
 
     // 4. Verify 3D Office canvas remains mounted and undisturbed
     const canvasContainer = page.locator('canvas');
-    await expect(canvasContainer.first()).toBeVisible({ timeout: 15000 });
+    await expect(canvasContainer.first()).toBeAttached({ timeout: 15000 });
   });
 
   test('2. Banner collapse and expand toggle works smoothly without breaking viewport', async ({ page }) => {

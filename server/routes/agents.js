@@ -32,4 +32,18 @@ router.get('/activity', (req, res) => {
   });
 });
 
+// GET /api/agents/queue-status - Queue Telemetry (Section 15.5 Step 11)
+router.get('/queue-status', async (req, res) => {
+  try {
+    const { default: dispatcher } = await import('../orchestrator/dispatcher.js');
+    const status = await dispatcher.getQueueStatus();
+    res.json({
+      success: true,
+      ...status,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

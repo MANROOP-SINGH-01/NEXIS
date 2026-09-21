@@ -28,6 +28,9 @@ test.describe('Phase 12: Outcome-Intelligence Specialist Agents Contract Suite',
       const regData = await regRes.json();
       authToken = regData.token || '';
     }
+    if (!authToken) {
+      authToken = 'dev_token';
+    }
   });
 
   test('1. GET /api/specialist-agents/ping returns readiness probe and policy invariants', async ({ request }) => {
@@ -166,5 +169,51 @@ test.describe('Phase 12: Outcome-Intelligence Specialist Agents Contract Suite',
     expect(progFinding.summary.toLowerCase()).toContain('before taking programmatic action');
     expect(progFinding.details.certificationRate).toBeDefined();
     expect(progFinding.details.placementRate).toBeDefined();
+  });
+
+  test('8. GET /api/specialist-agents/queue-status and /api/agents/queue-status report real-time telemetry (Section 15.5 Step 11)', async ({ request }) => {
+    const res1 = await request.get(`${BASE_URL}/api/specialist-agents/queue-status`);
+    expect(res1.status()).toBe(200);
+    const body1 = await res1.json();
+    expect(body1.success).toBe(true);
+    expect(body1.queueName).toBe('agent-jobs');
+    expect(typeof body1.depth).toBe('number');
+    expect(body1.rosterCount).toBe(11);
+
+    const res2 = await request.get(`${BASE_URL}/api/agents/queue-status`);
+    expect(res2.status()).toBe(200);
+    const body2 = await res2.json();
+    expect(body2.success).toBe(true);
+    expect(body2.queueName).toBe('agent-jobs');
+  });
+
+  test('9. POST /api/specialist-agents/enqueue and GET /jobs/:jobId executes asynchronous agent dispatch (Section 15.5 Steps 4-6)', async ({ request }) => {
+    const enqueueRes = await request.post(`${BASE_URL}/api/specialist-agents/enqueue`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+      data: {
+        jobType: 'data-quality',
+        payload: {
+          traineeId: 'MH-CONTRACT-QUEUE-01',
+          enrollmentDate: '2025-01-01',
+          certificationDate: '2025-03-01',
+          employmentStartDate: '2025-03-15',
+        },
+      },
+    });
+    expect(enqueueRes.status()).toBe(202);
+    const enqueueBody = await enqueueRes.json();
+    expect(enqueueBody.success).toBe(true);
+    expect(enqueueBody.status).toBe('QUEUED');
+    expect(enqueueBody.jobId).toBeTruthy();
+
+    // Poll status of the dispatched background job
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    const statusRes = await request.get(`${BASE_URL}/api/specialist-agents/jobs/${enqueueBody.jobId}`);
+    expect(statusRes.status()).toBe(200);
+    const statusBody = await statusRes.json();
+    expect(statusBody.success).toBe(true);
+    expect(statusBody.job.jobId).toBe(enqueueBody.jobId);
+    expect(statusBody.job.status).toBe('COMPLETED');
+    expect(statusBody.job.result.finding.agent).toBe('data-quality');
   });
 });

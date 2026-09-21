@@ -245,8 +245,8 @@ export const InterventionManagementView: React.FC = () => {
             </div>
             <button
               onClick={() => {
-                setActiveSidebarTab('dashboard');
-                navigate('/dashboard');
+                setActiveSidebarTab('agent-workspace');
+                navigate('/workspace');
               }}
               className="px-3 py-1.5 bg-[#111111] hover:bg-[#E53935] text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer border border-[#111111] shadow-[2px_2px_0px_#111111]"
               title="Return to 3D Agent Simulation (Section 21.1)"

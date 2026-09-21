@@ -8,7 +8,7 @@ import { useCoreStore } from './integration/store/coreStore';
 import { useUiStore } from './integration/store/uiStore';
 import { useAuthStore } from './integration/store/authStore';
 import { useTraineeProfile } from './integration/hooks/useTraineeProfile';
-import { RouterProvider, useRouter } from './router';
+import { RouterProvider, useRouter, TAB_TO_PATH, PATH_TO_TAB } from './router';
 import { Shell } from './interface/layout/Shell';
 import { LandingPage } from './interface/pages/LandingPage';
 import { LoginPage } from './interface/auth/LoginPage';
@@ -40,6 +40,7 @@ import { CareerHealthDashboard } from './interface/CareerHealthDashboard';
 import { DedupReviewPanel } from './interface/admin/DedupReviewPanel';
 import { AnalyticsDashboard } from './interface/admin/AnalyticsDashboard';
 import { DataQualityConsole } from './interface/admin/DataQualityConsole';
+import { AgentReviewQueueModal } from './interface/admin/AgentReviewQueueModal';
 import { AgentActivityHUD } from './interface/AgentActivityHUD';
 import EmployerVerificationPage from './interface/employer/EmployerVerificationPage';
 import ProviderViewPage from './interface/provider/ProviderViewPage';
@@ -77,50 +78,34 @@ const Workspace: React.FC = () => {
     setDedupReviewOpen,
     isAnalyticsDashboardOpen,
     setAnalyticsDashboardOpen,
+    isAgentReviewQueueOpen,
+    setAgentReviewQueueOpen,
     isLowFpsFallback,
   } = useUiStore();
 
-  // Bi-directional synchronization: URL pathname -> activeSidebarTab
+  // 1. Synchronize URL pathname -> activeSidebarTab
   useEffect(() => {
-    const pathToTab: Record<string, ActiveSidebarTab> = {
-      '/dashboard': 'dashboard',
-      '/app': 'dashboard',
-      '/profile': 'profile',
-      '/jobs': 'job-matches',
-      '/job-matches': 'job-matches',
-      '/skills': 'skill-gaps',
-      '/skill-gaps': 'skill-gaps',
-      '/learning': 'recommended-programs',
-      '/recommended-programs': 'recommended-programs',
-      '/interview': 'interview-prep',
-      '/interview-prep': 'interview-prep',
-      '/resume': 'new-cv',
-      '/new-cv': 'new-cv',
-      '/overview': 'career-health',
-      '/career-health': 'career-health',
-      '/tracker': 'application-tracker',
-      '/application-tracker': 'application-tracker',
-      '/passport': 'career-passport',
-      '/career-passport': 'career-passport',
-      '/outcomes': 'my-outcome',
-      '/my-outcome': 'my-outcome',
-      '/network': 'linkedin-integration',
-      '/linkedin-integration': 'linkedin-integration',
-      '/logs': 'system-logs',
-      '/system-logs': 'system-logs',
-      '/interventions': 'interventions',
-      '/settings': 'settings',
-    };
-
     const cleanPath = pathname.replace(/\/$/, '') || '/';
     if (cleanPath === '/dedup' || cleanPath === '/admin/dedup') {
       setDedupReviewOpen(true);
     }
-    const matchedTab = pathToTab[cleanPath];
-    if (matchedTab && matchedTab !== activeSidebarTab) {
+    if (cleanPath === '/review-queue' || cleanPath === '/admin/review-queue') {
+      setAgentReviewQueueOpen(true);
+    }
+    const matchedTab = PATH_TO_TAB[cleanPath];
+    if (matchedTab) {
       setActiveSidebarTab(matchedTab);
     }
-  }, [pathname, activeSidebarTab, setActiveSidebarTab, setDedupReviewOpen]);
+  }, [pathname, setActiveSidebarTab, setDedupReviewOpen, setAgentReviewQueueOpen]);
+
+  // 2. Synchronize activeSidebarTab -> URL pathname
+  useEffect(() => {
+    const cleanPath = pathname.replace(/\/$/, '') || '/';
+    const expectedPath = TAB_TO_PATH[activeSidebarTab];
+    if (expectedPath && PATH_TO_TAB[cleanPath] !== activeSidebarTab) {
+      navigate(expectedPath);
+    }
+  }, [activeSidebarTab, pathname, navigate]);
 
   const {
     loading: isTraineeLoading,
@@ -128,6 +113,7 @@ const Workspace: React.FC = () => {
     needsProfile,
     submitConsents,
     saveProfile,
+    refreshProfile,
   } = useTraineeProfile();
 
   // 3D Scene Initialization
@@ -194,6 +180,7 @@ const Workspace: React.FC = () => {
       <Shell isFullscreen={isFullscreen}>
         {/* Dynamic Views Area */}
         <div className="relative flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-transparent">
+          {activeSidebarTab === 'dashboard' && <PulseOverviewView />}
           {activeSidebarTab === 'profile' && <CandidateProfileView />}
           {activeSidebarTab === 'skill-gaps' && <SkillGapsView />}
           {activeSidebarTab === 'job-matches' && <JobMatchesView />}
@@ -202,7 +189,7 @@ const Workspace: React.FC = () => {
           {activeSidebarTab === 'new-cv' && <NewCVView />}
           {activeSidebarTab === 'my-outcome' && <OutcomeStatusView />}
           {activeSidebarTab === 'linkedin-integration' && <LinkedInIntegrationView />}
-          {activeSidebarTab === 'career-health' && <PulseOverviewView />}
+          {activeSidebarTab === 'career-health' && <CareerHealthDashboard />}
           {activeSidebarTab === 'application-tracker' && <ApplicationTrackerView />}
           {activeSidebarTab === 'career-passport' && <CareerPassportView />}
           {activeSidebarTab === 'interventions' && <InterventionManagementView />}
@@ -213,7 +200,7 @@ const Workspace: React.FC = () => {
           <div
             className="flex-1 flex flex-col min-w-0 min-h-0 relative"
             style={{
-              display: activeSidebarTab === 'dashboard' ? 'flex' : 'none',
+              display: activeSidebarTab === 'agent-workspace' ? 'flex' : 'none',
               visibility: viewMode === 'design' ? 'hidden' : 'visible',
             }}
           >
@@ -274,12 +261,21 @@ const Workspace: React.FC = () => {
           </div>
         )}
 
+        {/* Section 15.5 Agent Review Queue Modal */}
+        <AgentReviewQueueModal
+          isOpen={isAgentReviewQueueOpen}
+          onClose={() => setAgentReviewQueueOpen(false)}
+        />
+
         {/* Onboarding & DPDP Flow */}
         {!isTraineeLoading && needsConsent && (
           <ConsentScreen onConsentsSaved={submitConsents} />
         )}
         {!isTraineeLoading && !needsConsent && needsProfile && (
-          <TraineeProfileSetup onProfileSaved={saveProfile} />
+          <TraineeProfileSetup 
+            onProfileSaved={saveProfile} 
+            onComplete={() => refreshProfile()}
+          />
         )}
       </Shell>
     </SceneContext.Provider>
@@ -331,7 +327,9 @@ const MainRouter: React.FC = () => {
   if (pathname === '/login' || pathname === '/register') {
     return (
       <LoginPage
+        initialMode={pathname === '/register' ? 'register' : 'signin'}
         onSuccess={() => navigate('/dashboard')}
+        onNeedOnboarding={() => navigate('/onboarding')}
         onBackToHome={() => navigate('/')}
       />
     );
@@ -349,6 +347,7 @@ const MainRouter: React.FC = () => {
           }
         }}
         onGoLogin={() => navigate('/login')}
+        onGoRegister={() => navigate('/register')}
       />
     );
   }

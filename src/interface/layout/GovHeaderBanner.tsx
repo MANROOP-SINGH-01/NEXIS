@@ -10,11 +10,12 @@
 
 import React, { useState } from 'react';
 import { AlertTriangle, Info, Shield, ExternalLink, X, ChevronDown, ChevronUp, Globe } from 'lucide-react';
+import { useLocale } from '../../i18n';
 
 export const GovHeaderBanner: React.FC = () => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isBannerCollapsed, setIsBannerCollapsed] = useState(false);
-  const [activeLang, setActiveLang] = useState<'EN' | 'MR'>('EN');
+  const { locale, setLocale } = useLocale();
 
   return (
     <div className="w-full flex flex-col shrink-0 select-none z-[130] relative">
@@ -57,11 +58,11 @@ export const GovHeaderBanner: React.FC = () => {
           <div className="flex items-center text-[10px] font-mono text-slate-300 gap-1 bg-slate-800/80 px-2 py-0.5 border border-slate-700">
             <Globe className="w-3 h-3 text-slate-400" />
             <button 
-              onClick={() => setActiveLang(activeLang === 'EN' ? 'MR' : 'EN')}
+              onClick={() => setLocale(locale === 'mr' ? 'en' : 'mr')}
               className="hover:text-amber-300 cursor-pointer font-bold"
               title="Toggle Language Display"
             >
-              {activeLang === 'EN' ? 'मराठी' : 'English'}
+              {locale === 'mr' ? 'English' : 'मराठी'}
             </button>
           </div>
         </div>

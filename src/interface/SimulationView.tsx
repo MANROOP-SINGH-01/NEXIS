@@ -1,4 +1,4 @@
-import { Maximize2, Minimize2, X, Activity, Cpu, Play, Compass, Eye, ArrowRight, ShieldCheck, Layers, ChevronRight } from 'lucide-react';
+import { Maximize2, Minimize2, X, Activity, Cpu, Play, Compass, Eye, ArrowRight, ShieldCheck, Layers, ChevronRight, CheckSquare } from 'lucide-react';
 import React, { useState, useMemo } from 'react';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useActiveTeam } from '../integration/store/teamStore';
@@ -40,7 +40,7 @@ const AGENT_DEFAULT_TASKS: Record<string, string> = {
 };
 
 const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen, setIsFullscreen }) => {
-  const { selectedNpcIndex, activeAuditTaskId, setActiveAuditTaskId, setSelectedNpc, setAgentDrawerOpen } = useUiStore();
+  const { selectedNpcIndex, activeAuditTaskId, setActiveAuditTaskId, setSelectedNpc, setAgentDrawerOpen, setAgentReviewQueueOpen } = useUiStore();
   const { isLogOpen, setLogOpen, tasks, agentStatuses, currentResume } = useCoreStore();
   const activeSet = useActiveTeam();
   const { t } = useLocale();
@@ -218,6 +218,22 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
             <span className="hidden md:inline">WORK QUEUES</span>
           </button>
 
+          {/* Section 15.5 Agent Review Queue Launcher */}
+          <button
+            onClick={() => setAgentReviewQueueOpen(true)}
+            className="h-7 px-2.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 hover:bg-[#EFE7D8]"
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              backgroundColor: '#FFFFFF',
+              color: '#111111',
+              border: '1px solid #111111',
+            }}
+            title="Open Section 15.5 Agent Review Queue (Kanban)"
+          >
+            <CheckSquare size={12} className="text-[#D97706]" />
+            <span className="hidden md:inline">REVIEW QUEUE</span>
+          </button>
+
           {/* Section 15.3 Evidence Panel Launcher */}
           <button
             onClick={async () => {
@@ -301,6 +317,7 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
           {/* Section 9: Real-time Agent Activity Stream inside 3D scene */}
           <SimulationActivityStream
             onSelectFinding={(f) => {
+              console.log('[NEXIS-DEBUG] onSelectFinding triggered in SimulationView:', f?.findingId);
               setSelectedFinding(f);
               setIsEvidencePanelOpen(true);
             }}

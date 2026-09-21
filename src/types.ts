@@ -26,6 +26,7 @@ export type ActiveSidebarTab =
   | 'career-passport'
   | 'interventions'
   | 'system-logs'
+  | 'agent-workspace'
   | 'settings';
 
 export type JobBucket = 'APPLY_NOW' | 'LEARN_THEN_APPLY' | 'STRETCH' | 'IGNORE';
@@ -78,6 +79,8 @@ export interface WorkHistoryProfile {
   roles: WorkHistoryRole[];
   superpowers: string[];
   crossRolePatterns: string[];
+  targetRole?: string;
+  preferredLocations?: string[];
   lastUpdated?: string;
 }
 
@@ -226,6 +229,9 @@ export interface CharacterState {
 
   isAnalyticsDashboardOpen: boolean;
   setAnalyticsDashboardOpen: (open: boolean) => void;
+
+  isAgentReviewQueueOpen: boolean;
+  setAgentReviewQueueOpen: (open: boolean) => void;
 
   activeAuditTaskId: string | null;
   setActiveAuditTaskId: (taskId: string | null) => void;

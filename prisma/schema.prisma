@@ -350,7 +350,7 @@ model User {
   id           String    @id @default(cuid())
   phone        String    @unique
   email        String?   @unique
-  passwordHash String
+  passwordHash String?
   role         String    @default("CANDIDATE") // CANDIDATE | PROVIDER_ADMIN | REGIONAL_DIRECTOR | SUPER_ADMIN
   isActive     Boolean   @default(true)
   createdAt    DateTime  @default(now())
@@ -366,6 +366,7 @@ model User {
   auditEvents      AuditEvent[]
   skills           UserSkill[]
   AgentEventLog    AgentEventLog[]
+  apiCredentials   UserApiCredential[]
 }
 
 model Session {
@@ -380,6 +381,22 @@ model Session {
 
   @@index([tokenHash])
   @@index([userId])
+}
+
+model UserApiCredential {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider     String   // "GEMINI"
+  encryptedKey String   // AES-256-GCM cipher (hex)
+  iv           String   // Initialization vector (hex)
+  tag          String   // Authentication tag (hex)
+  keyLastFour  String   // Masked preview e.g. "ABCD"
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, provider])
 }
 
 model CandidateProfile {
@@ -398,6 +415,8 @@ model CandidateProfile {
   preferredWorkMode   String? // "REMOTE" | "HYBRID" | "ONSITE"
   salaryPreference    String?
   profileCompleteness Int                       @default(20)
+  onboardingCompleted Boolean                   @default(false)
+  preferredLocale     String                    @default("en")
   createdAt           DateTime                  @default(now())
   updatedAt           DateTime                  @updatedAt
   applications        JobApplication[]

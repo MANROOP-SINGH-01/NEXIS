@@ -22,9 +22,10 @@ import { colors } from '../../theme/bauhaus';
 interface LandingPageProps {
   onEnterApp: () => void;
   onGoLogin: () => void;
+  onGoRegister?: () => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onGoLogin }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onGoLogin, onGoRegister }) => {
   const agents = [
     {
       name: 'NEXUS DIRECTOR',
@@ -95,7 +96,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onGoLogin 
             <a href="#security" className="hover:text-[#E53935] transition-colors">Verification</a>
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={onGoLogin}
               className="text-xs font-mono font-bold uppercase tracking-wider text-[#111111] hover:bg-[#EFE7D8] px-3.5 py-2 border-2 border-transparent hover:border-[#111111] transition-all cursor-pointer"
@@ -103,10 +104,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onGoLogin 
               Sign In
             </button>
             <button
+              onClick={onGoRegister || onGoLogin}
+              className="text-xs font-mono font-bold uppercase tracking-wider text-[#111111] bg-[#FFE600] hover:bg-[#F4C430] px-3.5 py-2 border-2 border-[#111111] shadow-[2px_2px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] transition-all cursor-pointer hidden sm:inline-block"
+            >
+              Create Account
+            </button>
+            <button
               onClick={onEnterApp}
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#E53935] hover:bg-[#D32F2F] text-white text-xs font-mono font-bold uppercase tracking-wider border-2 border-[#111111] shadow-[3px_3px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#111111] transition-all cursor-pointer"
             >
-              <span>Launch Workspace</span>
+              <span>Workspace</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -142,19 +149,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onGoLogin 
           NEXIS deploys a collaborative workforce of 3D autonomous agents that analyze your skill telemetry, forge high-ATS resumes, and navigate your trajectory with empirical precision.
         </p>
 
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
           <button
-            onClick={onEnterApp}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#E53935] hover:bg-[#D32F2F] text-white text-xs font-mono font-bold uppercase tracking-wider border-2 border-[#111111] shadow-[4px_4px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#111111] transition-all cursor-pointer"
+            onClick={onGoRegister || onGoLogin}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#E53935] hover:bg-[#D32F2F] text-white text-xs font-mono font-black uppercase tracking-wider border-2 border-[#111111] shadow-[4px_4px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#111111] transition-all cursor-pointer"
           >
-            <span style={{ color: '#FFFFFF' }}>Enter 3D Command Center</span>
+            <span>Create Free Account</span>
             <ArrowRight className="w-4 h-4 text-[#F4C430]" />
           </button>
           <button
             onClick={onGoLogin}
-            className="w-full sm:w-auto px-8 py-3.5 bg-white hover:bg-[#EFE7D8] text-[#111111] text-xs font-mono font-bold uppercase tracking-wider border-2 border-[#111111] shadow-[4px_4px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#111111] transition-all cursor-pointer"
+            className="w-full sm:w-auto px-7 py-3.5 bg-[#FFE600] hover:bg-[#F4C430] text-[#111111] text-xs font-mono font-black uppercase tracking-wider border-2 border-[#111111] shadow-[4px_4px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#111111] transition-all cursor-pointer"
           >
-            Authenticate with Phone / OTP
+            Sign In with OTP / Password
+          </button>
+          <button
+            onClick={onEnterApp}
+            className="w-full sm:w-auto px-6 py-3.5 bg-white hover:bg-[#EFE7D8] text-[#111111] text-xs font-mono font-bold uppercase tracking-wider border-2 border-[#111111] shadow-[4px_4px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#111111] transition-all cursor-pointer"
+          >
+            Launch Demo Workspace
           </button>
         </div>
 

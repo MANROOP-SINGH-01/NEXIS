@@ -201,7 +201,11 @@ interface CoreState {
     nexusMatchReason: string
     competitionLevel: 'Low' | 'Medium' | 'High'
     discoveredAt: number
-    source: 'linkedin' | 'company-careers' | 'hidden'
+    source: 'linkedin' | 'company-careers' | 'hidden' | 'adzuna' | 'hiring-cafe' | 'network-scan'
+    location?: string
+    salaryRange?: string
+    skills?: string[]
+    description?: string
   }>
   applications: Array<{
     id: string

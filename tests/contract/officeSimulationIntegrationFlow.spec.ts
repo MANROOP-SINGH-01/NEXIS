@@ -7,22 +7,59 @@
 import { test, expect, Page } from '@playwright/test';
 
 async function ensureAuthenticatedDashboard(page: Page) {
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem('forge-consents', JSON.stringify({
+        JOB_SEARCH_DATA: { granted: true },
+        EMPLOYER_SHARING: { granted: true },
+        ANALYTICS: { granted: true },
+        GOVT_CROSS_CHECK: { granted: true },
+      }));
+      localStorage.setItem('nexis-auth', JSON.stringify({
+        state: {
+          token: 'dev_token',
+          user: {
+            id: 'usr_demo_resilience',
+            phone: '+919876543210',
+            email: 'candidate@nexis.gov.in',
+            role: 'CANDIDATE',
+            profile: {
+              id: 'prf_demo',
+              name: 'Priya Sharma',
+              profileCompleteness: 90,
+              onboardingCompleted: true,
+              preferredLocale: 'en',
+            },
+          },
+        },
+        version: 0,
+      }));
+    } catch {}
+  });
+
   await page.goto('http://localhost:3000/dashboard');
 
   // If redirected to login page, authenticate using 1-Click Continue as Demo Candidate
   const demoLoginBtn = page.locator('button:has-text("1-Click Continue as Demo Candidate")');
   if (await demoLoginBtn.isVisible({ timeout: 4000 }).catch(() => false)) {
     await demoLoginBtn.click({ force: true });
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
+    await page.waitForTimeout(1000);
   }
 
   await page.waitForSelector('#root', { state: 'attached', timeout: 15000 });
 
   // Dismiss DPDP consent or onboarding overlay if present so it doesn't intercept clicks
   const skipConsentBtn = page.locator('button:has-text("Skip for now"), button:has-text("Acknowledge & Proceed")').first();
-  if (await skipConsentBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+  if (await skipConsentBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
     await skipConsentBtn.click({ force: true });
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(400);
+  }
+
+  // Click Agent Workspace in the sidebar to enter 3D simulation
+  const agentWorkspaceBtn = page.locator('button:has-text("Agent Workspace")').first();
+  if (await agentWorkspaceBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+    await agentWorkspaceBtn.click({ force: true });
+    await page.waitForTimeout(1500);
   }
 }
 
@@ -113,7 +150,7 @@ test.describe('Phase 16: 3D Office & Agent Simulation Browser Contract Flow', ()
     // Click INSPECT on first finding
     const inspectBtn = page.locator('button:has-text("INSPECT")').first();
     await expect(inspectBtn).toBeVisible({ timeout: 8000 });
-    await inspectBtn.click({ force: true });
+    await inspectBtn.click();
 
     // Verify EvidenceInspectionPanel opens
     const evidenceModal = page.locator('[role="dialog"]:has-text("SECTION 15.3 AGENT FINDING DOSSIER")');

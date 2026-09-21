@@ -9,6 +9,7 @@ import { Router } from 'express';
 import { SERPER_API_KEY, ADZUNA_APP_ID, ADZUNA_APP_KEY, GEMINI_API_KEY } from '../config.js';
 import { structuredOutput } from '../services/aiRouter.js';
 import { activeProviderSearch, getProviderStatus } from '../services/jobSearchProvider.js';
+import { searchAggregatedJobs } from '../services/jobProviders/jobAggregatorService.js';
 import { inferJobMetaFromLink } from '../utils/helpers.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 import { aiLimiter } from '../middleware/rateLimit.js';
@@ -56,7 +57,11 @@ router.get('/jobs/discover', requireAuth, async (req, res) => {
   const location = String(req.query.country || req.query.location || 'in').trim().toLowerCase();
 
   try {
-    const results = await activeProviderSearch({ query, location });
+    const rawResults = await searchAggregatedJobs({ query, location });
+    const results = rawResults.map((j) => ({
+      ...j,
+      link: j.link || j.applicationUrl || j.application_link || 'https://www.adzuna.in',
+    }));
     return res.json({
       results,
       total: results.length,
@@ -67,7 +72,7 @@ router.get('/jobs/discover', requireAuth, async (req, res) => {
     });
   } catch (error) {
     console.error('[jobs.get] Error:', error.message);
-    return res.status(502).json({ error: 'Adzuna provider temporarily unavailable', provider: 'adzuna' });
+    return res.status(502).json({ error: 'Job providers temporarily unavailable' });
   }
 });
 
@@ -109,14 +114,14 @@ router.post('/jobs/discover', requireAuth, aiLimiter, async (req, res) => {
   }
 
   try {
-    const rawResults = await activeProviderSearch({ query: queryTerms, location: 'in' });
+    const rawResults = await searchAggregatedJobs({ query: queryTerms, location: 'in' });
 
     if (rawResults.length === 0) {
       return res.status(503).json({
         items: [],
         degraded: true,
-        message: 'No active job listings found from the Adzuna provider for this role.',
-        mode: 'adzuna-provider',
+        message: 'No active job listings found across job providers for this role.',
+        mode: 'multi-provider',
       });
     }
 
@@ -179,7 +184,7 @@ router.post('/jobs/discover', requireAuth, aiLimiter, async (req, res) => {
                 (r.company && it?.company_name && r.company.toLowerCase().includes(it.company_name.toLowerCase()))
             ) || rawResults[idx] || rawResults[0];
 
-          const link = matchingRaw?.link;
+          const link = matchingRaw?.link || matchingRaw?.applicationUrl || matchingRaw?.application_link || 'https://www.adzuna.in';
           const meta = inferJobMetaFromLink(link);
 
           // 6-Factor Deterministic Match
@@ -226,6 +231,7 @@ router.post('/jobs/discover', requireAuth, aiLimiter, async (req, res) => {
   // If AI failed or returned empty, perform pure deterministic 6-factor ranking
     if (items.length === 0) {
       items = rawResults.slice(0, 3).map((raw) => {
+        const link = raw.link || raw.applicationUrl || raw.application_link || 'https://www.adzuna.in';
         const sixFactor = calculateAdzunaSixFactorMatch({
           job: raw,
           candidate: candidateProfile,
@@ -234,7 +240,7 @@ router.post('/jobs/discover', requireAuth, aiLimiter, async (req, res) => {
 
         const trust = calculateJobTrustScore({
           company: raw.company,
-          url: raw.link,
+          url: link,
           postedAt: raw.created,
           description: raw.description,
           source: 'adzuna',
@@ -243,7 +249,7 @@ router.post('/jobs/discover', requireAuth, aiLimiter, async (req, res) => {
         return {
           job_title: raw.title,
           company_name: raw.company,
-          application_link: raw.link,
+          application_link: link,
           nexus_match_reason: `Deterministic 6-factor match score: ${sixFactor.matchScore}% (Skill coverage: ${sixFactor.breakdown.S}%, Experience: ${sixFactor.breakdown.E}%).`,
           alignment_score: sixFactor.matchScore,
           blue_ocean_score: 82,

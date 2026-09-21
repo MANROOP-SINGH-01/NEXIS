@@ -18,6 +18,7 @@ export interface AuthUser {
     name: string;
     headline?: string | null;
     profileCompleteness: number;
+    onboardingCompleted?: boolean;
     githubUrl?: string | null;
     linkedinUrl?: string | null;
   } | null;
@@ -33,6 +34,7 @@ interface AuthState {
 
   // ── Actions ──
   setAuth: (token: string, user: AuthUser) => void;
+  setToken: (token: string | null) => void;
   clearAuth: () => void;
   updateUser: (partial: Partial<AuthUser>) => void;
   setHydrated: () => void;
@@ -46,6 +48,8 @@ export const useAuthStore = create<AuthState>()(
       hydrated: false,
 
       setAuth: (token, user) => set({ token, user }),
+
+      setToken: (token) => set({ token }),
 
       clearAuth: () => set({ token: null, user: null }),
 

@@ -16,10 +16,15 @@ import {
   ShieldCheck,
   Sliders,
   LucideIcon,
+  Bot,
+  User,
+  LogOut,
+  ChevronUp,
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ActiveSidebarTab } from '../types';
 import { useUiStore } from '../integration/store/uiStore';
+import { useAuthStore } from '../integration/store/authStore';
 import { useActiveTeam } from '../integration/store/teamStore';
 import { useCoreStore } from '../integration/store/coreStore';
 import { USER_COLOR } from '../theme/brand';
@@ -43,13 +48,14 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', labelKey: 'dashboard', icon: LayoutDashboard },
-  { id: 'career-health', labelKey: 'careerHealth', icon: Activity },
+  { id: 'job-matches', labelKey: 'jobs', icon: Briefcase },
+  { id: 'new-cv', labelKey: 'newCv', icon: FileText },
   { id: 'skill-gaps', labelKey: 'skillGaps', icon: Target },
-  { id: 'job-matches', labelKey: 'jobMatches', icon: Briefcase },
+  { id: 'career-health', labelKey: 'careerHealth', icon: Activity },
+  { id: 'application-tracker', labelKey: 'applicationTracker', icon: Briefcase },
+  { id: 'agent-workspace', labelKey: 'agentWorkspace', icon: Bot },
   { id: 'recommended-programs', labelKey: 'recommendedPrograms', icon: GraduationCap },
   { id: 'interview-prep', labelKey: 'interviewPrep', icon: MessageSquare },
-  { id: 'new-cv', labelKey: 'newCv', icon: FileText },
-  { id: 'application-tracker', labelKey: 'applicationTracker', icon: Briefcase },
   { id: 'career-passport', labelKey: 'careerPassport', icon: ShieldCheck },
   { id: 'my-outcome', labelKey: 'myOutcome', icon: Award },
   { id: 'linkedin-integration', labelKey: 'linkedinIntegration', icon: Linkedin },
@@ -57,6 +63,7 @@ const NAV_ITEMS: NavItem[] = [
 
 export const Sidebar: React.FC = () => {
   const { activeSidebarTab, setActiveSidebarTab, llmConfig, setBYOKOpen, setDedupReviewOpen, setAnalyticsDashboardOpen } = useUiStore();
+  const { user, clearAuth } = useAuthStore();
   const { isAdmin } = useIsAdmin();
   const { setViewMode } = useCoreStore();
   const activeTeam = useActiveTeam();
@@ -64,6 +71,28 @@ export const Sidebar: React.FC = () => {
   const { locale, setLocale, t } = useLocale();
   const [demoActive, setDemoActive] = useState(isDemoMode());
   const [failSim, setFailSim] = useState<FailureScenario | ''>(getActiveScenario() || '');
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+    if (isProfileOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isProfileOpen]);
+
+  const candidateName = user?.profile?.name || 'Candidate';
+  const candidateInitials = candidateName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 
   const handleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -202,58 +231,121 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Footer Profile & Utilities */}
-      <div className="p-4 border-t border-zinc-200/50 bg-white/40 space-y-3">
-        <div
-          onClick={() => setViewMode('design')}
-          className="flex items-center gap-3 p-3 rounded-xl bg-white border border-zinc-200/60 shadow-sm hover:shadow-md hover:border-zinc-300 transition-all cursor-pointer group"
-          title="Open Nexus Teams Designer"
-        >
-          <div
-            className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-white text-xs font-bold ring-2 ring-white shadow-sm"
-            style={{ backgroundColor: activeTeam.color || USER_COLOR }}
+      <div className="p-3 border-t border-zinc-200/50 bg-white/40 space-y-2 relative">
+        <div className="relative" ref={profileMenuRef}>
+          <button
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
+            className="w-full flex items-center justify-between p-2 rounded-xl bg-white border border-zinc-200/80 shadow-xs hover:border-zinc-300 hover:shadow-sm transition-all text-left cursor-pointer group"
+            aria-expanded={isProfileOpen}
+            aria-label="User Profile Menu"
           >
-            {activeTeam.teamName.substring(0, 2).toUpperCase()}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-zinc-900 truncate group-hover:text-zinc-950">
-              {activeTeam.teamName}
-            </p>
-            <p className="text-[10px] text-zinc-500 font-medium truncate">
-              {activeTeam.teamType}
-            </p>
-          </div>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-full bg-zinc-950 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                {candidateInitials}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold text-zinc-900 truncate group-hover:text-zinc-950">
+                  {candidateName}
+                </p>
+                <p className="text-[10px] text-zinc-500 font-mono truncate">
+                  {user?.phone || '+91 98765 43210'}
+                </p>
+              </div>
+            </div>
+            <ChevronUp
+              size={14}
+              className={`text-zinc-400 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`}
+            />
+          </button>
+
+          {/* Profile Popover Menu */}
+          {isProfileOpen && (
+            <div className="absolute bottom-14 left-0 w-full bg-white border border-zinc-200 shadow-xl rounded-xl text-zinc-900 z-50 animate-in fade-in zoom-in-95 duration-100 flex flex-col p-1">
+              <div className="p-2.5 bg-zinc-50 rounded-lg border-b border-zinc-100 mb-1">
+                <p className="text-xs font-bold text-zinc-900 truncate">
+                  {candidateName}
+                </p>
+                <p className="text-[10px] text-zinc-500 font-mono truncate">
+                  {user?.phone || 'Candidate Account'}
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  setActiveSidebarTab('profile');
+                  setIsProfileOpen(false);
+                }}
+                className="flex items-center gap-2.5 px-3 py-2 hover:bg-zinc-100 rounded-lg text-xs font-medium text-left cursor-pointer transition-colors"
+              >
+                <User size={14} className="text-zinc-500" />
+                <span>{t('careerProfile')}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveSidebarTab('settings');
+                  setIsProfileOpen(false);
+                }}
+                className="flex items-center gap-2.5 px-3 py-2 hover:bg-zinc-100 rounded-lg text-xs font-medium text-left cursor-pointer transition-colors"
+              >
+                <Settings size={14} className="text-zinc-500" />
+                <span>{t('settings')}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setBYOKOpen(true);
+                  setIsProfileOpen(false);
+                }}
+                className="flex items-center gap-2.5 px-3 py-2 hover:bg-zinc-100 rounded-lg text-xs font-medium text-left cursor-pointer transition-colors"
+              >
+                <KeyRound size={14} className="text-emerald-600" />
+                <span>{t('aiProviders')}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  clearAuth();
+                  setIsProfileOpen(false);
+                }}
+                className="flex items-center gap-2.5 px-3 py-2 hover:bg-red-50 text-red-600 rounded-lg text-xs font-medium text-left cursor-pointer transition-colors border-t border-zinc-100 mt-1"
+              >
+                <LogOut size={14} />
+                <span>{t('logout')}</span>
+              </button>
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center justify-between px-2 text-zinc-400">
+        <div className="flex items-center justify-between px-1 text-zinc-400">
           <button
             onClick={() => setBYOKOpen(true)}
-            className="inline-flex items-center gap-2 text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors py-1 px-2 -ml-2 rounded-lg hover:bg-zinc-100"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors py-1 px-2 rounded-lg hover:bg-zinc-100"
             title="Configure API Keys (BYOK)"
             aria-label="Configure API Keys"
           >
-            <KeyRound size={14} className={hasKey ? 'text-emerald-500' : ''} />
-            <span>{hasKey ? 'API Active' : 'Setup API'}</span>
+            <KeyRound size={13} className={hasKey ? 'text-emerald-500' : ''} />
+            <span className="text-[11px]">{hasKey ? 'API Active' : 'BYOK Key'}</span>
           </button>
 
-          {/* ponytail: inline lang picker, no modal */}
           <select
             value={locale}
             onChange={(e) => setLocale(e.target.value as any)}
-            className="text-[10px] font-semibold text-zinc-500 bg-transparent border border-zinc-200 rounded px-1 py-0.5 cursor-pointer hover:border-zinc-400 transition-colors"
+            className="text-[10px] font-semibold text-zinc-600 bg-zinc-50 border border-zinc-200 rounded px-1.5 py-0.5 cursor-pointer hover:border-zinc-400 transition-colors"
             aria-label="Select language"
           >
             <option value="en">EN</option>
             <option value="hi">हिं</option>
-            <option value="ta">தமி</option>
+            <option value="mr">मरा</option>
           </select>
 
           <button
             onClick={handleFullscreen}
-            className="p-1.5 hover:bg-zinc-100 hover:text-zinc-900 transition-colors rounded-lg"
+            className="p-1.5 hover:bg-zinc-100 hover:text-zinc-900 transition-colors rounded-lg text-zinc-500"
             title="Toggle Fullscreen"
             aria-label="Toggle Fullscreen"
           >
-            <Maximize2 size={14} />
+            <Maximize2 size={13} />
           </button>
         </div>
       </div>

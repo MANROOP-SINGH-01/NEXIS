@@ -16,8 +16,10 @@ import {
 } from 'lucide-react';
 import { ActiveSidebarTab } from '../../types';
 import { useUiStore } from '../../integration/store/uiStore';
+import { useRouter, TAB_TO_PATH } from '../../router';
 
 export const MobileNav: React.FC = () => {
+  const { navigate } = useRouter();
   const { activeSidebarTab, setActiveSidebarTab } = useUiStore();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -79,6 +81,7 @@ export const MobileNav: React.FC = () => {
                     key={tab.id}
                     onClick={() => {
                       setActiveSidebarTab(tab.id);
+                      navigate(TAB_TO_PATH[tab.id] || '/dashboard');
                       setDrawerOpen(false);
                     }}
                     className="flex items-center gap-2.5 p-3 text-left text-[11px] font-semibold transition-all cursor-pointer uppercase tracking-[0.04em]"
@@ -118,7 +121,10 @@ export const MobileNav: React.FC = () => {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveSidebarTab(tab.id)}
+              onClick={() => {
+                setActiveSidebarTab(tab.id);
+                navigate(TAB_TO_PATH[tab.id] || '/dashboard');
+              }}
               className="flex flex-col items-center justify-center flex-1 py-1 transition-all cursor-pointer"
               style={{
                 color: isActive ? '#F5F0E6' : 'rgba(245,240,230,0.4)',

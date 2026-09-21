@@ -285,6 +285,7 @@ export default function ResumeForgeModal({ onClose }: ResumeForgeModalProps) {
       >
         <button
           onClick={onClose}
+          aria-label="Close"
           className="absolute top-4 right-4 sm:top-6 sm:right-6 w-8 h-8 flex items-center justify-center text-[#111111] hover:bg-[#EFE7D8] transition-colors cursor-pointer z-10"
           style={{ border: '1px solid #111111', borderRadius: '0px' }}
         >

@@ -237,13 +237,13 @@ export const JobMatchesView: React.FC = () => {
         </div>
       </div>
 
-      {/* Section 4.2 Adzuna Licensing Notice Banner */}
-      <div className="p-3 bg-[#EBF3FC] border-2 border-[#2457A6] shadow-[2px_2px_0px_#111111] flex items-start gap-2.5 text-xs font-mono text-[#1E40AF]">
-        <Info size={16} className="text-[#2457A6] shrink-0 mt-0.5" />
-        <div>
-          <span className="font-black uppercase tracking-wider mr-2">[ADZUNA INDIA OFFICIAL PARTNER API]:</span>
-          All jobs retrieved as structured, clickable postings. In-memory TTL cached with rate-limit protection. Free-tier trial active for SIH26135 evaluation; enterprise/government deployment requires confirming commercial licensing terms per Section 4.2.
+      {/* Provider Attribution Banner */}
+      <div className="p-2.5 bg-[#EBF3FC] border-2 border-[#2457A6] shadow-[2px_2px_0px_#111111] flex items-center justify-between text-xs font-mono text-[#1E40AF]">
+        <div className="flex items-center gap-2">
+          <Info size={14} className="text-[#2457A6] shrink-0" />
+          <span>Real-time Multi-Provider Postings (Adzuna & Arbeitnow)</span>
         </div>
+        <span className="text-[10px] uppercase font-bold text-[#2457A6]">Live API Results</span>
       </div>
 
       {/* Section 25.3 Synthetic Demo Dataset Disclaimer */}

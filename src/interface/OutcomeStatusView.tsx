@@ -302,8 +302,8 @@ export const OutcomeStatusView: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
-                setActiveSidebarTab('dashboard');
-                navigate('/dashboard');
+                setActiveSidebarTab('agent-workspace');
+                navigate('/workspace');
               }}
               className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-mono font-bold uppercase bg-[#111111] text-white border-2 border-[#111111] shadow-[2px_2px_0px_#111111] hover:bg-[#E53935] transition-all cursor-pointer"
               title="Return to 3D Agent Simulation (Section 21.1)"
@@ -322,9 +322,8 @@ export const OutcomeStatusView: React.FC = () => {
           </div>
         }
       />
-
       {/* Section 25.3 Mandatory Synthetic Demonstration Data Banner */}
-      <div className="bg-[#FFFBEB] border-2 border-[#D97706] p-3 flex items-start gap-2.5">
+      <div className="bg-[#FFFBEB] border-2 border-[#D97706] p-3 flex items-start gap-2.5 shadow-[2px_2px_0px_#111111]">
         <AlertTriangle size={16} className="text-[#D97706] shrink-0 mt-0.5" />
         <div className="text-xs font-mono text-[#92400E]">
           <span className="font-black uppercase tracking-wider mr-2">[SECTION 25.3 NOTICE]:</span>
@@ -332,7 +331,6 @@ export const OutcomeStatusView: React.FC = () => {
           Trainee progression and employer records reflect the calibrated SIH 2026 demonstration cohort.
         </div>
       </div>
-
       {/* Form Card: Self-Report Status */}
       <div className="bg-[#FFFFFF] border-2 border-[#111111] shadow-[6px_6px_0px_#111111] p-6 md:p-8 relative">
         <div className="flex items-center justify-between gap-2 mb-6 pb-3 border-b-2 border-[#111111]">

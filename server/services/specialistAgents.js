@@ -176,6 +176,8 @@ export function createAgentFinding({
   modelVersion = null,
   recommendedAction = null,
   humanReviewStatus = 'PENDING',
+  queueJobId = null,
+  durationMs = null,
 }) {
   const agentMeta = SPECIALIST_AGENT_ROSTER[agent];
   if (!agentMeta) {
@@ -253,6 +255,8 @@ export function createAgentFinding({
     humanReviewStatus: ['PENDING', 'APPROVED', 'REJECTED', 'NOT_REQUIRED'].includes(humanReviewStatus)
       ? humanReviewStatus
       : 'PENDING',
+    queueJobId: queueJobId || null,
+    durationMs: typeof durationMs === 'number' ? durationMs : null,
   };
 
   findingsLedger.set(findingId, finding);
