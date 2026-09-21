@@ -1,5 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Command, Briefcase, FileText, Target, GraduationCap, Bot, Sparkles, X, ArrowRight, ShieldCheck, Activity, Settings, Layers } from 'lucide-react';
+import {
+  Search,
+  Command,
+  Briefcase,
+  FileText,
+  Target,
+  GraduationCap,
+  Bot,
+  Sparkles,
+  X,
+  ArrowRight,
+  ShieldCheck,
+  Activity,
+  Settings,
+  Layers,
+  Award,
+  AlertTriangle,
+  Linkedin,
+  Terminal,
+  ScanSearch,
+  Database,
+  CheckSquare
+} from 'lucide-react';
 import { useUiStore } from '../../integration/store/uiStore';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { ActiveSidebarTab } from '../../types';
@@ -16,7 +38,13 @@ interface CommandItem {
 export const CommandBar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const [query, setQuery] = useState('');
   const { navigate } = useRouter();
-  const { setActiveSidebarTab, setBYOKOpen, setAnalyticsDashboardOpen, setAgentReviewQueueOpen } = useUiStore();
+  const {
+    setActiveSidebarTab,
+    setBYOKOpen,
+    setAnalyticsDashboardOpen,
+    setAgentReviewQueueOpen,
+    setDedupReviewOpen,
+  } = useUiStore();
   const { setResumeForgeOpen, setNexusMirrorOpen } = useCoreStore();
 
   useEffect(() => {
@@ -43,11 +71,18 @@ export const CommandBar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
 
   const commandItems: CommandItem[] = [
     {
-      id: 'nav-overview',
-      title: 'Analytics Overview & Career Health',
+      id: 'nav-dashboard',
+      title: 'Career Overview & Real Indicators',
       category: 'Navigation',
       icon: <Activity className="w-4 h-4 text-[#E53935]" />,
-      action: () => navigateTo('career-health'),
+      action: () => navigateTo('dashboard'),
+    },
+    {
+      id: 'nav-workspace',
+      title: '3D Agent Office Simulation (Spatial Workers)',
+      category: 'Navigation',
+      icon: <Bot className="w-4 h-4 text-[#111111]" />,
+      action: () => navigateTo('agent-workspace'),
     },
     {
       id: 'nav-jobs',
@@ -55,6 +90,13 @@ export const CommandBar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
       category: 'Navigation',
       icon: <Briefcase className="w-4 h-4 text-[#2457A6]" />,
       action: () => navigateTo('job-matches'),
+    },
+    {
+      id: 'nav-cv',
+      title: 'Resume Forge & ATS Optimizer',
+      category: 'Navigation',
+      icon: <FileText className="w-4 h-4 text-[#2457A6]" />,
+      action: () => navigateTo('new-cv'),
     },
     {
       id: 'nav-skills',
@@ -71,13 +113,6 @@ export const CommandBar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
       action: () => navigateTo('recommended-programs'),
     },
     {
-      id: 'nav-cv',
-      title: 'Resume Forge & ATS Optimizer',
-      category: 'Navigation',
-      icon: <FileText className="w-4 h-4 text-[#2457A6]" />,
-      action: () => navigateTo('new-cv'),
-    },
-    {
       id: 'nav-interview',
       title: 'Interview Studio & Cognitive Prep',
       category: 'Navigation',
@@ -92,11 +127,46 @@ export const CommandBar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
       action: () => navigateTo('career-passport'),
     },
     {
-      id: 'nav-dashboard',
-      title: '3D Agent Office Simulation',
+      id: 'nav-outcomes',
+      title: 'Longitudinal Outcomes & Milestone Timeline',
       category: 'Navigation',
-      icon: <Bot className="w-4 h-4 text-[#111111]" />,
-      action: () => navigateTo('dashboard'),
+      icon: <Award className="w-4 h-4 text-[#2E7D32]" />,
+      action: () => navigateTo('my-outcome'),
+    },
+    {
+      id: 'nav-interventions',
+      title: 'Remedial Interventions & Officer Review Gate',
+      category: 'Governance',
+      icon: <AlertTriangle className="w-4 h-4 text-[#E53935]" />,
+      action: () => navigateTo('interventions'),
+    },
+    {
+      id: 'nav-tracker',
+      title: 'Application Tracker & Pipelines',
+      category: 'Navigation',
+      icon: <Layers className="w-4 h-4 text-[#555555]" />,
+      action: () => navigateTo('application-tracker'),
+    },
+    {
+      id: 'nav-network',
+      title: 'Professional Network & LinkedIn Matching',
+      category: 'Navigation',
+      icon: <Linkedin className="w-4 h-4 text-[#2457A6]" />,
+      action: () => navigateTo('linkedin-integration'),
+    },
+    {
+      id: 'nav-overview',
+      title: 'Analytics Overview & Career Health',
+      category: 'Navigation',
+      icon: <Activity className="w-4 h-4 text-[#E53935]" />,
+      action: () => navigateTo('career-health'),
+    },
+    {
+      id: 'nav-logs',
+      title: 'System Audit Logs & Security Trace',
+      category: 'Governance',
+      icon: <Terminal className="w-4 h-4 text-[#111111]" />,
+      action: () => navigateTo('system-logs'),
     },
     {
       id: 'nav-settings',
@@ -109,9 +179,29 @@ export const CommandBar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
       id: 'action-agent-review-queue',
       title: 'Agent Review Queue (Section 15.5 Kanban)',
       category: 'Governance',
-      icon: <Layers className="w-4 h-4 text-[#D97706]" />,
+      icon: <CheckSquare className="w-4 h-4 text-[#D97706]" />,
       action: () => {
         setAgentReviewQueueOpen(true);
+        onClose();
+      },
+    },
+    {
+      id: 'action-dedup',
+      title: 'Trainee Deduplication Console (Splink Fellegi-Sunter)',
+      category: 'Governance',
+      icon: <ScanSearch className="w-4 h-4 text-[#2457A6]" />,
+      action: () => {
+        setDedupReviewOpen(true);
+        onClose();
+      },
+    },
+    {
+      id: 'action-data-quality',
+      title: 'Data Quality & Anomaly Detection Console',
+      category: 'Governance',
+      icon: <Database className="w-4 h-4 text-[#E53935]" />,
+      action: () => {
+        navigate('/data-quality');
         onClose();
       },
     },

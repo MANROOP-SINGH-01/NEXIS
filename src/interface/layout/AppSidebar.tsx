@@ -21,7 +21,17 @@ import {
   LucideIcon,
   ChevronLeft,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  GraduationCap,
+  MessageSquare,
+  ShieldCheck,
+  Award,
+  Linkedin,
+  AlertTriangle,
+  Terminal,
+  ScanSearch,
+  CheckSquare,
+  Database
 } from 'lucide-react';
 import { ActiveSidebarTab } from '../../types';
 import { useUiStore } from '../../integration/store/uiStore';
@@ -29,15 +39,19 @@ import { useAuthStore } from '../../integration/store/authStore';
 import { useLocale } from '../../i18n';
 import { useRouter, TAB_TO_PATH } from '../../router';
 
+interface NavItem {
+  id: string;
+  tabId?: ActiveSidebarTab;
+  labelKey: string;
+  fallbackLabel: string;
+  icon: LucideIcon;
+  badge?: string;
+  action?: () => void;
+}
+
 interface NavGroup {
   name: string;
-  items: {
-    id: ActiveSidebarTab;
-    labelKey: string;
-    fallbackLabel: string;
-    icon: LucideIcon;
-    badge?: string;
-  }[];
+  items: NavItem[];
 }
 
 export const AppSidebar: React.FC = () => {
@@ -46,7 +60,13 @@ export const AppSidebar: React.FC = () => {
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
   const { navigate } = useRouter();
-  const { activeSidebarTab, setActiveSidebarTab, setBYOKOpen } = useUiStore();
+  const {
+    activeSidebarTab,
+    setActiveSidebarTab,
+    setBYOKOpen,
+    setDedupReviewOpen,
+    setAgentReviewQueueOpen,
+  } = useUiStore();
   const { user, clearAuth } = useAuthStore();
   const { t } = useLocale();
 
@@ -65,40 +85,62 @@ export const AppSidebar: React.FC = () => {
 
   const NAV_GROUPS: NavGroup[] = [
     {
-      name: 'OVERVIEW',
-      items: [
-        { id: 'dashboard', labelKey: 'dashboard', fallbackLabel: 'Career Overview', icon: Activity },
-      ],
-    },
-    {
-      name: 'OPPORTUNITIES',
-      items: [
-        { id: 'job-matches', labelKey: 'jobs', fallbackLabel: 'Live Jobs', icon: Briefcase },
-      ],
-    },
-    {
-      name: 'RESUME',
-      items: [
-        { id: 'new-cv', labelKey: 'resume', fallbackLabel: 'My Resume', icon: FileText },
-      ],
-    },
-    {
-      name: 'CAREER',
-      items: [
-        { id: 'skill-gaps', labelKey: 'skillGaps', fallbackLabel: 'Skill Gaps', icon: Target },
-        { id: 'profile', labelKey: 'careerProfile', fallbackLabel: 'Career Profile', icon: User },
-      ],
-    },
-    {
-      name: 'APPLICATIONS',
-      items: [
-        { id: 'application-tracker', labelKey: 'applications', fallbackLabel: 'Applications', icon: Layers },
-      ],
-    },
-    {
       name: 'WORKSPACE',
       items: [
-        { id: 'agent-workspace', labelKey: 'agentWorkspace', fallbackLabel: 'Agent Workspace', icon: Bot, badge: '3D' },
+        { id: 'dashboard', tabId: 'dashboard', labelKey: 'dashboard', fallbackLabel: 'Career Overview', icon: Activity },
+        { id: 'agent-workspace', tabId: 'agent-workspace', labelKey: 'agentWorkspace', fallbackLabel: '3D Agent Office', icon: Bot, badge: '3D' },
+        { id: 'job-matches', tabId: 'job-matches', labelKey: 'jobs', fallbackLabel: 'Live Jobs', icon: Briefcase },
+        { id: 'new-cv', tabId: 'new-cv', labelKey: 'resume', fallbackLabel: 'My Resume', icon: FileText },
+      ],
+    },
+    {
+      name: 'SKILL & READINESS',
+      items: [
+        { id: 'skill-gaps', tabId: 'skill-gaps', labelKey: 'skillGaps', fallbackLabel: 'Skill Gaps', icon: Target },
+        { id: 'recommended-programs', tabId: 'recommended-programs', labelKey: 'recommendedPrograms', fallbackLabel: 'Learning', icon: GraduationCap },
+        { id: 'interview-prep', tabId: 'interview-prep', labelKey: 'interviewPrep', fallbackLabel: 'Interview Prep', icon: MessageSquare },
+        { id: 'career-passport', tabId: 'career-passport', labelKey: 'careerPassport', fallbackLabel: 'Career Passport', icon: ShieldCheck },
+        { id: 'profile', tabId: 'profile', labelKey: 'careerProfile', fallbackLabel: 'Career Profile', icon: User },
+      ],
+    },
+    {
+      name: 'OUTCOMES & PIPELINES',
+      items: [
+        { id: 'my-outcome', tabId: 'my-outcome', labelKey: 'myOutcome', fallbackLabel: 'Outcomes', icon: Award },
+        { id: 'interventions', tabId: 'interventions', labelKey: 'interventions', fallbackLabel: 'Interventions', icon: AlertTriangle },
+        { id: 'application-tracker', tabId: 'application-tracker', labelKey: 'applicationTracker', fallbackLabel: 'Applications', icon: Layers },
+        { id: 'linkedin-integration', tabId: 'linkedin-integration', labelKey: 'linkedinIntegration', fallbackLabel: 'Network', icon: Linkedin },
+        { id: 'career-health', tabId: 'career-health', labelKey: 'careerHealth', fallbackLabel: 'Career Health', icon: Activity },
+      ],
+    },
+    {
+      name: 'GOVERNANCE & ADMIN',
+      items: [
+        {
+          id: 'review-queue',
+          labelKey: 'reviewQueue',
+          fallbackLabel: 'Review Queue',
+          icon: CheckSquare,
+          badge: 'HITL',
+          action: () => setAgentReviewQueueOpen(true),
+        },
+        {
+          id: 'dedup-console',
+          labelKey: 'dedupConsole',
+          fallbackLabel: 'Deduplication',
+          icon: ScanSearch,
+          badge: 'Splink',
+          action: () => setDedupReviewOpen(true),
+        },
+        {
+          id: 'data-quality-console',
+          labelKey: 'dataQuality',
+          fallbackLabel: 'Data Quality',
+          icon: Database,
+          action: () => navigate('/data-quality'),
+        },
+        { id: 'system-logs', tabId: 'system-logs', labelKey: 'systemLogs', fallbackLabel: 'System Logs', icon: Terminal },
+        { id: 'settings', tabId: 'settings', labelKey: 'settings', fallbackLabel: 'Settings', icon: Settings },
       ],
     },
   ];
@@ -188,18 +230,22 @@ export const AppSidebar: React.FC = () => {
 
             {group.items.map((item) => {
               const Icon = item.icon;
-              const isActive =
-                activeSidebarTab === item.id ||
-                (item.id === 'dashboard' && activeSidebarTab === 'career-health');
+              const isActive = item.tabId ? activeSidebarTab === item.tabId : false;
+
+              const handleClick = () => {
+                if (item.action) {
+                  item.action();
+                } else if (item.tabId) {
+                  setActiveSidebarTab(item.tabId);
+                  navigate(TAB_TO_PATH[item.tabId] || '/dashboard');
+                }
+              };
 
               return (
                 <button
                   key={item.id}
-                  onClick={() => {
-                    setActiveSidebarTab(item.id);
-                    navigate(TAB_TO_PATH[item.id] || '/dashboard');
-                  }}
-                  className={`flex items-center gap-2.5 px-2.5 py-2 text-xs font-mono font-bold uppercase transition-all cursor-pointer text-left ${
+                  onClick={handleClick}
+                  className={`flex items-center gap-2.5 px-2.5 py-1.5 text-xs font-mono font-bold uppercase transition-all cursor-pointer text-left ${
                     isActive
                       ? 'bg-[#E53935] text-white border-2 border-[#111111] shadow-[3px_3px_0px_#111111] -translate-x-[1px] -translate-y-[1px]'
                       : 'text-[#333333] hover:text-[#111111] hover:bg-white hover:border-2 hover:border-[#111111] hover:shadow-[2px_2px_0px_#111111] border-2 border-transparent'
@@ -219,7 +265,7 @@ export const AppSidebar: React.FC = () => {
                   )}
                   {!isCollapsed && item.badge && (
                     <span
-                      className={`text-[9px] px-1.5 py-0.5 font-mono font-black border ${
+                      className={`text-[9px] px-1.5 py-0.5 font-mono font-black border shrink-0 ${
                         isActive
                           ? 'bg-[#FFE600] text-[#111111] border-[#111111]'
                           : 'bg-[#FFE600] text-[#111111] border-[#111111] shadow-[1px_1px_0px_#111111]'

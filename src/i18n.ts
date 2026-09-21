@@ -32,6 +32,8 @@ export interface TranslationDict {
   careerPassport: string;
   myOutcome: string;
   linkedinIntegration: string;
+  interventions: string;
+  systemLogs: string;
 
   // Career Overview Dashboard
   heroTitle: string;
@@ -140,6 +142,8 @@ const strings: Record<Locale, TranslationDict> = {
     careerPassport: 'Career Passport',
     myOutcome: 'Outcomes',
     linkedinIntegration: 'Network',
+    interventions: 'Interventions',
+    systemLogs: 'System Logs',
 
     heroTitle: 'Find the right jobs. Build the right application.',
     heroSubtitle: 'NEXIS analyzes your profile and resume, finds matching jobs, identifies skill gaps, and prepares tailored application material.',
@@ -244,6 +248,8 @@ const strings: Record<Locale, TranslationDict> = {
     careerPassport: 'कैरियर पासपोर्ट',
     myOutcome: 'परिणाम',
     linkedinIntegration: 'नेटवर्क',
+    interventions: 'हस्तक्षेप',
+    systemLogs: 'सिस्टम लॉग',
 
     heroTitle: 'सही नौकरियां खोजें। सही आवेदन तैयार करें।',
     heroSubtitle: 'NEXIS आपकी प्रोफ़ाइल और रिज़्यूमे का विश्लेषण करता है, उपयुक्त नौकरियां ढूंढता है, कौशल अंतराल बताता है और आवेदन सामग्री तैयार करता है।',
@@ -348,6 +354,8 @@ const strings: Record<Locale, TranslationDict> = {
     careerPassport: 'करिअर पासपोर्ट',
     myOutcome: 'परिणाम',
     linkedinIntegration: 'नेटवर्क',
+    interventions: 'हस्तक्षेप',
+    systemLogs: 'सिस्टम लॉग',
 
     heroTitle: 'योग्य नोकऱ्या शोधा. योग्य अर्ज तयार करा.',
     heroSubtitle: 'NEXIS तुमच्या प्रोफाइल आणि रिझ्युमेचे विश्लेषण करते, योग्य नोकऱ्या शोधते, कौशल्य तफावत ओळखते आणि लक्ष्यित अर्ज तयार करते.',

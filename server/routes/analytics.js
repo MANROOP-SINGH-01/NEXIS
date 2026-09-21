@@ -31,11 +31,10 @@
 
 import crypto from 'crypto'
 import { Router } from 'express'
-import prisma from '../lib/prisma.js'
+import prisma, { withDbTimeout } from '../lib/prisma.js'
 import { requireAdmin, logAdminAction } from '../utils/adminAuth.js'
 import { computeRelevanceScores } from '../services/relevanceScoringService.js'
 import { computeImpact } from '../services/impactMeasurementService.js'
-
 
 const router = Router()
 
@@ -264,7 +263,7 @@ router.post('/admin/compute-relevance-scores', requireAdmin('ANALYST'), async (r
 // Role required: ANALYST
 router.get('/analytics/course-relevance', requireAdmin('ANALYST'), async (req, res) => {
   try {
-    const allScores = await prisma.courseRelevanceScore.findMany()
+    const allScores = await withDbTimeout(prisma.courseRelevanceScore.findMany(), 1500).catch(() => [])
 
     const scored = []
     const unscored = []

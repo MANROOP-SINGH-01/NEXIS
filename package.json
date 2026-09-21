@@ -1,6 +1,6 @@
 {
-  "name": "forgev3",
-  "description": "Forge v3: 3D career orchestration platform with Nexus agent workflows",
+  "name": "nexis",
+  "description": "NEXIS: Longitudinal Career Outcome Intelligence & 3D Agent Simulation Platform (SIH26135)",
   "license": "MIT",
   "author": "prkhrexists",
   "repository": {
@@ -20,7 +20,10 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "test": "playwright test tests/unit",
+    "test": "playwright test -c playwright.unit.config.ts",
+    "test:unit": "playwright test -c playwright.unit.config.ts",
+    "test:contract": "playwright test tests/contract",
+    "test:all": "playwright test -c playwright.unit.config.ts && playwright test tests/contract",
     "test:resume": "node scripts/test_resume_dual_format.mjs",
     "test:pipeline": "node scripts/run_benchmark_pipeline.mjs",
     "test:e2e": "playwright test tests/e2e",
