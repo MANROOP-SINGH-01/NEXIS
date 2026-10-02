@@ -21,5 +21,8 @@
       "source": "/((?!api/|assets/|models/|favicon.ico|sw.js).*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "github": {
+    "enabled": false
+  }
 }
