@@ -33,5 +33,5 @@ jobs:
             exit 0
           fi
           echo 'New upstream changes found. Merging...'
-          git merge upstream/main -m 'chore: auto-sync latest changes from upstream' --no-edit
+          git merge upstream/main -m 'chore: auto-sync latest changes from upstream' --no-edit --allow-unrelated-histories -X ours
           git push origin main
